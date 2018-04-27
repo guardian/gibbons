@@ -19,6 +19,10 @@ class BonoboServiceInterpreter extends BonoboService[TestProgram] {
     (s, keys.get(keyId))
   }
 
+  def getKeyCountFor(userId: UserId) = State[Repo, Int] { case s@(keys, _) =>
+    (s, keys.values.filter(_.userId == userId).size)
+  }
+
   def getInactiveKeys(period: TemporalAmount) = State[Repo, Vector[Key]] { case s@(keys, _) =>
     val res = keys.filter { 
       case (_, key) => key.remindedOn.exists { t => fixtures.today.minus(period).toInstant.compareTo(t) >= 0 }
