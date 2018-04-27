@@ -16,9 +16,10 @@ lazy val root = (project in file(".")).
     libraryDependencies ++= Seq(
       cats,
       scanamo,
+      okhttp,
       lambdaLog4J,
       log4jCore,
       log4jApi,
       scalaTest % Test
-    ) ++ monix
+    ) ++ monix ++ circe
   )
