@@ -3,7 +3,7 @@ package com.gu.bonobo
 // ------------------------------------------------------------------------
 import cats.Monad
 import config.Configuration
-import model.{KeyId, UserId}
+import model._
 import services._
 // ------------------------------------------------------------------------
 
@@ -20,7 +20,7 @@ class UserSaidNo[F[_] : Monad](bonobo: BonoboService[F], logger: LoggingService[
     *
     * @param keyId the ID of the key to be deleted
     */
-  def run(keyId: KeyId): F[Result] = for {
+  def run(keyId: KeyId): F[BonoboResult] = for {
     _ <- logger.info(s"User is no longer using the API, let's get rid of key $keyId")
     key <- bonobo.getKey(keyId)
     res <- key match {

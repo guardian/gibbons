@@ -4,7 +4,7 @@ package com.gu.bonobo
 import cats.Monad
 import config.Configuration
 import java.time.Instant
-import model.KeyId
+import model._
 import services._
 // ------------------------------------------------------------------------
 
@@ -21,7 +21,7 @@ class UserSaidYes[F[_] : Monad](bonobo: BonoboService[F], logger: LoggingService
     *
     * @param keyId the ID of the key to be extended
     */
-  def run(keyId: KeyId): F[Result] = for {
+  def run(keyId: KeyId): F[BonoboResult] = for {
     _ <- logger.info(s"We are extending key $keyId for another $Configuration.inactivityPeriod")
     key <- bonobo.getKey(keyId)
     res <- key match {

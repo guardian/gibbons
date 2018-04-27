@@ -50,5 +50,5 @@ object Key {
 
 
 sealed trait BonoboResult
-case object Success extends Result
-case class KeyNotFound(keyId: KeyId) extends Result
+case object Success extends BonoboResult
+case class KeyNotFound(keyId: KeyId) extends BonoboResult
