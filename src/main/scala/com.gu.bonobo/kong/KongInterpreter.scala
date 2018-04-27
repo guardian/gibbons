@@ -19,7 +19,7 @@ class KongInterpreter(logger: LoggingService[Task]) extends (KongServiceF ~> Tas
   def apply[A](op: KongServiceF[A]): Task[A] = op match {
     case DeleteKey(consumerId) => for {
       kongKey <- getKeyIdFor(consumerId)
-      _ <- deleteKey(kongKey)
+      _ <- kongKey.fold(Task.now(()))(deleteKey(consumerId, _))
     } yield ()
     case GetKey(consumerId) => getKeyIdFor(consumerId)
   }
@@ -39,8 +39,8 @@ class KongInterpreter(logger: LoggingService[Task]) extends (KongServiceF ~> Tas
     }
   }
 
-  private def deleteKey(kongKey: KongKey): Task[Unit] = Task {
-    val request = new Request.Builder().url(s"$serverUrl/consumers/$consumerId/key-auth/${kongKey.id}").delete()
+  private def deleteKey(consumerId: UserId, kongKey: KongKey): Task[Unit] = Task {
+    val request = new Request.Builder().url(s"$serverUrl/consumers/${consumerId.id}/key-auth/${kongKey.id}").delete().build
     val response = client.newCall(request).execute()
 
     response.code match {
@@ -50,7 +50,7 @@ class KongInterpreter(logger: LoggingService[Task]) extends (KongServiceF ~> Tas
   }
 
   private def queryFail(resp: Response) =
-    fail(s"Something went wrong while querying Kong: ${response.code} - ${response.message}")
+    fail(s"Something went wrong while querying Kong: ${resp.code} - ${resp.message}")
 
   private def fail(str: String) = {
     logger.warn(str)
