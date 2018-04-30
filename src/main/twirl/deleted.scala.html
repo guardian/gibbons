@@ -1,0 +1,19 @@
+@import com.gu.bonobo.model.{Key, Email}
+@import java.time.{Instant, ZoneOffset}
+@(to: Email, keys: Vector[Key])
+
+@shell("Your API keys have been revoked!") {
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td class="content-block">
+        <p>Dear @to,<br><br>blablabla GDPR.</p>
+        <p>Please take note that the following keys have been removed from our system and cannot be used to access our Content API anymore:</p>
+      </td>
+    </tr>
+    <tr>
+      <td class="content-block">
+        @keysTable(keys)
+      </td>
+    </tr>
+  </table>
+}

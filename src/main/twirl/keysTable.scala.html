@@ -1,0 +1,18 @@
+@import com.gu.bonobo.model.Key
+@import java.time.{LocalDateTime, ZoneOffset}
+@(keys: Vector[Key])
+
+<table>
+  <thead>
+    <tr>
+      <td>Key ID</td>
+      <td>Created on</td>
+    </tr>
+  </thead>
+  @keys.map { key =>
+    <tr>
+      <td>@key.id</td>
+      <td>@LocalDateTime.ofInstant(key.createdOn, ZoneOffset.UTC)</td>
+    </tr>
+  }
+</table>
