@@ -4,6 +4,7 @@ import org.scalatest._
 import fixtures._
 import services._
 import model._
+import config._
 
 class IntegrationTests extends FlatSpec {
     val emailService = new EmailServiceInterpreter {}
@@ -19,6 +20,7 @@ class IntegrationTests extends FlatSpec {
         val ((newKeys, _, emailService), sentEmails) = userReminder.run(todayInstant).run((keys, users, Set.empty)).value
         val remindedUsers = newKeys.filter(_._2.remindedOn.exists(_ == todayInstant)).map(_._2.userId).toSet
         assert(remindedUsers.forall(u => emailService.contains(users(u).email)))
+        assert(sentEmails.length == emailService.size)
     }
 
     "The SaidNo service" should "delete the key" in {
@@ -47,5 +49,10 @@ class IntegrationTests extends FlatSpec {
         val (repos, res) = userSaidYes.run(sampleKey).run((keys, users, Set.empty)).value
         assert(repos._1 == keys)
         assert(res == KeyNotFound(sampleKey))
+    }
+
+    "The DidNotAnswer service" should "remove expired keys" in {
+        val ((newKeys, _, emailService), _) = userDidNotAnswer.run.run((keys, users, Set.empty)).value
+        assert(newKeys.filter(_._2.remindedOn.exists(t => today.minus(Configuration.gracePeriod).toInstant.compareTo(t) >= 0)).size == 0)
     }
 }
