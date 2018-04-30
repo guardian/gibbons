@@ -8,11 +8,16 @@ object Dependencies {
   lazy val log4jApi = "org.apache.logging.log4j" % "log4j-api" % "2.11.0"
   lazy val scanamo = "com.gu" %% "scanamo" % "1.0.0-M6"
   lazy val okhttp = "com.squareup.okhttp3" % "okhttp" % "3.10.0"
-  
-  val monixVersion = "2.3.3"
+
+  val awsVersion = "1.11.319"
+  lazy val aws = Seq(
+    "com.amazonaws" % "aws-java-sdk-ses"
+  ).map(_ % awsVersion)
+
+  val monixVersion = "3.0.0-RC1"
   lazy val monix = Seq(
     "io.monix" %% "monix-eval",
-    "io.monix" %% "monix-cats"
+    "io.monix" %% "monix-java"
   ).map(_ % monixVersion)
 
 
