@@ -16,35 +16,35 @@ class IntegrationTests extends FlatSpec {
     val userSaidNo = new UserSaidNo(bonoboService, loggingService)
 
     "The Reminder service" should "send reminders, duh" in {
-        val (repos, sentEmails) = userReminder.run.run((keys, users)).value
-        val sentKeys = repos._1.filter(_._2.remindedOn.exists(_ == today)).keys
-        assert(sentKeys.forall { k => sentEmails.exists(_.msgId.contains(k)) })
+        val ((newKeys, _, emailService), sentEmails) = userReminder.run(todayInstant).run((keys, users, Set.empty)).value
+        val remindedUsers = newKeys.filter(_._2.remindedOn.exists(_ == todayInstant)).map(_._2.userId).toSet
+        assert(remindedUsers.forall(u => emailService.contains(users(u).email)))
     }
 
     "The SaidNo service" should "delete the key" in {
         val sampleKey = keys.keys.head
-        val (repos, res) = userSaidNo.run(sampleKey).run((keys, users)).value
+        val (repos, res) = userSaidNo.run(sampleKey).run((keys, users, Set.empty)).value
         assert(!repos._1.contains(sampleKey))
         assert(res == Success)
     }
 
     "The SaidNo service" should "warn if the key does not exist" in {
         val sampleKey = KeyId("blablabla")
-        val (repos, res) = userSaidNo.run(sampleKey).run((keys, users)).value
+        val (repos, res) = userSaidNo.run(sampleKey).run((keys, users, Set.empty)).value
         assert(repos._1 == keys)
         assert(res == KeyNotFound(sampleKey))
     }
 
     "The SaidYes service" should "extend the key lifetime" in {
         val sampleKey = keys.keys.head
-        val (repos, res) = userSaidYes.run(sampleKey).run((keys, users)).value
-        assert(!repos._1.get(sampleKey).exists(_.remindedOn == today.toInstant))
+        val (repos, res) = userSaidYes.run(sampleKey).run((keys, users, Set.empty)).value
+        assert(!repos._1.get(sampleKey).exists(_.remindedOn == todayInstant))
         assert(res == Success)
     }
 
     "The SaidYes service" should "warn if the key does not exist" in {
         val sampleKey = KeyId("blablabla")
-        val (repos, res) = userSaidYes.run(sampleKey).run((keys, users)).value
+        val (repos, res) = userSaidYes.run(sampleKey).run((keys, users, Set.empty)).value
         assert(repos._1 == keys)
         assert(res == KeyNotFound(sampleKey))
     }

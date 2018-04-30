@@ -9,12 +9,14 @@ import model._
 package object services {
   type KeyRepo = Map[KeyId, Key]
   type UserRepo = Map[UserId, User]
-  type Repo = (KeyRepo, UserRepo)
+  type EmailRepo = Set[Email]
+  type Repo = (KeyRepo, UserRepo, EmailRepo)
   type TestProgram[A] = State[Repo, A]
 }
 
 package object fixtures {
     val today = OffsetDateTime.of(2018, 4, 25, 10, 15, 30, 0, ZoneOffset.UTC)
+    val todayInstant = today.toInstant
 
     val users: Map[UserId, User] = Map(Seq(
         User.create("user0", "Florence Bowen", "florence.bowen@domain.com"),

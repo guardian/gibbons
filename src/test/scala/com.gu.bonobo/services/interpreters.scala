@@ -8,34 +8,34 @@ import java.time.temporal.TemporalAmount
 import model._
 
 class BonoboServiceInterpreter extends BonoboService[TestProgram] {
-  def getKeys(period: TemporalAmount) = State[Repo, Vector[Key]] { case s@(keys: KeyRepo, _) =>
+  def getKeys(period: TemporalAmount) = State[Repo, Vector[Key]] { case s@(keys, _, _) =>
     val res = keys.filter { 
       case (_, key) => fixtures.today.minus(period).toInstant.compareTo(key.extendedOn.getOrElse(key.createdOn)) >= 0
     }.values.toVector
     (s, res)
   }
 
-  def getKey(keyId: KeyId) = State[Repo, Option[Key]] { case s@(keys, _) =>
+  def getKey(keyId: KeyId) = State[Repo, Option[Key]] { case s@(keys, _, _) =>
     (s, keys.get(keyId))
   }
 
-  def getKeyCountFor(userId: UserId) = State[Repo, Int] { case s@(keys, _) =>
+  def getKeyCountFor(userId: UserId) = State[Repo, Int] { case s@(keys, _, _) =>
     (s, keys.values.filter(_.userId == userId).size)
   }
 
-  def getInactiveKeys(period: TemporalAmount) = State[Repo, Vector[Key]] { case s@(keys, _) =>
+  def getInactiveKeys(period: TemporalAmount) = State[Repo, Vector[Key]] { case s@(keys, _, _) =>
     val res = keys.filter { 
       case (_, key) => key.remindedOn.exists { t => fixtures.today.minus(period).toInstant.compareTo(t) >= 0 }
     }.values.toVector
     (s, res)
   }
 
-  def deleteKey(keyId: KeyId) = State[Repo, Unit] { case (keys, users) =>
+  def deleteKey(keyId: KeyId) = State[Repo, Unit] { case (keys, users, es) =>
     val newKeys = keys - keyId
-    ((newKeys, users), ())
+    ((newKeys, users, es), ())
   }
 
-  def setExtendedOn(keyId: KeyId, when: Instant) = State[Repo, Unit] { case (keys, users) =>
+  def setExtendedOn(keyId: KeyId, when: Instant) = State[Repo, Unit] { case (keys, users, es) =>
     val newKeys = for {
       key <- keys.get(keyId)
     } yield {
@@ -43,10 +43,10 @@ class BonoboServiceInterpreter extends BonoboService[TestProgram] {
       keys.updated(keyId, newKey)
     }
     
-    ((newKeys.getOrElse(keys), users), ())
+    ((newKeys.getOrElse(keys), users, es), ())
   }
 
-  def setRemindedOn(keyId: KeyId, when: Instant) = State[Repo, Unit] { case (keys, users) =>
+  def setRemindedOn(keyId: KeyId, when: Instant) = State[Repo, Unit] { case (keys, users, es) =>
     val newKeys = for {
       key <- keys.get(keyId)
     } yield {
@@ -54,15 +54,15 @@ class BonoboServiceInterpreter extends BonoboService[TestProgram] {
       keys.updated(keyId, newKey)
     }
     
-    ((newKeys.getOrElse(keys), users), ())
+    ((newKeys.getOrElse(keys), users, es), ())
   }
 
-  def getUser(userId: UserId) = State[Repo, Option[User]] { case s@(_, users) =>
+  def getUser(userId: UserId) = State[Repo, Option[User]] { case s@(_, users, _) =>
     (s, users.get(userId))
   }
 
-  def deleteUser(userId: UserId) = State[Repo, Unit] { case (keys, users) =>
-    ((keys, users - userId), ())
+  def deleteUser(userId: UserId) = State[Repo, Unit] { case (keys, users, es) =>
+    ((keys, users - userId, es), ())
   }
 }
 
@@ -91,7 +91,11 @@ class EmailServiceInterpreter extends EmailService[TestProgram] {
       |${keys.mkString(",")}""".stripMargin
   )
 
-  def sendReminder(origin: Email, destination: Destination, keys: Vector[Key]) = Monad[TestProgram].pure(result("Reminder email", origin, destination, keys))
+  def sendReminder(origin: Email, destination: Destination, keys: Vector[Key]) = State[Repo, EmailResult] { case (ks, us, emails) =>
+    ((ks, us, emails + destination.to), result("Reminder email", origin, destination, keys))
+  }
   
-  def sendDeleted(origin: Email, destination: Destination, keys: Vector[Key]) = Monad[TestProgram].pure(result("Deletion email", origin, destination, keys))
+  def sendDeleted(origin: Email, destination: Destination, keys: Vector[Key]) = State[Repo, EmailResult] { case (ks, us, emails) =>
+    ((ks, us, emails + destination.to), result("Deletion email", origin, destination, keys))
+  }
 }

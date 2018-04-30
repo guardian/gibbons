@@ -27,9 +27,7 @@ class UserReminder[F[_] : Monad](email: EmailService[F], bonobo: BonoboService[F
       * 3- Sends a reminder email to each user 
       * 4- Update keys to log when a reminder has been sent
       */
-    def run: F[Vector[EmailResult]] = {
-      val now = Instant.now
-
+    def run(now: Instant = Instant.now): F[Vector[EmailResult]] = {
       for {
           _ <- logger.info(s"Getting all the keys older than ${Configuration.inactivityPeriod}")
           keys <- bonobo.getKeys(Configuration.inactivityPeriod)
