@@ -52,9 +52,9 @@ case class KeyId(val id: String) extends AnyVal
   */
 case class Key(
   hashKey: String,
-  rangeKey: String,
+  rangeKey: KeyId,
   userId: UserId,
-  kongId: KeyId,
+  kongId: UserId,
   keyValue: String,
   createdOn: Instant,
   extendedOn: Option[Instant],
@@ -74,7 +74,7 @@ object Key {
       keyValue <- attrs.get("keyValue").flatMap(a => Option(a.getS))
       kongId <- attrs.get("kongConsumerId").flatMap(a => Option(a.getS))
     } yield Key(
-      hashKey, rangeKey, UserId(userId), KeyId(kongId), keyValue, 
+      hashKey, KeyId(rangeKey), UserId(userId), UserId(kongId), keyValue, 
       Instant.ofEpochMilli(createdAt),
       extendedAt.map(Instant.ofEpochMilli(_)),
       remindedAt.map(Instant.ofEpochMilli(_))
@@ -85,7 +85,7 @@ object Key {
   }
 
   def create(id: String, userId: String, createdOn: String, extendedOn: Option[String] = None, remindedOn: Option[String] = None) =
-    Key("", "", UserId(userId), KeyId(id), "", Instant.parse(createdOn), extendedOn.map(Instant.parse(_)), remindedOn.map(Instant.parse(_)))
+    Key("", KeyId(id), UserId(userId), UserId(id), "", Instant.parse(createdOn), extendedOn.map(Instant.parse(_)), remindedOn.map(Instant.parse(_)))
 }
 
 

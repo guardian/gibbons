@@ -41,14 +41,14 @@ class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: Logging
     getKeysMatching(period, attributeExists('remindedOn) and 'remindedOn <= jadis)
   }
 
-  def deleteKey(keyId: KeyId) = getKey(keyId) >>= {
+  def deleteKey(key: Key) = getKey(key.rangeKey) >>= {
     case Some(key) => deleteKeyInDynamo(key) *> deleteKeyInKong(key)
     case None => Task.now(())
   }
 
-  def setExtendedOn(keyId: KeyId, when: Instant) = updateTime(keyId, 'extendedOn, when.toEpochMilli) 
+  def setExtendedOn(key: Key, when: Instant) = updateTime(key, 'extendedOn, when.toEpochMilli) 
 
-  def setRemindedOn(keyId: KeyId, when: Instant) = updateTime(keyId, 'remindedOn, when.toEpochMilli) 
+  def setRemindedOn(key: Key, when: Instant) = updateTime(key, 'remindedOn, when.toEpochMilli) 
 
   def getUser(userId: UserId) = run {
     usersTable.query('id -> userId.id).map(_.headOption.collect { case Right(user) => user })
@@ -79,7 +79,7 @@ class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: Logging
   }
 
   private def deleteKeyInKong(key: Key) =
-    KongService.deleteKey(key.userId).foldMap(kong)
+    KongService.deleteKey(key.kongId).foldMap(kong)
 
   private def getKeysMatching[C: ConditionExpression](period: TemporalAmount, filter: C) = run {
     keysTable
@@ -88,7 +88,7 @@ class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: Logging
       .map(_.collect { case Right(key) => key }.toVector)
   }
 
-  private def updateTime(keyId: KeyId, col: Symbol, value: Long) = run {
-    keysTable.update(hashKeyName -> hashKey and rangeKeyName -> keyId.id, set(col -> value)).map(_ => ())
+  private def updateTime(key: Key, col: Symbol, value: Long) = run {
+    keysTable.update(hashKeyName -> hashKey and rangeKeyName -> key.rangeKey.id, set(col -> value)).map(_ => ())
   }
 }

@@ -27,7 +27,7 @@ class UserSaidNo[F[_] : Monad](bonobo: BonoboService[F], logger: LoggingService[
       case None => 
         logger.warn(s"Woops, it appears key $keyId does not exist anymore") >> Monad[F].pure(KeyNotFound(keyId))
       case Some(key) => for {
-        _ <- bonobo.deleteKey(keyId)
+        _ <- bonobo.deleteKey(key)
         _ <- logger.info(s"Boom! Done.")
         _ <- deleterUserIfNeeded(key.userId)
       } yield Success

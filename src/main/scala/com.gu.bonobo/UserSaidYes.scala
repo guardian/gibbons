@@ -27,8 +27,8 @@ class UserSaidYes[F[_] : Monad](bonobo: BonoboService[F], logger: LoggingService
     res <- key match {
       case None => 
         logger.warn(s"Woops, it appears key $keyId does not exist anymore") >> Monad[F].pure(KeyNotFound(keyId))
-      case Some(_) => for {
-        _ <- bonobo.setExtendedOn(keyId, Instant.now)
+      case Some(key) => for {
+        _ <- bonobo.setExtendedOn(key, Instant.now)
         _ <- logger.info(s"Voila Monsieur!")
       } yield Success
     }

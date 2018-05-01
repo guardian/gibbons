@@ -39,24 +39,24 @@ trait BonoboService[F[_]] {
 
     /** Deletes a key
       *
-      * @param keyId The ID of the key
+      * @param key The key
       */
-    def deleteKey(keyId: KeyId): F[Unit]
+    def deleteKey(key: Key): F[Unit]
 
     /** Extend the key for another 30 months
       *
-      * @param keyId The ID of the key
+      * @param key The key
       */
-    def setExtendedOn(keyId: KeyId, when: Instant): F[Unit]
+    def setExtendedOn(key: Key, when: Instant): F[Unit]
 
     /** Start the clock for a 14 days grace period. Users
       * have 14 days to take appropriate action for their
       * keys after receiving the email. If they don't their
       * keys will be automatically deleted.
       *
-      * @param keyId The ID of the key
+      * @param key The key
       */
-    def setRemindedOn(keyId: KeyId, when: Instant): F[Unit]
+    def setRemindedOn(key: Key, when: Instant): F[Unit]
 
     /** Gets user by ID
       *

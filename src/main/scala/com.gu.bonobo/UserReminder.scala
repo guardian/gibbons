@@ -37,7 +37,7 @@ class UserReminder[F[_] : Monad](email: EmailService[F], bonobo: BonoboService[F
           _ <- logger.info(s"Found ${users.length} users. Let's send some emails...")
           ress <- users.traverse(user => email.sendReminder(Configuration.origin, Destination(user.email), keysByUser(user.id)))
           _ <- logger.info(s"Sent all the emailz! Let's make sure we keep track of that...")
-          _ <- keys.traverse(key => bonobo.setRemindedOn(key.id, now))
+          _ <- keys.traverse(key => bonobo.setRemindedOn(key, now))
           _ <- logger.info("aaaand that's a wrap! See you next time.")
       } yield ress
     }

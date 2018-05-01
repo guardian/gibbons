@@ -33,7 +33,7 @@ class UserDidNotAnswer[F[_] : Monad](email: EmailService[F], bonobo: BonoboServi
         keysByUser = keys.groupBy(_.userId)
         users <- keysByUser.keys.toVector.traverse(id => bonobo.getUser(id)).map(_.flatten)
         _ <- logger.info(s"Found ${users.length} users. Let's delete these keys...")
-        _ <- keys.traverse(key => bonobo.deleteKey(key.id))
+        _ <- keys.traverse(key => bonobo.deleteKey(key))
         _ <- logger.info("Swell! Now we can send a last email to those poor souls...")
         _ <- users.traverse(user => email.sendDeleted(Configuration.origin, Destination(user.email), keysByUser(user.id)))
         _ <- logger.info("That's a wrap! See ya.")
