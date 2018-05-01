@@ -1,8 +1,11 @@
 package com.gu.bonobo
 package model
 
-// import db._
+import com.amazonaws.services.dynamodbv2.model.AttributeValue
+import com.gu.scanamo.DynamoFormat
+import com.gu.scanamo.error.{DynamoReadError, MissingProperty}
 import java.time.Instant
+import scala.collection.JavaConverters._
 
 /** A developer using the Content API
   * 
@@ -18,6 +21,18 @@ case class User(
 )
 
 object User {
+  implicit val dynamoFormat = new DynamoFormat[User] {
+    def read(av: AttributeValue) = (for {
+      attrs <- Option(av.getM).map(_.asScala)
+      id <- attrs.get("id").flatMap(a => Option(a.getS))
+      email <- attrs.get("email").flatMap(a => Option(a.getS))
+      name <- attrs.get("name").flatMap(a => Option(a.getS))
+    } yield User(UserId(id), name, Email(email))).fold(Left(MissingProperty): Either[DynamoReadError, User])(Right(_))
+
+    // we will never add a new record
+    def write(u: User) = new AttributeValue()
+  }
+
   def create(id: String, name: String, email: String) =
     User(UserId(id), name, Email(email))
 }
@@ -38,16 +53,39 @@ case class KeyId(val id: String) extends AnyVal
 case class Key(
   hashKey: String,
   rangeKey: String,
-  id: KeyId,
   userId: UserId,
+  kongId: KeyId,
+  keyValue: String,
   createdOn: Instant,
   extendedOn: Option[Instant],
   remindedOn: Option[Instant]
 )
 
 object Key {
+  implicit val dynamoFormat = new DynamoFormat[Key] {
+    def read(av: AttributeValue) = (for {
+      attrs <- Option(av.getM).map(_.asScala)
+      hashKey <- attrs.get("hashkey").flatMap(a => Option(a.getS))
+      rangeKey <- attrs.get("rangekey").flatMap(a => Option(a.getS))
+      userId <- attrs.get("bonoboId").flatMap(a => Option(a.getS))
+      createdAt <- attrs.get("createdAt").flatMap(a => Option(a.getN)).map(_.toLong)
+      extendedAt <- attrs.get("extendedAt").flatMap(a => Option(a.getN)).map(n => Some(n.toLong)).orElse(Some(None))
+      remindedAt <- attrs.get("remindedAt").flatMap(a => Option(a.getN)).map(n => Some(n.toLong)).orElse(Some(None))
+      keyValue <- attrs.get("keyValue").flatMap(a => Option(a.getS))
+      kongId <- attrs.get("kongConsumerId").flatMap(a => Option(a.getS))
+    } yield Key(
+      hashKey, rangeKey, UserId(userId), KeyId(kongId), keyValue, 
+      Instant.ofEpochMilli(createdAt),
+      extendedAt.map(Instant.ofEpochMilli(_)),
+      remindedAt.map(Instant.ofEpochMilli(_))
+    )).fold(Left(MissingProperty): Either[DynamoReadError, Key])(Right(_))
+
+    // we will never add a new record
+    def write(k: Key) = new AttributeValue()
+  }
+
   def create(id: String, userId: String, createdOn: String, extendedOn: Option[String] = None, remindedOn: Option[String] = None) =
-    Key("", "", KeyId(id), UserId(userId), Instant.parse(createdOn), extendedOn.map(Instant.parse(_)), remindedOn.map(Instant.parse(_)))
+    Key("", "", UserId(userId), KeyId(id), "", Instant.parse(createdOn), extendedOn.map(Instant.parse(_)), remindedOn.map(Instant.parse(_)))
 }
 
 
