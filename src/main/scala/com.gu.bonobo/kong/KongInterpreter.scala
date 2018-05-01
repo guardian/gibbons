@@ -2,19 +2,18 @@ package com.gu.bonobo.kong
 
 import cats.~>
 import io.circe.parser._
-import com.gu.bonobo.model.{KeyId, UserId}
-import com.gu.bonobo.services.LoggingService
 import monix.eval.Task
 import okhttp3.{OkHttpClient, Request, Response}
 
-class KongInterpreter(logger: LoggingService[Task]) extends (KongServiceF ~> Task) {
+import com.gu.bonobo.config.Settings
+import com.gu.bonobo.model.{KeyId, UserId}
+import com.gu.bonobo.services.LoggingService
+
+class KongInterpreter(settings: Settings, logger: LoggingService[Task]) extends (KongServiceF ~> Task) {
   import KongKey._
   import KongListConsumerKeys._
 
   private val client = new OkHttpClient();
-
-  // TODO pass configuration down from above
-  val serverUrl = ""
 
   def apply[A](op: KongServiceF[A]): Task[A] = op match {
     case DeleteKey(consumerId) => for {
@@ -25,7 +24,7 @@ class KongInterpreter(logger: LoggingService[Task]) extends (KongServiceF ~> Tas
   }
 
   private def getKeyIdFor(consumerId: UserId): Task[Option[KongKey]] = Task {
-    val request = new Request.Builder().url(s"$serverUrl/consumers/$consumerId/key-auth").build
+    val request = new Request.Builder().url(keyAuthUrl(consumerId)).build
     val response = client.newCall(request).execute()
     
     response.code match {
@@ -40,7 +39,7 @@ class KongInterpreter(logger: LoggingService[Task]) extends (KongServiceF ~> Tas
   }
 
   private def deleteKey(consumerId: UserId, kongKey: KongKey): Task[Unit] = Task {
-    val request = new Request.Builder().url(s"$serverUrl/consumers/${consumerId.id}/key-auth/${kongKey.id}").delete().build
+    val request = new Request.Builder().url(keyAuthUrl(consumerId, Some(kongKey.id))).delete().build
     val response = client.newCall(request).execute()
 
     response.code match {
@@ -56,4 +55,7 @@ class KongInterpreter(logger: LoggingService[Task]) extends (KongServiceF ~> Tas
     logger.warn(str)
     throw new Throwable(str)
   }
+
+  private def keyAuthUrl(consumerId: UserId, keyId: Option[String] = None) =
+    s"""${settings.kongServerProtocol}://${settings.kongServerName}/consumers/${consumerId.id}/key-auth${keyId.map("/" + _).getOrElse("")}"""
 }

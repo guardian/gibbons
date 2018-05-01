@@ -1,18 +1,24 @@
 @import com.gu.bonobo.model.Key
+@import com.gu.bonobo.ses.UrlGenerator
 @import java.time.{LocalDateTime, ZoneOffset}
-@(keys: Vector[Key])
+@(keys: Vector[Key], gen: UrlGenerator)
 
 <table>
   <thead>
     <tr>
       <td>Key ID</td>
       <td>Created on</td>
+      <td>Action</td>
     </tr>
   </thead>
   @keys.map { key =>
     <tr>
-      <td>@key.id</td>
+      <td>@key.keyValue</td>
       <td>@LocalDateTime.ofInstant(key.createdOn, ZoneOffset.UTC)</td>
+      <td>
+        <a href="@gen.keep(key)">Keep</a> |
+        <a href="@gen.delete(key)">Delete</a>
+      </td>
     </tr>
   }
 </table>

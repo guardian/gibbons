@@ -2,7 +2,7 @@ package com.gu.bonobo
 
 // ------------------------------------------------------------------------
 import cats.Monad
-import config.Configuration
+import config.Settings
 import java.time.Instant
 import model.{Destination, EmailResult}
 import services._
@@ -14,7 +14,7 @@ import services._
   * @param bonobo The bonobo service interpreter
   * @param logger The logging service interpreter
   */
-class UserReminder[F[_] : Monad](email: EmailService[F], bonobo: BonoboService[F], logger: LoggingService[F]) {
+class UserReminder[F[_] : Monad](settings: Settings, email: EmailService[F], bonobo: BonoboService[F], logger: LoggingService[F]) {
     import cats.instances.vector._
     import cats.instances.map._
     import cats.syntax.flatMap._
@@ -29,13 +29,13 @@ class UserReminder[F[_] : Monad](email: EmailService[F], bonobo: BonoboService[F
       */
     def run(now: Instant = Instant.now): F[Vector[EmailResult]] = {
       for {
-          _ <- logger.info(s"Getting all the keys older than ${Configuration.inactivityPeriod}")
-          keys <- bonobo.getKeys(Configuration.inactivityPeriod)
+          _ <- logger.info(s"Getting all the keys older than ${settings.keys.inactivityPeriod}")
+          keys <- bonobo.getKeys(settings.keys.inactivityPeriod)
           _ <- logger.info(s"Found ${keys.length} keys. Let's find out who the belong to...")
           keysByUser = keys.groupBy(_.userId)
           users <- keysByUser.keys.toVector.traverse(id => bonobo.getUser(id)).map(_.flatten)
           _ <- logger.info(s"Found ${users.length} users. Let's send some emails...")
-          ress <- users.traverse(user => email.sendReminder(Configuration.origin, Destination(user.email), keysByUser(user.id)))
+          ress <- users.traverse(user => email.sendReminder(settings.email.origin, Destination(user.email), keysByUser(user.id)))
           _ <- logger.info(s"Sent all the emailz! Let's make sure we keep track of that...")
           _ <- keys.traverse(key => bonobo.setRemindedOn(key, now))
           _ <- logger.info("aaaand that's a wrap! See you next time.")

@@ -1,5 +1,4 @@
-package com.gu.bonobo
-package services
+package com.gu.bonobo.ses
 
 import com.amazonaws.handlers.AsyncHandler
 import com.amazonaws.services.simpleemail.model.{ Destination => SESDestination, Message => SESMessage, _ }
@@ -10,14 +9,15 @@ import monix.java8.eval._
 import scala.collection.JavaConverters._
 import scala.util.{Success, Failure}
 
-import config._
-import model._
+import com.gu.bonobo.config._
+import com.gu.bonobo.model._
+import com.gu.bonobo.services._
 
-final class EmailInterpreter(config: Settings, logger: LoggingService[Task]) extends EmailService[Task] {
+final class EmailInterpreter(settings: Settings, logger: LoggingService[Task]) extends EmailService[Task] {
   def sendReminder(origin: Email, destination: Destination, keys: Vector[Key]) = 
-    sendEmail(origin, destination, config.email.reminderSubject, reminderEmail(destination.to, keys))
+    sendEmail(origin, destination, settings.email.reminderSubject, reminderEmail(destination.to, keys))
   def sendDeleted(origin: Email, destination: Destination, keys: Vector[Key]) = 
-    sendEmail(origin, destination, config.email.deletedSubject, deletedEmail(destination.to, keys))
+    sendEmail(origin, destination, settings.email.deletedSubject, deletedEmail(destination.to, keys))
 
   private def sendEmail(origin: Email, destination: Destination, subject: String, content: String) = Task.create { (_, callback: Callback[EmailResult]) =>
     val request = new SendEmailRequest()
@@ -41,10 +41,12 @@ final class EmailInterpreter(config: Settings, logger: LoggingService[Task]) ext
   }
 
   private val emailClient = AmazonSimpleEmailServiceAsyncClientBuilder.standard()
-    .withCredentials(config.credentialsProvider)
-    .withRegion(config.region)
+    .withCredentials(settings.credentialsProvider)
+    .withRegion(settings.region)
     .build()
 
-  private def reminderEmail(email: Email, keys: Vector[Key]) = html.reminder(email, keys).toString
-  private def deletedEmail(email: Email, keys: Vector[Key]) = html.deleted(email, keys).toString
+  private val gen = new UrlGenerator(settings)
+
+  private def reminderEmail(email: Email, keys: Vector[Key]) = html.reminder(email, keys, gen).toString
+  private def deletedEmail(email: Email, keys: Vector[Key]) = html.deleted(email, keys, gen).toString
 }

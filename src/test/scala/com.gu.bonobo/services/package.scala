@@ -1,7 +1,7 @@
 package com.gu.bonobo
 
 import cats.data.State
-import config.Configuration
+import config.Settings
 import java.time.{Instant, OffsetDateTime, ZoneOffset}
 import java.time.temporal.ChronoUnit
 import model._

@@ -16,6 +16,8 @@ class IntegrationTests extends FlatSpec {
     val userSaidYes = new UserSaidYes(bonoboService, loggingService)
     val userSaidNo = new UserSaidNo(bonoboService, loggingService)
 
+    val settings = 
+
     "The Reminder service" should "send reminders, duh" in {
         val ((newKeys, _, emailService), sentEmails) = userReminder.run(todayInstant).run((keys, users, Set.empty)).value
         val remindedUsers = newKeys.filter(_._2.remindedOn.exists(_ == todayInstant)).map(_._2.userId).toSet
@@ -53,6 +55,6 @@ class IntegrationTests extends FlatSpec {
 
     "The DidNotAnswer service" should "remove expired keys" in {
         val ((newKeys, _, emailService), _) = userDidNotAnswer.run.run((keys, users, Set.empty)).value
-        assert(newKeys.filter(_._2.remindedOn.exists(t => today.minus(Configuration.gracePeriod).toInstant.compareTo(t) >= 0)).size == 0)
+        assert(newKeys.filter(_._2.remindedOn.exists(t => today.minus(settings.keys.gracePeriod).toInstant.compareTo(t) >= 0)).size == 0)
     }
 }

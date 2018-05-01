@@ -2,7 +2,7 @@ package com.gu.bonobo
 
 // ------------------------------------------------------------------------
 import cats.Monad
-import config.Configuration
+import config.Settings
 import model._
 import services._
 // ------------------------------------------------------------------------
