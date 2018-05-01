@@ -2,7 +2,7 @@ import Dependencies._
 
 lazy val root = (project in file(".")).
   settings(
-    name := "bonobo-gdpr",
+    name := "gibbons",
     inThisBuild(List(
       organization  := "com.example",
       scalaVersion  := "2.12.5",

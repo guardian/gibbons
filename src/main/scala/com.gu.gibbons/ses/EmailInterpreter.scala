@@ -1,4 +1,4 @@
-package com.gu.bonobo.ses
+package com.gu.gibbons.ses
 
 import com.amazonaws.handlers.AsyncHandler
 import com.amazonaws.services.simpleemail.model.{ Destination => SESDestination, Message => SESMessage, _ }
@@ -9,9 +9,9 @@ import monix.java8.eval._
 import scala.collection.JavaConverters._
 import scala.util.{Success, Failure}
 
-import com.gu.bonobo.config._
-import com.gu.bonobo.model._
-import com.gu.bonobo.services._
+import com.gu.gibbons.config._
+import com.gu.gibbons.model._
+import com.gu.gibbons.services._
 
 final class EmailInterpreter(settings: Settings, logger: LoggingService[Task]) extends EmailService[Task] {
   def sendReminder(origin: Email, destination: Destination, keys: Vector[Key]) = 

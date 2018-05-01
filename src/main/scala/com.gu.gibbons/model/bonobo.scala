@@ -1,4 +1,4 @@
-package com.gu.bonobo
+package com.gu.gibbons
 package model
 
 import com.amazonaws.services.dynamodbv2.model.AttributeValue

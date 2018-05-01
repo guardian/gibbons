@@ -1,4 +1,4 @@
-package com.gu.bonobo.kong
+package com.gu.gibbons.kong
 
 import io.circe._
 import io.circe.generic.semiauto._

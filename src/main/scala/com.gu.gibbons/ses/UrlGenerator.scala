@@ -1,9 +1,9 @@
-package com.gu.bonobo.ses
+package com.gu.gibbons.ses
 
 import java.security.MessageDigest
 
-import com.gu.bonobo.config.Settings
-import com.gu.bonobo.model.Key
+import com.gu.gibbons.config.Settings
+import com.gu.gibbons.model.Key
 
 class UrlGenerator(settings: Settings) {
   def keep(key: Key): String = settings.email.lambdaYesUrl + s"?${params(key)}"

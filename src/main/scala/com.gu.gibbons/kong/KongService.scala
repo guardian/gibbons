@@ -1,7 +1,7 @@
-package com.gu.bonobo.kong
+package com.gu.gibbons.kong
 
 import cats.free.Free
-import com.gu.bonobo.model.{UserId, Key}
+import com.gu.gibbons.model.{UserId, Key}
 
 sealed trait KongServiceF[A]
 case class DeleteKey(consumerId: UserId) extends KongServiceF[Unit]

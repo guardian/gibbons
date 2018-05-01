@@ -1,4 +1,4 @@
-package com.gu.bonobo
+package com.gu.gibbons
 
 import org.scalatest._
 import fixtures._

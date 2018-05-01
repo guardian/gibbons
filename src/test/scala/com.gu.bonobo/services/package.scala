@@ -1,4 +1,4 @@
-package com.gu.bonobo
+package com.gu.gibbons
 
 import cats.data.State
 import config.Settings

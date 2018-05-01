@@ -1,4 +1,4 @@
-package com.gu.bonobo
+package com.gu.gibbons
 package config
 
 import com.amazonaws.auth.AWSCredentialsProvider

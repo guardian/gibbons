@@ -1,13 +1,13 @@
-package com.gu.bonobo.kong
+package com.gu.gibbons.kong
 
 import cats.~>
 import io.circe.parser._
 import monix.eval.Task
 import okhttp3.{OkHttpClient, Request, Response}
 
-import com.gu.bonobo.config.Settings
-import com.gu.bonobo.model.{KeyId, UserId}
-import com.gu.bonobo.services.LoggingService
+import com.gu.gibbons.config.Settings
+import com.gu.gibbons.model.{KeyId, UserId}
+import com.gu.gibbons.services.LoggingService
 
 class KongInterpreter(settings: Settings, logger: LoggingService[Task]) extends (KongServiceF ~> Task) {
   import KongKey._
