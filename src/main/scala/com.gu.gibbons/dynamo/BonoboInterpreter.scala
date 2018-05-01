@@ -59,7 +59,6 @@ class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: Logging
   }
 
   private val dynamoClient = AmazonDynamoDBAsyncClientBuilder.standard()
-    .withCredentials(config.credentialsProvider)
     .withRegion(config.region)
     .build()
 

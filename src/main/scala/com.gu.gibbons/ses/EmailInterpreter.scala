@@ -41,7 +41,6 @@ final class EmailInterpreter(settings: Settings, logger: LoggingService[Task]) e
   }
 
   private val emailClient = AmazonSimpleEmailServiceAsyncClientBuilder.standard()
-    .withCredentials(settings.credentialsProvider)
     .withRegion(settings.region)
     .build()
 
