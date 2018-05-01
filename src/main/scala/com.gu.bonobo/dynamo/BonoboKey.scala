@@ -23,6 +23,8 @@ case class BonoboKey(
   labelIds: Vector[String]
 ) {
   def toKey = Key(
+    hashkey,
+    rangekey,
     KeyId(keyValue),
     UserId(kongConsumerId),
     createdAt,

@@ -36,16 +36,18 @@ case class KeyId(val id: String) extends AnyVal
   * @param remindedOn the time at which a reminder email was sent
   */
 case class Key(
-    id: KeyId,
-    userId: UserId,
-    createdOn: Instant,
-    extendedOn: Option[Instant],
-    remindedOn: Option[Instant]
+  hashKey: String,
+  rangeKey: String,
+  id: KeyId,
+  userId: UserId,
+  createdOn: Instant,
+  extendedOn: Option[Instant],
+  remindedOn: Option[Instant]
 )
 
 object Key {
   def create(id: String, userId: String, createdOn: String, extendedOn: Option[String] = None, remindedOn: Option[String] = None) =
-    Key(KeyId(id), UserId(userId), Instant.parse(createdOn), extendedOn.map(Instant.parse(_)), remindedOn.map(Instant.parse(_)))
+    Key("", "", KeyId(id), UserId(userId), Instant.parse(createdOn), extendedOn.map(Instant.parse(_)), remindedOn.map(Instant.parse(_)))
 }
 
 
