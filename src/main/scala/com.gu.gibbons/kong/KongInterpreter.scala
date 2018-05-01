@@ -57,5 +57,5 @@ class KongInterpreter(settings: Settings, logger: LoggingService[Task]) extends 
   }
 
   private def keyAuthUrl(consumerId: UserId, keyId: Option[String] = None) =
-    s"""${settings.kongServerProtocol}://${settings.kongServerName}/consumers/${consumerId.id}/key-auth${keyId.map("/" + _).getOrElse("")}"""
+    s"""${settings.kongServerBasePath}/consumers/${consumerId.id}/key-auth${keyId.map("/" + _).getOrElse("")}"""
 }
