@@ -55,6 +55,6 @@ class IntegrationTests extends FlatSpec {
 
     "The DidNotAnswer service" should "remove expired keys" in {
         val ((newKeys, _, emailService), _) = userDidNotAnswer.run.run((keys, users, Set.empty)).value
-        assert(newKeys.filter(_._2.remindedOn.exists(t => today.minus(settings.keys.gracePeriod).toInstant.compareTo(t) >= 0)).size == 0)
+        assert(newKeys.filter(_._2.remindedOn.exists(t => today.minus(settings.gracePeriod).toInstant.compareTo(t) >= 0)).size == 0)
     }
 }

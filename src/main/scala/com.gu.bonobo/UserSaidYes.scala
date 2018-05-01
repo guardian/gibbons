@@ -4,6 +4,7 @@ package com.gu.bonobo
 import cats.Monad
 import config.Settings
 import java.time.Instant
+import config._
 import model._
 import services._
 // ------------------------------------------------------------------------
@@ -13,7 +14,7 @@ import services._
   * @param bonobo The bonobo service interpreter
   * @param logger The logging service interpreter
   */
-class UserSaidYes[F[_] : Monad](bonobo: BonoboService[F], logger: LoggingService[F]) {
+class UserSaidYes[F[_] : Monad](settings: Settings, bonobo: BonoboService[F], logger: LoggingService[F]) {
   import cats.syntax.functor._
   import cats.syntax.flatMap._
 
@@ -22,7 +23,7 @@ class UserSaidYes[F[_] : Monad](bonobo: BonoboService[F], logger: LoggingService
     * @param keyId the ID of the key to be extended
     */
   def run(keyId: KeyId): F[BonoboResult] = for {
-    _ <- logger.info(s"We are extending key $keyId for another ${settings.keys.inactivityPeriod}")
+    _ <- logger.info(s"We are extending key $keyId for another ${settings.inactivityPeriod}")
     key <- bonobo.getKey(keyId)
     res <- key match {
       case None => 

@@ -6,6 +6,8 @@ import com.amazonaws.regions.Regions
 import java.time.Period
 import java.net.URL
 
+import model.Email
+
 case class Settings(
   credentialsProvider: AWSCredentialsProvider,
   region: Regions,
@@ -26,7 +28,7 @@ case class EmailSettings(
   lambdaYesUrl: URL,
   lambdaNoUrl: URL,
   /** The email address used in the From field of emails sent to API users */
-  origin: String
+  origin: Email
 )
 
 case class DynamoSettings(
