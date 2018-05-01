@@ -11,20 +11,21 @@ object Dependencies {
 
   val awsVersion = "1.11.319"
   lazy val aws = Seq(
-    "com.amazonaws" % "aws-java-sdk-ses"
-  ).map(_ % awsVersion)
+    "aws-java-sdk-ses",
+    "aws-java-sdk-dynamodb"
+  ).map("com.amazonaws" % _ % awsVersion)
 
   val monixVersion = "3.0.0-RC1"
   lazy val monix = Seq(
-    "io.monix" %% "monix-eval",
-    "io.monix" %% "monix-java"
-  ).map(_ % monixVersion)
+    "monix-eval",
+    "monix-java"
+  ).map("io.monix" %% _ % monixVersion)
 
 
   val circeVersion = "0.9.3"
   lazy val circe = Seq(
-    "io.circe" %% "circe-core",
-    "io.circe" %% "circe-generic",
-    "io.circe" %% "circe-parser"
-  ).map(_ % circeVersion)
+    "circe-core",
+    "circe-generic",
+    "circe-parser"
+  ).map("io.circe" %% _ % circeVersion)
 }
