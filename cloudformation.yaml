@@ -67,6 +67,17 @@ Resources:
                             Resource:
                                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/bonobo-${Stage}-keys
                                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/bonobo-${Stage}-users
+                - PolicyName: SendEmails
+                  PolicyDocument:
+                      Statement:
+                          - Effect: Allow
+                            Action:
+                                - SES:SendEmail
+                            Resource:
+                                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/theguardian.com
+                            Condition:
+                                StringEquals:
+                                    ses:FromAddress: !Ref Origin
 
     ApiGatewayCloudWatchLogsRole:
         Type: AWS::IAM::Role
