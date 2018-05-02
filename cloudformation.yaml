@@ -17,13 +17,14 @@ Parameters:
             - CODE
         Default: CODE
     KongSecurityGroupId:
-        Type: AWS::EC2::SecurityGroup::Id
         Description: Security group to access Kong's LB
+        Type: AWS::EC2::SecurityGroup::Id
     KongSubnetId:
-        Type: AWS::EC2::Subnet::Id
         Description: Subnet to access Kong's LB
+        Type: AWS::EC2::Subnet::Id
     KongBasePath:
         Description: Base URL for querying Kong
+        Type: String
     Origin:
         Description: Origin email address as set up in SES
         Type: String
@@ -111,7 +112,7 @@ Resources:
                                 - logs:PutLogEvents
                                 - logs:GetLogEvents
                                 - logs:FilterLogEvents
-                            Resource: *
+                            Resource: "*"
 
     ApiGatewayAccount:
         Type: AWS::ApiGateway::Account
@@ -249,7 +250,7 @@ Resources:
             DeploymentId: !Ref UserSaidNoApiDeployment
             MethodSettings:
                 - DataTraceEnabled: true
-                  HttpMethod: *
+                  HttpMethod: "*"
                   LoggingLevel: INFO
                   ResourcePath: /*
             RestApiId: !Ref UserSaidNoApi
@@ -263,7 +264,7 @@ Resources:
             DeploymentId: !Ref UserSaidYesApiDeployment
             MethodSettings:
                 - DataTraceEnabled: true
-                  HttpMethod: *
+                  HttpMethod: "*"
                   LoggingLevel: INFO
                   ResourcePath: /*
             RestApiId: !Ref UserSaidYesApi
@@ -292,7 +293,7 @@ Resources:
             ParentId: !GetAtt UserSaidNoApi.RootResourceId
             PathPart: nope
 
-    UserSaidNoResource:
+    UserSaidYesResource:
         Type: AWS::ApiGateway::Resource
         Properties:
             RestApiId: !Ref UserSaidYesApi
@@ -312,11 +313,11 @@ Resources:
                 IntegrationResponses:
                     - StatusCode: 200
                 RequestTemplates:
-                    application/json: !Sub |
-                        {
-                          "keyId": "${input.params('k')}",
-                          "hash": "${input.params('h')}"
-                        }
+                    application/json:
+                        "{
+                          \"keyId\": \"$input.params('k')\",
+                          \"hash\": \"$input.params('h')\"
+                        }"
             RequestParameters:
                 method.request.querystring.k: true
                 method.request.querystring.h: true
@@ -338,11 +339,11 @@ Resources:
                 IntegrationResponses:
                     - StatusCode: 200
                 RequestTemplates:
-                    application/json: !Sub |
-                        {
-                          "keyId": "${input.params('k')}",
-                          "hash": "${input.params('h')}"
-                        }
+                    application/json:
+                        "{
+                          \"keyId\": \"$input.params('k')\",
+                          \"hash\": \"$input.params('h')\"
+                        }"
             RequestParameters:
                 method.request.querystring.k: true
                 method.request.querystring.h: true
