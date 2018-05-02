@@ -1,0 +1,41 @@
+stacks:
+- content-api-gibbons
+regions:
+- eu-west-1
+deployments:
+  scheduled-lambda:
+    type: aws-lambda
+    parameters:
+      fileName: gibbons.jar
+      bucket: content-api-dist
+      functions:
+        CODE:
+          name: scheduled-lambda-CODE
+          filename: gibbons.jar
+        PROD:
+          name: scheduled-lambda-PROD
+          filename: gibbons.jar
+  user-said-no-lambda:
+    type: aws-lambda
+    parameters:
+      fileName: gibbons.jar
+      bucket: content-api-dist
+      functions:
+        CODE:
+          name: user-said-no-lambda-CODE
+          filename: gibbons.jar
+        PROD:
+          name: user-said-no-lambda-PROD
+          filename: gibbons.jar
+  user-said-yes-lambda:
+    type: aws-lambda
+    parameters:
+      fileName: gibbons.jar
+      bucket: content-api-dist
+      functions:
+        CODE:
+          name: user-said-yes-CODE
+          filename: gibbons.jar
+        PROD:
+          name: user-said-yes-PROD
+          filename: gibbons.jar
