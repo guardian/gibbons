@@ -12,7 +12,7 @@ class UrlGenerator(settings: Settings) {
 
   def params(key: Key): String = {
     val hash = key.rangeKey.id + settings.email.nonce
-    s"k=key.rangeKey&h=${md5.digest(hash.getBytes)}"
+    s"k=key.rangeKey&h=${md5.digest(hash.getBytes).toString}"
   }
 
   private val md5 = MessageDigest.getInstance("MD5")
