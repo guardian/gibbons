@@ -42,14 +42,14 @@ object Settings {
       kongBasePath <- env.get("KONG_BASE_PATH")
       inactivityPeriod <- env.get("BONOBO_INACTIVITY_PERIOD").map(_.toInt)
       gracePeriod <- env.get("BONOBO_GRACE_PERIOD").map(_.toInt)
-      reminderSubject <- env.get("BONOBO_INACTIVITY_PERIOD")
-      deletedSubject <- env.get("BONOBO_INACTIVITY_PERIOD")
-      yesUrl <- env.get("BONOBO_INACTIVITY_PERIOD")
-      noUrl  <- env.get("BONOBO_INACTIVITY_PERIOD")
-      nonce <- env.get("BONOBO_INACTIVITY_PERIOD")
-      origin <- env.get("BONOBO_INACTIVITY_PERIOD")
-      usersTableName <- env.get("BONOBO_INACTIVITY_PERIOD")
-      keysTableName <- env.get("BONOBO_INACTIVITY_PERIOD")
+      reminderSubject <- env.get("EMAIL_REMINDER_SUBJECT")
+      deletedSubject <- env.get("EMAIL_DELETED_SUBJECT")
+      yesUrl <- env.get("GATEWAY_API_YES")
+      noUrl  <- env.get("GATEWAY_API_NO")
+      nonce <- env.get("GATEWAY_API_SECRET")
+      origin <- env.get("EMAIL_ORIGIN")
+      usersTableName <- env.get("BONOBO_USERS_TABLE")
+      keysTableName <- env.get("BONOBO_KEYS_TABLE")
     } yield {
       Settings(
         Regions.fromName(region),
