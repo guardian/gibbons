@@ -35,7 +35,7 @@ class UserReminder[F[_] : Monad](settings: Settings, email: EmailService[F], bon
           keysByUser = keys.groupBy(_.userId)
           users <- keysByUser.keys.toVector.traverse(id => bonobo.getUser(id)).map(_.flatten)
           _ <- logger.info(s"Found ${users.length} users. Let's send some emails...")
-          ress <- users.traverse(user => email.sendReminder(settings.email.origin, Destination(user.email), keysByUser(user.id)))
+          ress <- users.traverse(user => email.sendReminder(Destination(user.email), keysByUser(user.id)))
           _ <- logger.info(s"Sent all the emailz! Let's make sure we keep track of that...")
           _ <- keys.traverse(key => bonobo.setRemindedOn(key, now))
           _ <- logger.info("aaaand that's a wrap! See you next time.")

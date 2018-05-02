@@ -14,14 +14,14 @@ import com.gu.gibbons.model._
 import com.gu.gibbons.services._
 
 final class EmailInterpreter(settings: Settings, logger: LoggingService[Task]) extends EmailService[Task] {
-  def sendReminder(origin: Email, destination: Destination, keys: Vector[Key]) = 
-    sendEmail(origin, destination, EmailSettings.reminderSubject, reminderEmail(destination.to, keys))
-  def sendDeleted(origin: Email, destination: Destination, keys: Vector[Key]) = 
-    sendEmail(origin, destination, EmailSettings.deletedSubject, deletedEmail(destination.to, keys))
+  def sendReminder(destination: Destination, keys: Vector[Key]) = 
+    sendEmail(destination, EmailSettings.reminderSubject, reminderEmail(destination.to, keys))
+  def sendDeleted(destination: Destination, keys: Vector[Key]) = 
+    sendEmail(destination, EmailSettings.deletedSubject, deletedEmail(destination.to, keys))
 
-  private def sendEmail(origin: Email, destination: Destination, subject: String, content: String) = Task.create { (_, callback: Callback[EmailResult]) =>
+  private def sendEmail(destination: Destination, subject: String, content: String) = Task.create { (_, callback: Callback[EmailResult]) =>
     val request = new SendEmailRequest()
-      .withSource(origin.email)
+      .withSource(settings.email.origin.email)
       .withDestination(new SESDestination().withToAddresses(destination.to.email).withCcAddresses(destination.cc.map(_.email): _*))
       .withMessage(new SESMessage().withSubject(new Content(subject)).withBody(new Body().withHtml(new Content(content))))
 
@@ -46,6 +46,6 @@ final class EmailInterpreter(settings: Settings, logger: LoggingService[Task]) e
 
   private val gen = new UrlGenerator(settings)
 
-  private def reminderEmail(email: Email, keys: Vector[Key]) = html.reminder(email, keys, gen).toString
-  private def deletedEmail(email: Email, keys: Vector[Key]) = html.deleted(email, keys, gen).toString
+  private def reminderEmail(email: Email, keys: Vector[Key]) = html.reminder(settings.email.origin, email, keys, gen).toString
+  private def deletedEmail(email: Email, keys: Vector[Key]) = html.deleted(settings.email.origin, email, keys, gen).toString
 }

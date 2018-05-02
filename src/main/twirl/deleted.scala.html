@@ -1,7 +1,7 @@
 @import com.gu.gibbons.model.{Key, Email}
 @import com.gu.gibbons.ses.UrlGenerator
 @import java.time.{Instant, ZoneOffset}
-@(to: Email, keys: Vector[Key], gen: UrlGenerator)
+@(from: Email, to: Email, keys: Vector[Key], gen: UrlGenerator)
 
 @shell("Your API keys have been revoked!") {
   <table width="100%" cellpadding="0" cellspacing="0">
@@ -14,6 +14,12 @@
     <tr>
       <td class="content-block">
         @keysTable(keys, gen)
+      </td>
+    </tr>
+    <tr>
+      <td class="content-block">
+        —Guardian News Media<br>
+        @from.email
       </td>
     </tr>
   </table>

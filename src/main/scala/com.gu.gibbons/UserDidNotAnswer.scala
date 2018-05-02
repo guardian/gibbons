@@ -35,7 +35,7 @@ class UserDidNotAnswer[F[_] : Monad](settings: Settings, email: EmailService[F],
         _ <- logger.info(s"Found ${users.length} users. Let's delete these keys...")
         _ <- keys.traverse(key => bonobo.deleteKey(key))
         _ <- logger.info("Swell! Now we can send a last email to those poor souls...")
-        _ <- users.traverse(user => email.sendDeleted(settings.email.origin, Destination(user.email), keysByUser(user.id)))
+        _ <- users.traverse(user => email.sendDeleted(Destination(user.email), keysByUser(user.id)))
         _ <- logger.info("That's a wrap! See ya.")
     } yield ()
 }
