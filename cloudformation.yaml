@@ -16,6 +16,12 @@ Parameters:
             - PROD
             - CODE
         Default: CODE
+    KongSecurityGroupId:
+        Type: AWS::EC2::SecurityGroup::Id
+        Description: Security group to access Kong's LB
+    KongSubnetId:
+        Type: AWS::EC2::Subnet::Id
+        Description: Subnet to access Kong's LB
     KongBasePath:
         Description: Base URL for querying Kong
     Origin:
@@ -136,6 +142,11 @@ Resources:
             Role: !Sub ${LambdaRole.Arn}
             Runtime: java8
             Timeout: 300
+            VpcConfig:
+                SecurityGroupIds:
+                    - !Ref KongSecurityGroupId
+                SubnetIds:
+                    - !Ref KongSubnetId
         DependsOn: LambdaRole
 
     UserSaidNoLambda:
@@ -162,6 +173,11 @@ Resources:
             Role: !Sub ${LambdaRole.Arn}
             Runtime: java8
             Timeout: 300
+            VpcConfig:
+                SecurityGroupIds:
+                    - !Ref KongSecurityGroupId
+                SubnetIds:
+                    - !Ref KongSubnetId
         DependsOn: LambdaRole
 
     UserSaidYesLambda:
@@ -188,6 +204,11 @@ Resources:
             Role: !Sub ${LambdaRole.Arn}
             Runtime: java8
             Timeout: 300
+            VpcConfig:
+                SecurityGroupIds:
+                    - !Ref KongSecurityGroupId
+                SubnetIds:
+                    - !Ref KongSubnetId
         DependsOn: LambdaRole
 
     UserSaidNoApi:
