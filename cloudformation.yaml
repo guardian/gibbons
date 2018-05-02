@@ -16,6 +16,20 @@ Parameters:
             - PROD
             - CODE
         Default: CODE
+    KongBasePath:
+        Description: Base URL for querying Kong
+    Origin:
+        Description: Origin email address as set up in SES
+        Type: String
+    ApiYesUrl:
+        Description: URL for extending a key
+        Type: String
+    ApiNoUrl:
+        Description: URL for deleting a key
+        Type: String
+    Nonce:
+        Description: Secret see to hash IDs
+        Type: String
 
 Resources:
     LambdaRole:
@@ -94,17 +108,13 @@ Resources:
                 !Sub scheduled-lambda-${Stage}
             Environment:
                 Variables:
-                    kongBasePath: !Ref KongBasePath
-                    bonoboInactivityPeriod: !Ref InactivityPeriod
-                    bonoboGracePeriod: !Ref GracePeriod
-                    emailReminderSubject: !Ref ReminderSubject
-                    emailDeletedSubject: !Ref DeletedSubject
-                    emailOrigin: !Ref Origin
-                    gatewayApiYes: !Ref ApiYesUrl
-                    gatewayApiNo: !Ref ApiNoUrl
-                    gatewayApiSecret: !Ref Nonce
-                    bonoboUsersTable: !Sub bonobo-${Stage}-users
-                    bonoboKeysTable: !Sub bonobo-${Stage}-keys
+                    KONG_BASE_PATH: !Ref KongBasePath
+                    EMAIL_ORIGIN: !Ref Origin
+                    GATEWAY_API_YES: !Ref ApiYesUrl
+                    GATEWAY_API_NO: !Ref ApiNoUrl
+                    GATEWAY_API_SECRET: !Ref Nonce
+                    BONOBO_USERS_TABLE: !Sub bonobo-${Stage}-users
+                    BONOBO_KEYS_TABLE: !Sub bonobo-${Stage}-keys
             Code:
                 S3Bucket: content-api-dist
                 S3Key:
@@ -124,17 +134,13 @@ Resources:
                 !Sub user-said-no-${Stage}
             Environment:
                 Variables:
-                    kongBasePath: !Ref KongBasePath
-                    bonoboInactivityPeriod: !Ref InactivityPeriod
-                    bonoboGracePeriod: !Ref GracePeriod
-                    emailReminderSubject: !Ref ReminderSubject
-                    emailDeletedSubject: !Ref DeletedSubject
-                    emailOrigin: !Ref Origin
-                    gatewayApiYes: !Ref ApiYesUrl
-                    gatewayApiNo: !Ref ApiNoUrl
-                    gatewayApiSecret: !Ref Nonce
-                    bonoboUsersTable: !Sub bonobo-${Stage}-users
-                    bonoboKeysTable: !Sub bonobo-${Stage}-keys
+                    KONG_BASE_PATH: !Ref KongBasePath
+                    EMAIL_ORIGIN: !Ref Origin
+                    GATEWAY_API_YES: !Ref ApiYesUrl
+                    GATEWAY_API_NO: !Ref ApiNoUrl
+                    GATEWAY_API_SECRET: !Ref Nonce
+                    BONOBO_USERS_TABLE: !Sub bonobo-${Stage}-users
+                    BONOBO_KEYS_TABLE: !Sub bonobo-${Stage}-keys
             Code:
                 S3Bucket: content-api-dist
                 S3Key:
@@ -154,17 +160,13 @@ Resources:
                 !Sub user-said-yes-${Stage}
             Environment:
                 Variables:
-                    kongBasePath: !Ref KongBasePath
-                    bonoboInactivityPeriod: !Ref InactivityPeriod
-                    bonoboGracePeriod: !Ref GracePeriod
-                    emailReminderSubject: !Ref ReminderSubject
-                    emailDeletedSubject: !Ref DeletedSubject
-                    emailOrigin: !Ref Origin
-                    gatewayApiYes: !Ref ApiYesUrl
-                    gatewayApiNo: !Ref ApiNoUrl
-                    gatewayApiSecret: !Ref Nonce
-                    bonoboUsersTable: !Sub bonobo-${Stage}-users
-                    bonoboKeysTable: !Sub bonobo-${Stage}-keys
+                    KONG_BASE_PATH: !Ref KongBasePath
+                    EMAIL_ORIGIN: !Ref Origin
+                    GATEWAY_API_YES: !Ref ApiYesUrl
+                    GATEWAY_API_NO: !Ref ApiNoUrl
+                    GATEWAY_API_SECRET: !Ref Nonce
+                    BONOBO_USERS_TABLE: !Sub bonobo-${Stage}-users
+                    BONOBO_KEYS_TABLE: !Sub bonobo-${Stage}-keys
             Code:
                 S3Bucket: content-api-dist
                 S3Key:

@@ -18,13 +18,3 @@ case class Destination(
     cc: Seq[Email] = Nil,
     bcc: Seq[Email] = Nil
 )
-
-/** The content of an email
-  *
-  * @param subject The subject of the email
-  * @param body The body of the email
-  */
-case class Message(
-    subject: String,
-    body: String
-)

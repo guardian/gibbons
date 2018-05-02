@@ -23,7 +23,7 @@ class UserSaidYes[F[_] : Monad](settings: Settings, bonobo: BonoboService[F], lo
     * @param keyId the ID of the key to be extended
     */
   def run(keyId: KeyId): F[BonoboResult] = for {
-    _ <- logger.info(s"We are extending key $keyId for another ${settings.inactivityPeriod}")
+    _ <- logger.info(s"We are extending key $keyId for another ${Settings.inactivityPeriod}")
     key <- bonobo.getKey(keyId)
     res <- key match {
       case None => 

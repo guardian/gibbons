@@ -27,8 +27,8 @@ class UserDidNotAnswer[F[_] : Monad](settings: Settings, email: EmailService[F],
       * 4- Send an email to inform users their keys have been deleted
       */
     def run: F[Unit] = for {
-        _ <- logger.info("Getting all the keys which have not been extended since ${settings.gracePeriod}")
-        keys <- bonobo.getInactiveKeys(settings.gracePeriod)
+        _ <- logger.info("Getting all the keys which have not been extended since ${Settings.gracePeriod}")
+        keys <- bonobo.getInactiveKeys(Settings.gracePeriod)
         _ <- logger.info(s"Found ${keys.length} keys. Let's find out who the belong to...")
         keysByUser = keys.groupBy(_.userId)
         users <- keysByUser.keys.toVector.traverse(id => bonobo.getUser(id)).map(_.flatten)

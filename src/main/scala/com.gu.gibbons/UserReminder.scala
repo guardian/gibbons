@@ -29,8 +29,8 @@ class UserReminder[F[_] : Monad](settings: Settings, email: EmailService[F], bon
       */
     def run(now: Instant): F[Vector[EmailResult]] = {
       for {
-          _ <- logger.info(s"Getting all the keys older than ${settings.inactivityPeriod}")
-          keys <- bonobo.getKeys(settings.inactivityPeriod)
+          _ <- logger.info(s"Getting all the keys older than ${Settings.inactivityPeriod}")
+          keys <- bonobo.getKeys(Settings.inactivityPeriod)
           _ <- logger.info(s"Found ${keys.length} keys. Let's find out who the belong to...")
           keysByUser = keys.groupBy(_.userId)
           users <- keysByUser.keys.toVector.traverse(id => bonobo.getUser(id)).map(_.flatten)

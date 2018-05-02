@@ -14,15 +14,9 @@ case class Settings(
   users: DynamoSettings,
   keys: DynamoSettings,
   kongServerBasePath: String,
-  /** The amount of inactivity time after which a key may be removed */
-  inactivityPeriod: Period,
-  /** The amount of gracing time we give users to let us know they still use their keys */
-  gracePeriod: Period
 )
 
 case class EmailSettings(
-  reminderSubject: String,
-  deletedSubject: String,
   lambdaYesUrl: String,
   lambdaNoUrl: String,
   nonce: String,
@@ -30,20 +24,24 @@ case class EmailSettings(
   origin: Email
 )
 
+object EmailSettings {
+  val reminderSubject = "Subject"
+  val deletedSubject = "Subject"
+}
+
 case class DynamoSettings(
   tableName: String,
 )
 
 object Settings {
+  val inactivityPeriod = Period.ofMonths(30)
+  val gracePeriod = Period.ofWeeks(2)
+
   def fromEnvironment: Option[Settings] = {
     val env = System.getenv.asScala
     for{
       region <- env.get("AWS_REGION")
       kongBasePath <- env.get("KONG_BASE_PATH")
-      inactivityPeriod <- env.get("BONOBO_INACTIVITY_PERIOD").map(_.toInt)
-      gracePeriod <- env.get("BONOBO_GRACE_PERIOD").map(_.toInt)
-      reminderSubject <- env.get("EMAIL_REMINDER_SUBJECT")
-      deletedSubject <- env.get("EMAIL_DELETED_SUBJECT")
       yesUrl <- env.get("GATEWAY_API_YES")
       noUrl  <- env.get("GATEWAY_API_NO")
       nonce <- env.get("GATEWAY_API_SECRET")
@@ -53,11 +51,9 @@ object Settings {
     } yield {
       Settings(
         Regions.fromName(region),
-        EmailSettings(reminderSubject, deletedSubject, yesUrl, noUrl, nonce, Email(origin)),
+        EmailSettings(yesUrl, noUrl, nonce, Email(origin)),
         DynamoSettings(usersTableName), DynamoSettings(keysTableName),
-        kongBasePath,
-        Period.ofMonths(inactivityPeriod),
-        Period.ofDays(gracePeriod)
+        kongBasePath
       )
     }
   }

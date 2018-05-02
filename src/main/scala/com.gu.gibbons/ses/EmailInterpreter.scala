@@ -15,9 +15,9 @@ import com.gu.gibbons.services._
 
 final class EmailInterpreter(settings: Settings, logger: LoggingService[Task]) extends EmailService[Task] {
   def sendReminder(origin: Email, destination: Destination, keys: Vector[Key]) = 
-    sendEmail(origin, destination, settings.email.reminderSubject, reminderEmail(destination.to, keys))
+    sendEmail(origin, destination, EmailSettings.reminderSubject, reminderEmail(destination.to, keys))
   def sendDeleted(origin: Email, destination: Destination, keys: Vector[Key]) = 
-    sendEmail(origin, destination, settings.email.deletedSubject, deletedEmail(destination.to, keys))
+    sendEmail(origin, destination, EmailSettings.deletedSubject, deletedEmail(destination.to, keys))
 
   private def sendEmail(origin: Email, destination: Destination, subject: String, content: String) = Task.create { (_, callback: Callback[EmailResult]) =>
     val request = new SendEmailRequest()
