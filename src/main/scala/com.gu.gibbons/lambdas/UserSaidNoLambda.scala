@@ -34,8 +34,8 @@ class UserSaidNoLambda extends RestApi {
     }
 
     result match {
-      case None => os.write("Missing or invalid parameters".getBytes)
-      case Some(keyId) => os.write(s"Key $keyId has been deleted".getBytes)
+      case Left(msg) => os.write(s"Oops, something got wrong: $msg".getBytes)
+      case Right(keyId) => os.write(s"Key $keyId has been deleted".getBytes)
     }
 
     is.close()

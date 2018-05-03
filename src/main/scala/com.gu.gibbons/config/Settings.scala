@@ -54,19 +54,24 @@ object Settings {
   val gracePeriod = Period.ofWeeks(2)
 }
 
-object ScheduledSettings {
+trait EnvGetter {
+  def getEnv(env: Map[String, String], key: String): Either[String, String] =
+    env.get(key).fold(Left(s"Missing $key"): Either[String, String])(Right(_))
+}
 
-  def fromEnvironment: Option[ScheduledSettings] = {
-    val env = System.getenv.asScala
+object ScheduledSettings extends EnvGetter {
+
+  def fromEnvironment: Either[String, ScheduledSettings] = {
+    val env = System.getenv.asScala.toMap
     for{
-      region <- env.get("AWS_REGION")
-      kongBasePath <- env.get("KONG_BASE_PATH")
-      yesUrl <- env.get("GATEWAY_API_YES")
-      noUrl  <- env.get("GATEWAY_API_NO")
-      nonce <- env.get("GATEWAY_API_SECRET")
-      origin <- env.get("EMAIL_ORIGIN")
-      usersTableName <- env.get("BONOBO_USERS_TABLE")
-      keysTableName <- env.get("BONOBO_KEYS_TABLE")
+      region <- getEnv(env, "AWS_REGION")
+      kongBasePath <- getEnv(env, "KONG_BASE_PATH")
+      yesUrl <- getEnv(env, "GATEWAY_API_YES")
+      noUrl  <- getEnv(env, "GATEWAY_API_NO")
+      nonce <- getEnv(env, "GATEWAY_API_SECRET")
+      origin <- getEnv(env, "EMAIL_ORIGIN")
+      usersTableName <- getEnv(env, "BONOBO_USERS_TABLE")
+      keysTableName <- getEnv(env, "BONOBO_KEYS_TABLE")
     } yield {
       ScheduledSettings(
         Regions.fromName(region),
@@ -77,17 +82,19 @@ object ScheduledSettings {
       )
     }
   }
+
+
 }
 
-object InteractionSettings {
-  def fromEnvironment: Option[InteractionSettings] = {
-    val env = System.getenv.asScala
+object InteractionSettings extends EnvGetter {
+  def fromEnvironment: Either[String, InteractionSettings] = {
+    val env = System.getenv.asScala.toMap
     for{
-      region <- env.get("AWS_REGION")
-      kongBasePath <- env.get("KONG_BASE_PATH")
-      usersTableName <- env.get("BONOBO_USERS_TABLE")
-      keysTableName <- env.get("BONOBO_KEYS_TABLE")
-      nonce <- env.get("GATEWAY_API_SECRET")
+      region <- getEnv(env, "AWS_REGION")
+      kongBasePath <- getEnv(env, "KONG_BASE_PATH")
+      usersTableName <- getEnv(env, "BONOBO_USERS_TABLE")
+      keysTableName <- getEnv(env, "BONOBO_KEYS_TABLE")
+      nonce <- getEnv(env, "GATEWAY_API_SECRET")
     } yield {
       InteractionSettings(
         Regions.fromName(region),
