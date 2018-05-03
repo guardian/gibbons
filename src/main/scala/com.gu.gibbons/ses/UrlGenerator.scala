@@ -12,7 +12,7 @@ class HashGenerator {
 
   def hash(keyId: String, nonce: String): String = {
     val hash = keyId + nonce
-    md5.digest(hash.getBytes).toString
+    md5.digest(hash.getBytes).map("%02X".format(_)).mkString
   }
 
   private val md5 = MessageDigest.getInstance("MD5")
