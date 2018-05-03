@@ -14,7 +14,7 @@ import kong.KongInterpreter
 import model.KeyId
 
 class UserSaidYesLambda extends RestApi {
-  import cats.instances.option._
+  import cats.instances.either._
   import cats.syntax.flatMap._
 
   def handleRequest(is: InputStream, os: OutputStream, context: Context) = {

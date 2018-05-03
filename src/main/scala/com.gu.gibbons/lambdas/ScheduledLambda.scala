@@ -14,7 +14,7 @@ import kong.KongInterpreter
 import ses.EmailInterpreter
 
 class ScheduledLambda {
-  import cats.instances.option._
+  import cats.instances.either._
   import cats.syntax.flatMap._
 
   def handleRequest(x: Any, context: Context) = {
@@ -33,7 +33,7 @@ class ScheduledLambda {
 
       Await.result(program.runAsync, Duration(context.getRemainingTimeInMillis, MILLISECONDS))
 
-      None
+      Right(())
     }
   }
 }
