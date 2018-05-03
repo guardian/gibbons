@@ -20,8 +20,8 @@ lazy val root = (project in file(".")).
         val oldStrategy = (assemblyMergeStrategy in assembly).value
         oldStrategy(x)
     },
-    assemblyJarName in assembly := "gibbons.jar"
-    
+    assemblyJarName in assembly := "gibbons.jar",
+
     logBuffered in Test := false,
     libraryDependencies ++= Seq(
       cats,
