@@ -51,5 +51,5 @@ package object fixtures {
         Key.create("key17", "user9", "2012-04-25T10:15:30.00Z", Some("2015-08-25T10:15:30.00Z"), Some("2018-04-01T10:15:30.00Z")),
         Key.create("key18", "user9", "2012-04-25T10:15:30.00Z", Some("2017-08-25T10:15:30.00Z"), Some("2018-04-25T10:15:30.00Z")),
         Key.create("key19", "user9", "2012-04-25T10:15:30.00Z", Some("2017-08-25T10:15:30.00Z"), Some("2018-04-25T10:15:30.00Z"))
-    ).map(key => key.id -> key): _*)
+    ).map(key => key.rangeKey -> key): _*)
 }

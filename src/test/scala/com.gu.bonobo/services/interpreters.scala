@@ -30,31 +30,19 @@ class BonoboServiceInterpreter extends BonoboService[TestProgram] {
     (s, res)
   }
 
-  def deleteKey(keyId: KeyId) = State[Repo, Unit] { case (keys, users, es) =>
-    val newKeys = keys - keyId
+  def deleteKey(key: Key) = State[Repo, Unit] { case (keys, users, es) =>
+    val newKeys = keys - key.rangeKey
     ((newKeys, users, es), ())
   }
 
-  def setExtendedOn(keyId: KeyId, when: Instant) = State[Repo, Unit] { case (keys, users, es) =>
-    val newKeys = for {
-      key <- keys.get(keyId)
-    } yield {
-      val newKey = key.copy(extendedOn = Some(when))
-      keys.updated(keyId, newKey)
-    }
-    
-    ((newKeys.getOrElse(keys), users, es), ())
+  def setExtendedOn(key: Key, when: Instant) = State[Repo, Unit] { case (keys, users, es) =>
+    val newKeys = keys.updated(key.rangeKey, key.copy(extendedOn = Some(when)))
+    ((newKeys, users, es), ())
   }
 
-  def setRemindedOn(keyId: KeyId, when: Instant) = State[Repo, Unit] { case (keys, users, es) =>
-    val newKeys = for {
-      key <- keys.get(keyId)
-    } yield {
-      val newKey = key.copy(remindedOn = Some(when))
-      keys.updated(keyId, newKey)
-    }
-    
-    ((newKeys.getOrElse(keys), users, es), ())
+  def setRemindedOn(key: Key, when: Instant) = State[Repo, Unit] { case (keys, users, es) =>
+    val newKeys = keys.updated(key.rangeKey, key.copy(remindedOn = Some(when)))
+    ((newKeys, users, es), ())
   }
 
   def getUser(userId: UserId) = State[Repo, Option[User]] { case s@(_, users, _) =>

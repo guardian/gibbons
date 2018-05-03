@@ -1,6 +1,8 @@
 package com.gu.gibbons
 
+import com.amazonaws.regions.Regions
 import org.scalatest._
+
 import fixtures._
 import services._
 import model._
@@ -11,12 +13,18 @@ class IntegrationTests extends FlatSpec {
     val bonoboService = new BonoboServiceInterpreter {} 
     val loggingService = new LoggingServiceInterpreter {}
 
-    val userReminder = new UserReminder(emailService, bonoboService, loggingService)
-    val userDidNotAnswer = new UserDidNotAnswer(emailService, bonoboService, loggingService)
-    val userSaidYes = new UserSaidYes(bonoboService, loggingService)
-    val userSaidNo = new UserSaidNo(bonoboService, loggingService)
+    val settings = Settings(
+        Regions.fromName("eu-west-1"),
+        EmailSettings("", "", "", Email("")),
+        DynamoSettings(""),
+        DynamoSettings(""),
+        ""
+    )
 
-    val settings = 
+    val userReminder = new UserReminder(settings, emailService, bonoboService, loggingService)
+    val userDidNotAnswer = new UserDidNotAnswer(settings, emailService, bonoboService, loggingService)
+    val userSaidYes = new UserSaidYes(settings, bonoboService, loggingService)
+    val userSaidNo = new UserSaidNo(settings, bonoboService, loggingService)
 
     "The Reminder service" should "send reminders, duh" in {
         val ((newKeys, _, emailService), sentEmails) = userReminder.run(todayInstant).run((keys, users, Set.empty)).value
