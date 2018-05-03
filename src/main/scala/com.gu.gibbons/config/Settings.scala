@@ -8,18 +8,34 @@ import scala.collection.JavaConverters._
 
 import model.Email
 
-case class Settings(
+sealed trait Settings {
+  def region: Regions
+  def users: DynamoSettings
+  def keys: DynamoSettings
+  def kongServerBasePath: String
+  def nonce: String
+}
+
+case class ScheduledSettings(
   region: Regions,
-  email: EmailSettings,
   users: DynamoSettings,
   keys: DynamoSettings,
   kongServerBasePath: String,
-)
+  nonce: String,
+  email: EmailSettings
+) extends Settings
+
+case class InteractionSettings(
+  region: Regions,
+  users: DynamoSettings,
+  keys: DynamoSettings,
+  kongServerBasePath: String,
+  nonce: String,
+) extends Settings
 
 case class EmailSettings(
   lambdaYesUrl: String,
   lambdaNoUrl: String,
-  nonce: String,
   /** The email address used in the From field of emails sent to API users */
   origin: Email
 )
@@ -36,8 +52,11 @@ case class DynamoSettings(
 object Settings {
   val inactivityPeriod = Period.ofMonths(30)
   val gracePeriod = Period.ofWeeks(2)
+}
 
-  def fromEnvironment: Option[Settings] = {
+object ScheduledSettings {
+
+  def fromEnvironment: Option[ScheduledSettings] = {
     val env = System.getenv.asScala
     for{
       region <- env.get("AWS_REGION")
@@ -49,11 +68,32 @@ object Settings {
       usersTableName <- env.get("BONOBO_USERS_TABLE")
       keysTableName <- env.get("BONOBO_KEYS_TABLE")
     } yield {
-      Settings(
+      ScheduledSettings(
         Regions.fromName(region),
-        EmailSettings(yesUrl, noUrl, nonce, Email(origin)),
         DynamoSettings(usersTableName), DynamoSettings(keysTableName),
-        kongBasePath
+        kongBasePath,
+        nonce,
+        EmailSettings(yesUrl, noUrl, Email(origin)),
+      )
+    }
+  }
+}
+
+object InteractionSettings {
+  def fromEnvironment: Option[InteractionSettings] = {
+    val env = System.getenv.asScala
+    for{
+      region <- env.get("AWS_REGION")
+      kongBasePath <- env.get("KONG_BASE_PATH")
+      usersTableName <- env.get("BONOBO_USERS_TABLE")
+      keysTableName <- env.get("BONOBO_KEYS_TABLE")
+      nonce <- env.get("GATEWAY_API_SECRET")
+    } yield {
+      InteractionSettings(
+        Regions.fromName(region),
+        DynamoSettings(usersTableName), DynamoSettings(keysTableName),
+        kongBasePath,
+        nonce
       )
     }
   }

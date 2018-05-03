@@ -13,7 +13,7 @@ import com.gu.gibbons.config._
 import com.gu.gibbons.model._
 import com.gu.gibbons.services._
 
-final class EmailInterpreter(settings: Settings, logger: LoggingService[Task]) extends EmailService[Task] {
+final class EmailInterpreter(settings: ScheduledSettings, logger: LoggingService[Task]) extends EmailService[Task] {
   def sendReminder(destination: Destination, keys: Vector[Key]) = 
     sendEmail(destination, EmailSettings.reminderSubject, reminderEmail(destination.to, keys))
   def sendDeleted(destination: Destination, keys: Vector[Key]) = 

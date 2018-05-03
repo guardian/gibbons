@@ -7,7 +7,7 @@ import monix.execution.Scheduler.Implicits.global
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-import config.Settings
+import config._
 import dynamo.BonoboInterpreter
 import log4j.LoggingInterpreter
 import kong.KongInterpreter
@@ -18,7 +18,7 @@ class ScheduledLambda {
   import cats.syntax.flatMap._
 
   def handleRequest(x: Any, context: Context) = {
-    Settings.fromEnvironment >>= { settings =>
+    ScheduledSettings.fromEnvironment >>= { settings =>
       val logger = new LoggingInterpreter()
       val kong = new KongInterpreter(settings, logger)
       val bonobo = new BonoboInterpreter(settings, kong, logger)

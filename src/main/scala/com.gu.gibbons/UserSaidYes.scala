@@ -2,7 +2,7 @@ package com.gu.gibbons
 
 // ------------------------------------------------------------------------
 import cats.Monad
-import config.Settings
+import config._
 import java.time.Instant
 import config._
 import model._
@@ -14,7 +14,7 @@ import services._
   * @param bonobo The bonobo service interpreter
   * @param logger The logging service interpreter
   */
-class UserSaidYes[F[_] : Monad](settings: Settings, bonobo: BonoboService[F], logger: LoggingService[F]) {
+class UserSaidYes[F[_] : Monad](settings: InteractionSettings, bonobo: BonoboService[F], logger: LoggingService[F]) {
   import cats.syntax.functor._
   import cats.syntax.flatMap._
 

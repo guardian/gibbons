@@ -7,7 +7,7 @@ import monix.execution.Scheduler.Implicits.global
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-import config.Settings
+import config.InteractionSettings
 import dynamo.BonoboInterpreter
 import log4j.LoggingInterpreter
 import kong.KongInterpreter
@@ -19,8 +19,8 @@ class UserSaidYesLambda extends RestApi {
 
   def handleRequest(is: InputStream, os: OutputStream, context: Context) = {
     for {
-      settings <- Settings.fromEnvironment
-      keyId <- decodeParams(is, settings.email.nonce)
+      settings <- InteractionSettings.fromEnvironment
+      keyId <- decodeParams(is, settings.nonce)
     } yield {
       val logger = new LoggingInterpreter()
       val kong = new KongInterpreter(settings, logger)
