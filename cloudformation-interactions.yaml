@@ -25,6 +25,9 @@ Parameters:
     KongBasePath:
         Description: Base URL for querying Kong
         Type: String
+    Nonce:
+        Description: Secret to hash keys in URLs
+        Type: String
 
 Resources:
     LambdaRole:
@@ -108,6 +111,7 @@ Resources:
             Environment:
                 Variables:
                     KONG_BASE_PATH: !Ref KongBasePath
+                    GATEWAY_API_SECRET: !Ref Nonce
                     BONOBO_USERS_TABLE: !Sub bonobo-${Stage}-users
                     BONOBO_KEYS_TABLE: !Sub bonobo-${Stage}-keys
             Code:
@@ -135,6 +139,7 @@ Resources:
             Environment:
                 Variables:
                     KONG_BASE_PATH: !Ref KongBasePath
+                    GATEWAY_API_SECRET: !Ref Nonce
                     BONOBO_USERS_TABLE: !Sub bonobo-${Stage}-users
                     BONOBO_KEYS_TABLE: !Sub bonobo-${Stage}-keys
             Code:
