@@ -15,7 +15,7 @@ lazy val root = (project in file(".")).
     )),
 
     assemblyMergeStrategy in assembly := {
-      case "Log4j2Plugins.dat" => Log4j2MergeStrategy.plugincache
+      case PathList(ps @ _*) if ps.last == "Log4j2Plugins.dat" => Log4j2MergeStrategy.plugincache
       case x =>
         val oldStrategy = (assemblyMergeStrategy in assembly).value
         oldStrategy(x)
