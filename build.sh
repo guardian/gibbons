@@ -13,7 +13,7 @@ SBT_OPTIONS="-Xmx1G \
 
 [ -d target ] && rm -rf target
 mkdir target
-cd $(dirname $0)/target
+cd target
 mkdir -p artifacts/gibbons
 
 if cd .. && $JAVA_CMD $SBT_OPTIONS -jar ./sbt-launch.jar assembly && cd target
