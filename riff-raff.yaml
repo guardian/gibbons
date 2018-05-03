@@ -22,10 +22,10 @@ deployments:
       bucket: content-api-dist
       functions:
         CODE:
-          name: user-said-no-lambda-CODE
+          name: user-said-no-CODE
           filename: gibbons.jar
         PROD:
-          name: user-said-no-lambda-PROD
+          name: user-said-no-PROD
           filename: gibbons.jar
   user-said-yes-lambda:
     type: aws-lambda
