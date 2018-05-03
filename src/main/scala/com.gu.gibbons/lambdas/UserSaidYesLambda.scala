@@ -34,7 +34,7 @@ class UserSaidYesLambda extends RestApi {
     }
 
     result match {
-      case None => os.write("Missing parameters".getBytes)
+      case None => os.write("Missing or invalid parameters".getBytes)
       case Some(keyId) => os.write(s"Key $keyId has been extended".getBytes)
     }
 
