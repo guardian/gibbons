@@ -1,4 +1,5 @@
 import Dependencies._
+import sbtassembly.Log4j2MergeStrategy
 
 lazy val root = (project in file(".")).
   settings(
@@ -12,6 +13,10 @@ lazy val root = (project in file(".")).
         "-feature"
       )
     )),
+
+    assemblyMergeStrategy in assembly := {
+      case PathList(ps @ _*) if ps.last == "Log4j2Plugins.dat" => Log4j2MergeStrategy.plugincache
+    },
     logBuffered in Test := false,
     libraryDependencies ++= Seq(
       cats,
