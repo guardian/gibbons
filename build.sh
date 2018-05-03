@@ -12,9 +12,11 @@ SBT_OPTIONS="-Xmx1G \
     -Dbuild.vcs.number=$BUILD_VCS_NUMBER"
 
 [ -d target ] && rm -rf target
-mkdir -p target/artifacts/gibbons
+mkdir target
+cd $(dirname $0)/target
+mkdir -p artifacts/gibbons
 
-if $JAVA_CMD $SBT_OPTIONS -jar ./sbt-launch.jar assembly && cd target
+if cd .. && $JAVA_CMD $SBT_OPTIONS -jar ./sbt-launch.jar assembly
 then
     cd target
     cp scala-*/*.jar ./artifacts/gibbons/gibbons.jar
