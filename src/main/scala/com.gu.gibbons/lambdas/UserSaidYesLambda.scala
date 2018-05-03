@@ -30,7 +30,15 @@ class UserSaidYesLambda extends RestApi {
 
       Await.result(userSaidYes.run(keyId).runAsync, Duration(context.getRemainingTimeInMillis, MILLISECONDS))
 
-      None
+      keyId
     }
+
+    result match {
+      case None => os.write("Missing parameters".getBytes)
+      case Some(keyId) => os.write(s"Key $keyId has been extended".getBytes)
+    }
+
+    is.close()
+    os.close()
   }
 }

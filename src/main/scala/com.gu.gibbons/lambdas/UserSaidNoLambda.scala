@@ -18,7 +18,7 @@ class UserSaidNoLambda extends RestApi {
   import cats.syntax.flatMap._
 
   def handleRequest(is: InputStream, os: OutputStream, context: Context) = {
-    for {
+    val result = for {
       settings <- InteractionSettings.fromEnvironment
       keyId <- decodeParams(is, settings.nonce)
     } yield {
@@ -30,7 +30,15 @@ class UserSaidNoLambda extends RestApi {
 
       Await.result(userSaidNo.run(keyId).runAsync, Duration(context.getRemainingTimeInMillis, MILLISECONDS))
 
-      None
+      keyId
     }
+
+    result match {
+      case None => os.write("Missing parameters".getBytes)
+      case Some(keyId) => os.write(s"Key $keyId has been deleted".getBytes)
+    }
+
+    is.close()
+    os.close()
   }
 }
