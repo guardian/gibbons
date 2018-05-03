@@ -48,10 +48,8 @@ Resources:
                                 - logs:CreateLogGroup
                                 - logs:CreateLogStream
                                 - logs:PutLogEvents
+                                - lambda:InvokeFunction
                             Resource: "*"
-                - PolicyName: DynamoQuery
-                  PolicyDocument:
-                      Statement:
                           - Effect: Allow
                             Action:
                                 - dynamodb:Query
@@ -62,6 +60,12 @@ Resources:
                             Resource:
                                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/bonobo-${Stage}-keys
                                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/bonobo-${Stage}-users
+                          - Effect: Allow
+                            Action:
+                                - ec2:CreateNetworkInterface
+                                - ec2:DescribeNetworkInterfaces
+                                - ec2:DeleteNetworkInterface
+                            Resource: "*"
 
     ApiGatewayCloudWatchLogsRole:
         Type: AWS::IAM::Role
@@ -109,7 +113,7 @@ Resources:
             Code:
                 S3Bucket: content-api-dist
                 S3Key:
-                    !Sub ${Stack}/${Stage}/${App}/${App}.jar
+                    !Sub ${Stack}/${Stage}/user-said-no-lambda/gibbons.jar
             Description: Lambda for deleting keys that are no longer being used
             Handler: com.gu.gibbons.lambdas.UserSaidNoLambda::handleRequest
             MemorySize: 256
@@ -136,7 +140,7 @@ Resources:
             Code:
                 S3Bucket: content-api-dist
                 S3Key:
-                    !Sub ${Stack}/${Stage}/${App}/${App}.jar
+                    !Sub ${Stack}/${Stage}/user-said-yes-lambda/gibbons.jar
             Description: Lambda for extending the longevity of keys still in use
             Handler: com.gu.gibbons.lambdas.UserSaidYesLambda::handleRequest
             MemorySize: 256
