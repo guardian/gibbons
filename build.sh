@@ -11,16 +11,15 @@ SBT_OPTIONS="-Xmx1G \
     -Dbuild.number=$BUILD_NUMBER \
     -Dbuild.vcs.number=$BUILD_VCS_NUMBER"
 
-[ -d target ] && rm -rf target
+cd $(dirname $0)
+mkdir -p target/artifacts/gibbons
 
-mkdir -p $(dirname $0)/target/artifacts/gibbons
-
-if $JAVA_CMD $SBT_OPTIONS -jar $(dirname $0)/sbt-launch.jar assembly
+if $JAVA_CMD $SBT_OPTIONS -jar ./sbt-launch.jar assembly
 then
-    cd $(dirname $0)/target
+    cd target
     cp scala-2.12/gibbons.jar ./artifacts/gibbons/gibbons.jar
     cp ../riff-raff.yaml ./artifacts
-    echo "##teamcity[publishArtifacts '$(dirname $0)/artifacts => .']"
+    echo "##teamcity[publishArtifacts '$(dirname $0)/target/artifacts => .']"
 else
     echo 'Failed to build gibbons-lambdas'
     exit 1
