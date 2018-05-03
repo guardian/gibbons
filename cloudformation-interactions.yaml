@@ -1,0 +1,291 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Lambdas for handling expired CAPI keys
+Parameters:
+    Stack:
+        Description: Stack name
+        Type: String
+        Default: content-api-gibbons
+    App:
+        Description: Application name
+        Type: String
+        Default: gibbons
+    Stage:
+        Description: Stage name
+        Type: String
+        AllowedValues:
+            - PROD
+            - CODE
+        Default: CODE
+    KongSecurityGroupId:
+        Description: Security group to access Kong's LB
+        Type: AWS::EC2::SecurityGroup::Id
+    KongSubnetId:
+        Description: Subnet to access Kong's LB
+        Type: AWS::EC2::Subnet::Id
+    KongBasePath:
+        Description: Base URL for querying Kong
+        Type: String
+
+Resources:
+    LambdaRole:
+        Type: AWS::IAM::Role
+        Properties:
+            AssumeRolePolicyDocument:
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service:
+                             - lambda.amazonaws.com
+                      Action:
+                          - sts:AssumeRole
+            Path: /
+            Policies:
+                - PolicyName: LambdaPolicy
+                  PolicyDocument:
+                      Statement:
+                          - Effect: Allow
+                            Action:
+                                - logs:CreateLogGroup
+                                - logs:CreateLogStream
+                                - logs:PutLogEvents
+                            Resource: "*"
+                - PolicyName: DynamoQuery
+                  PolicyDocument:
+                      Statement:
+                          - Effect: Allow
+                            Action:
+                                - dynamodb:Query
+                                - dynamodb:Scan	
+                                - dynamodb:GetItem
+                                - dynamodb:DeleteItem
+                                - dynamodb:UpdateItem
+                            Resource:
+                                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/bonobo-${Stage}-keys
+                                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/bonobo-${Stage}-users
+
+    ApiGatewayCloudWatchLogsRole:
+        Type: AWS::IAM::Role
+        Properties:
+            AssumeRolePolicyDocument:
+              Version: 2012-10-17
+              Statement:
+                  - Effect: Allow
+                    Principal:
+                        Service: 
+                            - apigateway.amazonaws.com
+                    Action: 
+                        - sts:AssumeRole
+            Policies:
+                - PolicyName: ApiGatewayLogsPolicy
+                  PolicyDocument:
+                      Version: 2012-10-17
+                      Statement:
+                          - Effect: Allow
+                            Action:
+                                - logs:CreateLogGroup
+                                - logs:CreateLogStream
+                                - logs:DescribeLogGroups
+                                - logs:DescribeLogStreams
+                                - logs:PutLogEvents
+                                - logs:GetLogEvents
+                                - logs:FilterLogEvents
+                            Resource: "*"
+
+    ApiGatewayAccount:
+        Type: AWS::ApiGateway::Account
+        Properties:
+            CloudWatchRoleArn: !GetAtt ApiGatewayCloudWatchLogsRole.Arn
+
+    UserSaidNoLambda:
+        Type: AWS::Lambda::Function
+        Properties:
+            FunctionName:
+                !Sub user-said-no-${Stage}
+            Environment:
+                Variables:
+                    KONG_BASE_PATH: !Ref KongBasePath
+                    BONOBO_USERS_TABLE: !Sub bonobo-${Stage}-users
+                    BONOBO_KEYS_TABLE: !Sub bonobo-${Stage}-keys
+            Code:
+                S3Bucket: content-api-dist
+                S3Key:
+                    !Sub ${Stack}/${Stage}/${App}/${App}.jar
+            Description: Lambda for deleting keys that are no longer being used
+            Handler: com.gu.gibbons.lambdas.UserSaidNoLambda::handleRequest
+            MemorySize: 256
+            Role: !Sub ${LambdaRole.Arn}
+            Runtime: java8
+            Timeout: 300
+            VpcConfig:
+                SecurityGroupIds:
+                    - !Ref KongSecurityGroupId
+                SubnetIds:
+                    - !Ref KongSubnetId
+        DependsOn: LambdaRole
+
+    UserSaidYesLambda:
+        Type: AWS::Lambda::Function
+        Properties:
+            FunctionName:
+                !Sub user-said-yes-${Stage}
+            Environment:
+                Variables:
+                    KONG_BASE_PATH: !Ref KongBasePath
+                    BONOBO_USERS_TABLE: !Sub bonobo-${Stage}-users
+                    BONOBO_KEYS_TABLE: !Sub bonobo-${Stage}-keys
+            Code:
+                S3Bucket: content-api-dist
+                S3Key:
+                    !Sub ${Stack}/${Stage}/${App}/${App}.jar
+            Description: Lambda for extending the longevity of keys still in use
+            Handler: com.gu.gibbons.lambdas.UserSaidYesLambda::handleRequest
+            MemorySize: 256
+            Role: !Sub ${LambdaRole.Arn}
+            Runtime: java8
+            Timeout: 300
+            VpcConfig:
+                SecurityGroupIds:
+                    - !Ref KongSecurityGroupId
+                SubnetIds:
+                    - !Ref KongSubnetId
+        DependsOn: LambdaRole
+
+    UserSaidNoApi:
+        Type: AWS::ApiGateway::RestApi
+        Properties:
+          Name: User Said No API
+          Description: API for users no longer using keys
+          FailOnWarnings: true
+
+    UserSaidYesApi:
+        Type: AWS::ApiGateway::RestApi
+        Properties:
+          Name: User Said Yes API
+          Description: API for users still using their keys
+          FailOnWarnings: true
+
+    UserSaidNoPermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            Action: lambda:invokeFunction
+            FunctionName: !GetAtt UserSaidNoLambda.Arn
+            Principal: apigateway.amazonaws.com
+            SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${UserSaidNoApi}/*
+
+    UserSaidYesPermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            Action: lambda:invokeFunction
+            FunctionName: !GetAtt UserSaidYesLambda.Arn
+            Principal: apigateway.amazonaws.com
+            SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${UserSaidYesApi}/*
+    
+    UserSaidNoApiStage:
+        DependsOn: 
+          - ApiGatewayAccount
+        Type: AWS::ApiGateway::Stage
+        Properties:
+            DeploymentId: !Ref UserSaidNoApiDeployment
+            MethodSettings:
+                - DataTraceEnabled: true
+                  HttpMethod: "*"
+                  LoggingLevel: INFO
+                  ResourcePath: /*
+            RestApiId: !Ref UserSaidNoApi
+            StageName: LATEST
+    
+    UserSaidYesApiStage:
+        DependsOn: 
+          - ApiGatewayAccount
+        Type: AWS::ApiGateway::Stage
+        Properties:
+            DeploymentId: !Ref UserSaidYesApiDeployment
+            MethodSettings:
+                - DataTraceEnabled: true
+                  HttpMethod: "*"
+                  LoggingLevel: INFO
+                  ResourcePath: /*
+            RestApiId: !Ref UserSaidYesApi
+            StageName: LATEST
+
+    UserSaidNoApiDeployment:
+        Type: AWS::ApiGateway::Deployment
+        DependsOn:
+            - UserSaidNoRequest
+        Properties:
+            RestApiId: !Ref UserSaidNoApi
+            StageName: NoDummyStage
+
+    UserSaidYesApiDeployment:
+        Type: AWS::ApiGateway::Deployment
+        DependsOn:
+            - UserSaidYesRequest
+        Properties:
+            RestApiId: !Ref UserSaidYesApi
+            StageName: YesDummyStage
+
+    UserSaidNoResource:
+        Type: AWS::ApiGateway::Resource
+        Properties:
+            RestApiId: !Ref UserSaidNoApi
+            ParentId: !GetAtt UserSaidNoApi.RootResourceId
+            PathPart: nope
+
+    UserSaidYesResource:
+        Type: AWS::ApiGateway::Resource
+        Properties:
+            RestApiId: !Ref UserSaidYesApi
+            ParentId: !GetAtt UserSaidYesApi.RootResourceId
+            PathPart: yep
+
+    UserSaidNoRequest:
+        DependsOn: UserSaidNoPermission
+        Type: AWS::ApiGateway::Method
+        Properties:
+            AuthorizationType: NONE
+            HttpMethod: GET
+            Integration:
+                Type: AWS
+                IntegrationHttpMethod: POST
+                Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UserSaidNoLambda.Arn}/invocations
+                IntegrationResponses:
+                    - StatusCode: 200
+                RequestTemplates:
+                    application/json:
+                        "{
+                          \"keyId\": \"$input.params('k')\",
+                          \"hash\": \"$input.params('h')\"
+                        }"
+            RequestParameters:
+                method.request.querystring.k: true
+                method.request.querystring.h: true
+            ResourceId: !Ref UserSaidNoResource
+            RestApiId: !Ref UserSaidNoApi
+            MethodResponses:
+                - StatusCode: 200
+
+    UserSaidYesRequest:
+        DependsOn: UserSaidYesPermission
+        Type: AWS::ApiGateway::Method
+        Properties:
+            AuthorizationType: NONE
+            HttpMethod: GET
+            Integration:
+                Type: AWS
+                IntegrationHttpMethod: POST
+                Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UserSaidYesLambda.Arn}/invocations
+                IntegrationResponses:
+                    - StatusCode: 200
+                RequestTemplates:
+                    application/json:
+                        "{
+                          \"keyId\": \"$input.params('k')\",
+                          \"hash\": \"$input.params('h')\"
+                        }"
+            RequestParameters:
+                method.request.querystring.k: true
+                method.request.querystring.h: true
+            ResourceId: !Ref UserSaidYesResource
+            RestApiId: !Ref UserSaidYesApi
+            MethodResponses:
+                - StatusCode: 200
