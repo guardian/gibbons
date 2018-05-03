@@ -18,7 +18,7 @@ class UserSaidYesLambda extends RestApi {
   import cats.syntax.flatMap._
 
   def handleRequest(is: InputStream, os: OutputStream, context: Context) = {
-    for {
+    val result = for {
       settings <- InteractionSettings.fromEnvironment
       keyId <- decodeParams(is, settings.nonce)
     } yield {
