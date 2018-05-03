@@ -12,14 +12,12 @@ SBT_OPTIONS="-Xmx1G \
     -Dbuild.vcs.number=$BUILD_VCS_NUMBER"
 
 [ -d target ] && rm -rf target
-mkdir target
-cd $(dirname $0)/target
-mkdir -p artifacts/gibbons
+mkdir -p target/artifacts/gibbons
 
-if cd .. && $JAVA_CMD $SBT_OPTIONS -jar ./sbt-launch.jar assembly
+if $JAVA_CMD $SBT_OPTIONS -jar ./sbt-launch.jar assembly
 then
     cd target
-    cp scala-*/*.jar ./artifacts/gibbons/gibbons.jar
+    cp scala-2.12/gibbons.jar ./artifacts/gibbons/gibbons.jar
     cp ../riff-raff.yaml ./artifacts
     echo "##teamcity[publishArtifacts '$(pwd)/artifacts => .']"
 else
