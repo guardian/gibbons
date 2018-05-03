@@ -13,18 +13,27 @@ class IntegrationTests extends FlatSpec {
     val bonoboService = new BonoboServiceInterpreter {} 
     val loggingService = new LoggingServiceInterpreter {}
 
-    val settings = Settings(
+    val settings = ScheduledSettings(
         Regions.fromName("eu-west-1"),
-        EmailSettings("", "", "", Email("")),
         DynamoSettings(""),
         DynamoSettings(""),
+        "",
+        "",
+        EmailSettings("", "", Email("")),
+    )
+
+    val iSettings = InteractionSettings(
+        Regions.fromName("eu-west-1"),
+        DynamoSettings(""),
+        DynamoSettings(""),
+        "",
         ""
     )
 
     val userReminder = new UserReminder(settings, emailService, bonoboService, loggingService)
     val userDidNotAnswer = new UserDidNotAnswer(settings, emailService, bonoboService, loggingService)
-    val userSaidYes = new UserSaidYes(settings, bonoboService, loggingService)
-    val userSaidNo = new UserSaidNo(settings, bonoboService, loggingService)
+    val userSaidYes = new UserSaidYes(iSettings, bonoboService, loggingService)
+    val userSaidNo = new UserSaidNo(iSettings, bonoboService, loggingService)
 
     "The Reminder service" should "send reminders, duh" in {
         val ((newKeys, _, emailService), sentEmails) = userReminder.run(todayInstant).run((keys, users, Set.empty)).value
