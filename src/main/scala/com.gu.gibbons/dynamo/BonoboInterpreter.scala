@@ -81,7 +81,6 @@ class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: Logging
 
   private def getKeysMatching[C: ConditionExpression](period: TemporalAmount, filter: C) = run {
     keysTable
-      .filter(filter)
       .filter(not('tier -> "Internal") and 'status -> "Active" and filter)
       .scan()
       .map(_.collect { case Right(key) => key }.toVector)
