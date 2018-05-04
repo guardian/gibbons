@@ -68,9 +68,11 @@ class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: Logging
   private val hashKeyName = 'hashkey
   private val rangeKeyName = 'rangeKey
 
-  private def run[A](program: ScanamoOps[A]) = Task.deferFutureAction { implicit scheduler =>
-    ScanamoAsync.exec(dynamoClient)(program)
-  }
+  private def run[A](program: ScanamoOps[A]) = for {
+    _ <- logger.info(s"Running dynamo query $program")
+    result <- Task.deferFutureAction { implicit scheduler => ScanamoAsync.exec(dynamoClient)(program) }
+    _ <- logger.info(s"Got $result")
+  } yield result
 
   private def deleteKeyInDynamo(key: Key) = run {
     keysTable.delete('hashkey -> key.hashKey and 'rangekey -> key.rangeKey)
