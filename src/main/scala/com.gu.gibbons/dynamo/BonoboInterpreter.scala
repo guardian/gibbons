@@ -22,7 +22,7 @@ class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: Logging
     val jadis = OffsetDateTime.now().minus(period).toInstant.toEpochMilli
     for {
       _ <- logger.info(s"Getting all the keys created before $jadis")
-      keys <- getKeysMatching(period, 'createdOn <= jadis)
+      keys <- getKeysMatching(period, 'createdAt <= jadis)
     } yield keys.collect { case Right(key) => key }.toVector
   }
 
@@ -43,7 +43,7 @@ class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: Logging
     val jadis = OffsetDateTime.now().minus(period).toInstant.toEpochMilli
     for {
       _ <- logger.info(s"Getting all the keys created before $jadis")
-      keys <- getKeysMatching(period, attributeExists('remindedOn) and 'remindedOn <= jadis)
+      keys <- getKeysMatching(period, attributeExists('remindedAt) and 'remindedAt <= jadis)
     } yield keys.collect { case Right(key) => key }.toVector
   }
 
@@ -52,9 +52,9 @@ class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: Logging
     case None => Task.now(())
   }
 
-  def setExtendedOn(key: Key, when: Instant) = updateTime(key, 'extendedOn, when.toEpochMilli) 
+  def setExtendedOn(key: Key, when: Instant) = updateTime(key, 'extendedAt, when.toEpochMilli) 
 
-  def setRemindedOn(key: Key, when: Instant) = updateTime(key, 'remindedOn, when.toEpochMilli) 
+  def setRemindedOn(key: Key, when: Instant) = updateTime(key, 'remindedAt, when.toEpochMilli) 
 
   def getUser(userId: UserId) = run {
     usersTable.query('id -> userId.id).map(_.headOption.collect { case Right(user) => user })
