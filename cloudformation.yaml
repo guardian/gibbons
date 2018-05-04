@@ -73,9 +73,9 @@ Resources:
                                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/bonobo-${Stage}-users
                           - Effect: Allow
                             Action:
-                                - SES:SendEmail
+                                - ses:SendEmail
                             Resource:
-                                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/theguardian.com
+                                - "*"
                             Condition:
                                 StringEquals:
                                     ses:FromAddress: !Ref Origin
@@ -110,9 +110,9 @@ Resources:
             Role: !Sub ${LambdaRole.Arn}
             Runtime: java8
             Timeout: 300
-            VpcConfig:
-                SecurityGroupIds:
-                    - !Ref KongSecurityGroupId
-                SubnetIds: !Ref KongSubnetId
+            # VpcConfig:
+            #     SecurityGroupIds:
+            #         - !Ref KongSecurityGroupId
+            #     SubnetIds: !Ref KongSubnetId
         DependsOn: LambdaRole
 
