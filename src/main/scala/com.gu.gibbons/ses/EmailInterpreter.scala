@@ -2,7 +2,7 @@ package com.gu.gibbons.ses
 
 import com.amazonaws.handlers.AsyncHandler
 import com.amazonaws.services.simpleemail.model.{ Destination => SESDestination, Message => SESMessage, _ }
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceAsyncClientBuilder
+import com.amazonaws.services.simpleemail.{AmazonSimpleEmailServiceAsyncClientBuilder, AmazonSimpleEmailServiceAsync}
 import monix.eval.{Callback, Task}
 import monix.execution.Cancelable
 import monix.java8.eval._
@@ -13,7 +13,7 @@ import com.gu.gibbons.config._
 import com.gu.gibbons.model._
 import com.gu.gibbons.services._
 
-final class EmailInterpreter(settings: ScheduledSettings, logger: LoggingService[Task]) extends EmailService[Task] {
+final class EmailInterpreter(settings: ScheduledSettings, logger: LoggingService[Task], emailClient: AmazonSimpleEmailServiceAsync) extends EmailService[Task] {
   def sendReminder(destination: Destination, keys: Vector[Key]) = 
     sendEmail(destination, EmailSettings.reminderSubject, reminderEmail(destination.to, keys))
   def sendDeleted(destination: Destination, keys: Vector[Key]) = 
@@ -40,12 +40,17 @@ final class EmailInterpreter(settings: ScheduledSettings, logger: LoggingService
     Cancelable.empty
   }
 
-  private val emailClient = AmazonSimpleEmailServiceAsyncClientBuilder.standard()
-    .withRegion(settings.region)
-    .build()
-
   private val gen = new UrlGenerator(settings)
 
   private def reminderEmail(email: Email, keys: Vector[Key]) = html.reminder(settings.email.origin, email, keys, gen).toString
   private def deletedEmail(email: Email, keys: Vector[Key]) = html.deleted(settings.email.origin, email, keys, gen).toString
+}
+
+object EmailInterpreter {
+  def apply(settings: ScheduledSettings, logger: LoggingService[Task]): Task[EmailInterpreter] = Task.evalOnce {
+    val emailClient = AmazonSimpleEmailServiceAsyncClientBuilder.standard()
+      .withRegion(settings.region)
+      .build()
+    new EmailInterpreter(settings, logger, emailClient)
+  }
 }
