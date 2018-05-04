@@ -3,39 +3,15 @@ stacks:
 regions:
 - eu-west-1
 deployments:
-  scheduled-lambda:
+  gibbons:
     type: aws-lambda
     parameters:
       fileName: gibbons.jar
       bucket: content-api-dist
       functions:
         CODE:
-          name: scheduled-lambda-CODE
+          name: gibbons-CODE
           filename: gibbons.jar
         PROD:
-          name: scheduled-lambda-PROD
-          filename: gibbons.jar
-  user-said-no-lambda:
-    type: aws-lambda
-    parameters:
-      fileName: gibbons.jar
-      bucket: content-api-dist
-      functions:
-        CODE:
-          name: user-said-no-CODE
-          filename: gibbons.jar
-        PROD:
-          name: user-said-no-PROD
-          filename: gibbons.jar
-  user-said-yes-lambda:
-    type: aws-lambda
-    parameters:
-      fileName: gibbons.jar
-      bucket: content-api-dist
-      functions:
-        CODE:
-          name: user-said-yes-CODE
-          filename: gibbons.jar
-        PROD:
-          name: user-said-yes-PROD
+          name: gibbons-PROD
           filename: gibbons.jar

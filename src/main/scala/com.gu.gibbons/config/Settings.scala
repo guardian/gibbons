@@ -25,14 +25,6 @@ case class ScheduledSettings(
   email: EmailSettings
 ) extends Settings
 
-case class InteractionSettings(
-  region: Regions,
-  users: DynamoSettings,
-  keys: DynamoSettings,
-  kongServerBasePath: String,
-  nonce: String,
-) extends Settings
-
 case class EmailSettings(
   lambdaYesUrl: String,
   lambdaNoUrl: String,
@@ -86,22 +78,3 @@ object ScheduledSettings extends EnvGetter {
 
 }
 
-object InteractionSettings extends EnvGetter {
-  def fromEnvironment: Either[String, InteractionSettings] = {
-    val env = System.getenv.asScala.toMap
-    for{
-      region <- getEnv(env, "AWS_REGION")
-      kongBasePath <- getEnv(env, "KONG_BASE_PATH")
-      usersTableName <- getEnv(env, "BONOBO_USERS_TABLE")
-      keysTableName <- getEnv(env, "BONOBO_KEYS_TABLE")
-      nonce <- getEnv(env, "GATEWAY_API_SECRET")
-    } yield {
-      InteractionSettings(
-        Regions.fromName(region),
-        DynamoSettings(usersTableName), DynamoSettings(keysTableName),
-        kongBasePath,
-        nonce
-      )
-    }
-  }
-}
