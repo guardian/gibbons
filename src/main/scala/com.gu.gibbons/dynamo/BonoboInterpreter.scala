@@ -22,7 +22,7 @@ class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: Logging
     val jadis = OffsetDateTime.now().minus(period).toInstant.toEpochMilli
     for {
       _ <- logger.info(s"Getting all the keys created before $jadis")
-      keys <- getKeysMatching(period, 'createdAt <= jadis)
+      keys <- getKeysMatching(period, (not(attributeExists('extendedAt)) and 'createdAt <= jadis) or (attributeExists('extendedAt) and 'extendedAt <= jadis))
     } yield keys.collect { case Right(key) => key }.toVector
   }
 
@@ -71,11 +71,9 @@ class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: Logging
   private val hashKeyName = 'hashkey
   private val rangeKeyName = 'rangeKey
 
-  private def run[A](program: ScanamoOps[A]) = for {
-    _ <- logger.info(s"Running dynamo query $program")
-    result <- Task.deferFutureAction { implicit scheduler => ScanamoAsync.exec(dynamoClient)(program) }
-    _ <- logger.info(s"Got $result")
-  } yield result
+  private def run[A](program: ScanamoOps[A]) = Task.deferFutureAction { implicit scheduler => 
+    ScanamoAsync.exec(dynamoClient)(program) 
+  }
 
   private def deleteKeyInDynamo(key: Key) = run {
     keysTable.delete('hashkey -> key.hashKey and 'rangekey -> key.rangeKey)
