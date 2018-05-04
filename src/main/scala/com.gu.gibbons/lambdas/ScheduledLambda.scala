@@ -38,7 +38,7 @@ class ScheduledLambda {
         // userDidNotAnswer = new UserDidNotAnswer(settings, email, bonobo, logger)
         userReminder = new UserReminder(settings, email, bonobo, logger)
         // rDel <- userDidNotAnswer.run(true)
-        rRem <- userReminder.run(Instant.now, true)
+        rRem <- userReminder.run(Instant.now, false)
         _ <- logger.info("Goodbye")
       } yield Json.obj(
           "deletions" -> Json.Null, 
