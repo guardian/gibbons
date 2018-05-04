@@ -69,7 +69,7 @@ class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: Logging
 
   private val hashKey = "hashkey"
   private val hashKeyName = 'hashkey
-  private val rangeKeyName = 'rangeKey
+  private val rangeKeyName = 'rangekey
 
   private def run[A](program: ScanamoOps[A]) = Task.deferFutureAction { implicit scheduler => 
     ScanamoAsync.exec(dynamoClient)(program) 
