@@ -50,7 +50,12 @@ class ScheduledLambda {
       Right(result)
     }
 
-    os.write(result.toString.getBytes)
+    result match {
+      case Left(error) =>
+        os.write(s"Something went horribly wrong: $error".getBytes)
+      case Right(result) =>
+        os.write(result.toString.getBytes)
+    }
     is.close()
     os.close()
   }
