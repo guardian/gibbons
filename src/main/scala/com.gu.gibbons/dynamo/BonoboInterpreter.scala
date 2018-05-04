@@ -22,7 +22,7 @@ class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: Logging
     val jadis = OffsetDateTime.now().minus(period).toInstant.toEpochMilli
     for {
       _ <- logger.info(s"Getting all the keys created before $jadis")
-      keys <- getKeysMatching(period, (attributeExists('extendedOn) and 'extendedOn <= jadis) or (not(attributeExists('extendedOn)) and 'createdOn <= jadis))
+      keys <- getKeysMatching(period, 'createdOn <= jadis)
     } yield keys
   }
 
