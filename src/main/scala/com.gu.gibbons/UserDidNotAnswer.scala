@@ -3,7 +3,7 @@ package com.gu.gibbons
 // ------------------------------------------------------------------------
 import cats.Monad
 import config.Settings
-import model.Destination
+import model._
 import services._
 // ------------------------------------------------------------------------
 
@@ -26,16 +26,27 @@ class UserDidNotAnswer[F[_] : Monad](settings: Settings, email: EmailService[F],
       * 3- Delete those keys
       * 4- Send an email to inform users their keys have been deleted
       */
-    def run: F[Unit] = for {
-        _ <- logger.info("Getting all the keys which have not been extended since ${Settings.gracePeriod}")
-        keys <- bonobo.getInactiveKeys(Settings.gracePeriod)
-        _ <- logger.info(s"Found ${keys.length} keys. Let's find out who the belong to...")
-        keysByUser = keys.groupBy(_.userId)
-        users <- keysByUser.keys.toVector.traverse(id => bonobo.getUser(id)).map(_.flatten)
-        _ <- logger.info(s"Found ${users.length} users. Let's delete these keys...")
-        _ <- keys.traverse(key => bonobo.deleteKey(key))
-        _ <- logger.info("Swell! Now we can send a last email to those poor souls...")
-        _ <- users.traverse(user => email.sendDeleted(Destination(user.email), keysByUser(user.id)))
-        _ <- logger.info("That's a wrap! See ya.")
-    } yield ()
+    def run(dryRun: Boolean): F[Result] = 
+      if (dryRun)
+        for {
+          _ <- logger.info("Getting all the keys which have not been extended since ${Settings.gracePeriod}")
+          keys <- bonobo.getInactiveKeys(Settings.gracePeriod)
+        } yield DryRun(keys.groupBy(_.userId))
+      else
+        for {
+          _ <- logger.info("Getting all the keys which have not been extended since ${Settings.gracePeriod}")
+          keys <- bonobo.getInactiveKeys(Settings.gracePeriod)
+          _ <- logger.info(s"Found ${keys.length} keys. Let's find out who the belong to...")
+          keysByUser = keys.groupBy(_.userId)
+          users <- keysByUser.keys.toVector.traverse(id => bonobo.getUser(id)).map(_.flatten)
+          _ <- logger.info(s"Found ${users.length} users. Let's delete these keys...")
+          _ <- keys.traverse(key => bonobo.deleteKey(key))
+          _ <- logger.info("Swell! Now we can send a last email to those poor souls...")
+          ress <- users.traverse { user => 
+            email.sendDeleted(Destination(user.email), keysByUser(user.id)) >>= 
+              (res => Monad[F].pure((user.id -> res)))
+          }
+          ress2 = ress.toMap
+          _ <- logger.info("That's a wrap! See ya.")
+        } yield FullRun(keysByUser.map { case (uid, keys) => uid -> (ress2(uid), keys) })
 }

@@ -27,7 +27,7 @@ class UserReminder[F[_] : Monad](settings: Settings, email: EmailService[F], bon
       * 3- Sends a reminder email to each user 
       * 4- Update keys to log when a reminder has been sent
       */
-    def run(now: Instant, dryRun: Boolean): F[ReminderResult] = 
+    def run(now: Instant, dryRun: Boolean): F[Result] = 
       if (dryRun) 
         for {
           _ <- logger.info("Yop, who's up for receiving a reminder?")
@@ -41,7 +41,10 @@ class UserReminder[F[_] : Monad](settings: Settings, email: EmailService[F], bon
           keysByUser = keys.groupBy(_.userId)
           users <- keysByUser.keys.toVector.traverse(id => bonobo.getUser(id)).map(_.flatten)
           _ <- logger.info(s"Found ${users.length} users. Let's send some emails...")
-          ress <- users.traverse(user => email.sendReminder(Destination(user.email), keysByUser(user.id)) >>= (res => Monad[F].pure((user.id -> res))))
+          ress <- users.traverse { user => 
+            email.sendReminder(Destination(user.email), keysByUser(user.id)) >>= 
+              (res => Monad[F].pure((user.id -> res)))
+          }
           ress2 = ress.toMap
           _ <- logger.info(s"Sent all the emailz! Let's make sure we keep track of that...")
           _ <- keys.traverse(key => bonobo.setRemindedOn(key, now))
@@ -49,6 +52,3 @@ class UserReminder[F[_] : Monad](settings: Settings, email: EmailService[F], bon
         } yield FullRun(keysByUser.map { case (uid, keys) => uid -> (ress2(uid), keys) })
 }
 
-sealed trait ReminderResult
-case class DryRun(keys: Map[UserId, Vector[Key]]) extends ReminderResult
-case class FullRun(result: Map[UserId, (EmailResult, Vector[Key])]) extends ReminderResult
