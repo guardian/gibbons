@@ -27,8 +27,8 @@ class ScheduledLambda {
       val userDidNotAnswer = new UserDidNotAnswer(settings, email, bonobo, logger)
       val userReminder = new UserReminder(settings, email, bonobo, logger)
       val program = for {
-        _ <- userDidNotAnswer.run
-        _ <- userReminder.run(Instant.now)
+        _ <- userDidNotAnswer.run(true)
+        _ <- userReminder.run(Instant.now, true)
       } yield ()
 
       Await.result(program.runAsync, Duration(context.getRemainingTimeInMillis, MILLISECONDS))
