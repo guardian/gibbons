@@ -23,7 +23,7 @@ class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: Logging
     for {
       _ <- logger.info(s"Getting all the keys created before $jadis")
       keys <- getKeysMatching(period, 'createdOn <= jadis)
-    } yield keys
+    } yield keys.collect { case Right(key) => key }.toVector
   }
 
   def getKey(keyId: KeyId): Task[Option[Key]] = run {
@@ -41,7 +41,10 @@ class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: Logging
 
   def getInactiveKeys(period: TemporalAmount) = {
     val jadis = OffsetDateTime.now().minus(period).toInstant.toEpochMilli
-    getKeysMatching(period, attributeExists('remindedOn) and 'remindedOn <= jadis)
+    for {
+      _ <- logger.info(s"Getting all the keys created before $jadis")
+      keys <- getKeysMatching(period, attributeExists('remindedOn) and 'remindedOn <= jadis)
+    } yield keys.collect { case Right(key) => key }.toVector
   }
 
   def deleteKey(key: Key) = getKey(key.rangeKey) >>= {
@@ -85,7 +88,6 @@ class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: Logging
     keysTable
       .filter(not('tier -> "Internal") and 'status -> "Active" and filter)
       .scan()
-      .map(_.collect { case Right(key) => key }.toVector)
   }
 
   private def updateTime(key: Key, col: Symbol, value: Long) = run {
