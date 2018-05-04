@@ -61,9 +61,6 @@ Resources:
                                 - logs:CreateLogStream
                                 - logs:PutLogEvents
                             Resource: "*"
-                - PolicyName: DynamoQuery
-                  PolicyDocument:
-                      Statement:
                           - Effect: Allow
                             Action:
                                 - dynamodb:Query
@@ -74,9 +71,6 @@ Resources:
                             Resource:
                                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/bonobo-${Stage}-keys
                                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/bonobo-${Stage}-users
-                - PolicyName: SendEmails
-                  PolicyDocument:
-                      Statement:
                           - Effect: Allow
                             Action:
                                 - SES:SendEmail
@@ -85,6 +79,11 @@ Resources:
                             Condition:
                                 StringEquals:
                                     ses:FromAddress: !Ref Origin
+                          - Effect: Allow
+                            Action:
+                                - ec2:CreateNetworkInterface
+                                - ec2:DescribeNetworkInterfaces
+                                - ec2:DeleteNetworkInterface
 
     ScheduledLambda:
         Type: AWS::Lambda::Function
