@@ -22,8 +22,7 @@ class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: Logging
     val jadis = OffsetDateTime.now().minus(period).toInstant.toEpochMilli
     for {
       _ <- logger.info(s"Getting all the keys created before $jadis")
-      // keys <- getKeysMatching(period, (attributeExists('extendedOn) and 'extendedOn <= jadis) or (not(attributeExists('extendedOn)) and 'createdOn <= jadis))
-      keys <- getKeysMatching(period, 'createdOn >= jadis)
+      keys <- getKeysMatching(period, (attributeExists('extendedOn) and 'extendedOn <= jadis) or (not(attributeExists('extendedOn)) and 'createdOn <= jadis))
     } yield keys
   }
 
@@ -83,7 +82,7 @@ class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: Logging
   private def getKeysMatching[C: ConditionExpression](period: TemporalAmount, filter: C) = run {
     keysTable
       .filter(filter)
-      // .filter(not('tier -> "Internal") and 'status -> "Active" and filter)
+      .filter(not('tier -> "Internal") and 'status -> "Active" and filter)
       .scan()
       .map(_.collect { case Right(key) => key }.toVector)
   }

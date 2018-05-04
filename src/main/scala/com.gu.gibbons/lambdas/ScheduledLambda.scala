@@ -35,13 +35,13 @@ class ScheduledLambda {
         _ <- logger.info("Opening up a connection to SES...")
         email <- EmailInterpreter(settings, logger)
         _ <- logger.info("We're all set, starting...")
-        userDidNotAnswer = new UserDidNotAnswer(settings, email, bonobo, logger)
+        // userDidNotAnswer = new UserDidNotAnswer(settings, email, bonobo, logger)
         userReminder = new UserReminder(settings, email, bonobo, logger)
-        rDel <- userDidNotAnswer.run(true)
+        // rDel <- userDidNotAnswer.run(true)
         rRem <- userReminder.run(Instant.now, true)
         _ <- logger.info("Goodbye")
       } yield Json.obj(
-          "deletions" -> rDel.asJson, 
+          "deletions" -> Json.Null, 
           "reminders" -> rRem.asJson
       )
 

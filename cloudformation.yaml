@@ -106,7 +106,7 @@ Resources:
                     !Sub ${Stack}/${Stage}/${App}/${App}.jar
             Description: Lambda for sending email reminders to people owning old keys
             Handler: com.gu.gibbons.lambdas.ScheduledLambda::handleRequest
-            MemorySize: 256
+            MemorySize: 512
             Role: !Sub ${LambdaRole.Arn}
             Runtime: java8
             Timeout: 300
