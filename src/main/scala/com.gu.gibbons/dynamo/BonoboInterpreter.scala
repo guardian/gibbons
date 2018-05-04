@@ -3,7 +3,7 @@ package com.gu.gibbons.dynamo
 import java.time.{Instant, OffsetDateTime}
 import java.time.temporal.TemporalAmount
 import monix.eval.Task
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsyncClientBuilder
+import com.amazonaws.services.dynamodbv2.{AmazonDynamoDBAsyncClientBuilder, AmazonDynamoDBAsync}
 import com.gu.scanamo._
 import com.gu.scanamo.ops.ScanamoOps
 import com.gu.scanamo.query.ConditionExpression
@@ -14,7 +14,7 @@ import com.gu.gibbons.kong._
 import com.gu.gibbons.model._
 import com.gu.gibbons.services._
 
-class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: LoggingService[Task]) extends BonoboService[Task] {
+class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: LoggingService[Task], dynamoClient: AmazonDynamoDBAsync) extends BonoboService[Task] {
   import cats.syntax.apply._
   import cats.syntax.flatMap._
 
@@ -58,10 +58,6 @@ class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: Logging
     usersTable.delete('id -> userId.id).map(_ => ())
   }
 
-  private val dynamoClient = AmazonDynamoDBAsyncClientBuilder.standard()
-    .withRegion(config.region)
-    .build()
-
   private val keysTable = Table[Key](config.keys.tableName)
   private val usersTable = Table[User](config.users.tableName)
 
@@ -89,5 +85,15 @@ class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: Logging
 
   private def updateTime(key: Key, col: Symbol, value: Long) = run {
     keysTable.update(hashKeyName -> hashKey and rangeKeyName -> key.rangeKey.id, set(col -> value)).map(_ => ())
+  }
+}
+
+object BonoboInterpreter {
+  def apply(config: Settings, kong: KongInterpreter, logger: LoggingService[Task]): Task[BonoboInterpreter] = Task.evalOnce {
+    val dynamoClient = AmazonDynamoDBAsyncClientBuilder.standard()
+      .withRegion(config.region)
+      .build()
+
+    new BonoboInterpreter(config, kong, logger, dynamoClient)
   }
 }
