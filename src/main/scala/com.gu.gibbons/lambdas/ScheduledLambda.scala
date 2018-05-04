@@ -24,16 +24,22 @@ class ScheduledLambda {
 
   def handleRequest(is: InputStream, os: OutputStream, context: Context) = {
     val result = ScheduledSettings.fromEnvironment >>= { settings =>
-      val logger = new LoggingInterpreter()
-      val kong = new KongInterpreter(settings, logger)
-      val bonobo = new BonoboInterpreter(settings, kong, logger)
-      val email = new EmailInterpreter(settings, logger)
 
-      val userDidNotAnswer = new UserDidNotAnswer(settings, email, bonobo, logger)
-      val userReminder = new UserReminder(settings, email, bonobo, logger)
+      // val userDidNotAnswer = new UserDidNotAnswer(settings, email, bonobo, logger)
+      // val userReminder = new UserReminder(settings, email, bonobo, logger)
       val program = for {
+        logger <- LoggingInterpreter.apply
+        _ <- logger.info("Hello")
+        _ <- logger.info("Opening up a connection to Kong...")
+        kong <- KongInterpreter(settings, logger)
+        _ <- logger.info("Opening up a connection to Bonobo...")
+        bonobo <- BonoboInterpreter(settings, kong, logger)
+        _ <- logger.info("Opening up a connection to SES...")
+        email <- EmailInterpreter(settings, logger)
+        _ <- logger.info("We're all set, starting...")
         rDel <- userDidNotAnswer.run(true)
         rRem <- userReminder.run(Instant.now, true)
+        _ <- logger.info("Goodbye")
       } yield Json.obj(
           "deletions" -> rDel.asJson, 
           "reminders" -> rRem.asJson
