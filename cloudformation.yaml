@@ -21,7 +21,7 @@ Parameters:
         Type: AWS::EC2::SecurityGroup::Id
     KongSubnetId:
         Description: Subnet to access Kong's LB
-        Type: AWS::EC2::Subnet::Id
+        Type: List<AWS::EC2::Subnet::Id>
     KongBasePath:
         Description: Base URL for querying Kong
         Type: String
@@ -90,7 +90,7 @@ Resources:
         Type: AWS::Lambda::Function
         Properties:
             FunctionName:
-                !Sub scheduled-lambda-${Stage}
+                !Sub gibbons-${Stage}
             Environment:
                 Variables:
                     KONG_BASE_PATH: !Ref KongBasePath
@@ -113,7 +113,6 @@ Resources:
             VpcConfig:
                 SecurityGroupIds:
                     - !Ref KongSecurityGroupId
-                SubnetIds:
-                    - !Ref KongSubnetId
+                SubnetIds: !Ref KongSubnetId
         DependsOn: LambdaRole
 
