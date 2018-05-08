@@ -72,17 +72,17 @@ class LoggingServiceInterpreter extends LoggingService[TestProgram] {
 }
 
 class EmailServiceInterpreter extends EmailService[TestProgram] {
-  private def result(header: String, destination: Destination, keys: Vector[Key]) = EmailResult(
+  private def result(header: String, user: User, keys: Vector[Key]) = EmailResult(
     """${header}
-      |${destination.to.email}
+      |${user.email.email}
       |${keys.mkString(",")}""".stripMargin
   )
 
-  def sendReminder(destination: Destination, keys: Vector[Key]) = State[Repo, EmailResult] { case (ks, us, emails) =>
-    ((ks, us, emails + destination.to), result("Reminder email", destination, keys))
+  def sendReminder(user: User, keys: Vector[Key]) = State[Repo, EmailResult] { case (ks, us, emails) =>
+    ((ks, us, emails + user.email), result("Reminder email", user, keys))
   }
   
-  def sendDeleted(destination: Destination, keys: Vector[Key]) = State[Repo, EmailResult] { case (ks, us, emails) =>
-    ((ks, us, emails + destination.to), result("Deletion email", destination, keys))
+  def sendDeleted(user: User, keys: Vector[Key]) = State[Repo, EmailResult] { case (ks, us, emails) =>
+    ((ks, us, emails + user.email), result("Deletion email", user, keys))
   }
 }
