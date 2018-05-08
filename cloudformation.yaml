@@ -28,11 +28,8 @@ Parameters:
     Origin:
         Description: Origin email address as set up in SES
         Type: String
-    ApiYesUrl:
-        Description: URL for extending a key
-        Type: String
-    ApiNoUrl:
-        Description: URL for deleting a key
+    BonoboUrl:
+        Description: Base URL for Bonobo
         Type: String
     Nonce:
         Description: Secret see to hash IDs
@@ -95,9 +92,8 @@ Resources:
                 Variables:
                     KONG_BASE_PATH: !Ref KongBasePath
                     EMAIL_ORIGIN: !Ref Origin
-                    GATEWAY_API_YES: !Ref ApiYesUrl
-                    GATEWAY_API_NO: !Ref ApiNoUrl
                     GATEWAY_API_SECRET: !Ref Nonce
+                    BONOBO_BASE_PATH: !Ref BonoboUrl
                     BONOBO_USERS_TABLE: !Sub bonobo-${Stage}-users
                     BONOBO_KEYS_TABLE: !Sub bonobo-${Stage}-keys
             Code:
