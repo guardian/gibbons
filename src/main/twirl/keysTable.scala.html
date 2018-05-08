@@ -1,23 +1,27 @@
 @import com.gu.gibbons.model.Key
 @import com.gu.gibbons.ses.UrlGenerator
-@import java.time.{LocalDateTime, ZoneOffset}
-@(keys: Vector[Key], gen: UrlGenerator)
+@import java.time.{LocalDateTime, Instant, ZoneOffset}
+@(keys: Vector[Key])
+
+@show(d: Instant) = {
+  @LocalDateTime.ofInstant(d, ZoneOffset.UTC))
+}
 
 <table>
   <thead>
     <tr>
       <td>Key ID</td>
       <td>Created on</td>
-      <td>Action</td>
     </tr>
   </thead>
   @keys.map { key =>
     <tr>
       <td>@key.keyValue</td>
-      <td>@LocalDateTime.ofInstant(key.createdOn, ZoneOffset.UTC)</td>
       <td>
-        <a href="@gen.keep(key)">Keep</a> |
-        <a href="@gen.delete(key)">Delete</a>
+        @show(key.createdOn)
+        @key.extendedOn.map { d =>
+          (Last extended @show(d))
+        }
       </td>
     </tr>
   }
