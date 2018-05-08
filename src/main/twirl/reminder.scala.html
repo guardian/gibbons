@@ -1,15 +1,19 @@
-@import com.gu.gibbons.model.{Key, Email}
+@import com.gu.gibbons.model.{Key, User}
 @import com.gu.gibbons.ses.UrlGenerator
-@(to: Email, keys: Vector[Key], gen: UrlGenerator)
+@(to: User, keys: Vector[Key], gen: UrlGenerator)
 
 @shell("Your API keys are about to expire") {
   <table width="100%" cellpadding="0" cellspacing="0">
     <tr>
       <td class="content-block">
-        <p>Dear @to.name.getOrElse("users"),
+        <p>Dear @to.name,
           <br>
           <br>
-          GDPR requires The Guardian to delete api keys that have not been used in the last 30 months. If you wish to retain access to the following keys, please confirm <here>. <strong>If we do not receive a response within the next two weeks, your keys will be automatically deleted.</strong></p>
+          GDPR requires The Guardian to delete api keys that have not been used in the last 30 months. If you wish to retain access to the following keys, please confirm <a href="@gen.url(user)">here</a>, or by copy-pasting the following URL in your browser:
+          
+          @gen.url(user)
+
+        <p><strong>If you do not take action within the next two weeks, your keys will be automatically deleted.</strong></p>
       </td>
     </tr>
     <tr>

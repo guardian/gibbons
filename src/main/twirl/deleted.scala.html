@@ -1,13 +1,13 @@
-@import com.gu.gibbons.model.{Key, Email}
-@import com.gu.gibbons.ses.UrlGenerator
+@import com.gu.gibbons.model.{Key, User}
 @import java.time.{Instant, ZoneOffset}
-@(to: Email, keys: Vector[Key], gen: UrlGenerator)
+@import com.gu.gibbons.ses.UrlGenerator
+@(to: User, keys: Vector[Key])
 
 @shell("Your API keys have been deleted") {
   <table width="100%" cellpadding="0" cellspacing="0">
     <tr>
       <td class="content-block">
-        <p>Dear @to.name.getOrElse("user"),
+        <p>Dear @to.name,
           <br>
           <br>
           GDPR requires The Guardian to delete api keys that have not been used in the last 30 months.</p>
