@@ -10,8 +10,12 @@ class HashGenerator {
     s"u=user.id.id&h=${hash(user.id.id, nonce)}"
   }
 
-  def hash(keyId: String, nonce: String): String = {
-    val hash = keyId + nonce
+  def params(key: Key, nonce: String): String = {
+    s"u=key.keyValue&h=${hash(key.keyValue, nonce)}"
+  }
+
+  def hash(id: String, nonce: String): String = {
+    val hash = id + nonce
     md5.digest(hash.getBytes).map("%02X".format(_)).mkString
   }
 
@@ -19,5 +23,7 @@ class HashGenerator {
 }
 
 class UrlGenerator(settings: ScheduledSettings) extends HashGenerator {
-  def url(user: User): String = settings.email.bonoboUrl + s"?${params(user, settings.nonce)}"
+  def url(user: User): String = settings.email.bonoboListUrl + s"?${params(user, settings.nonce)}"
+
+  def url(key: Key): String = settings.email.bonoboDeleteUrl + s"?${params(key, settings.nonce)}"
 }
