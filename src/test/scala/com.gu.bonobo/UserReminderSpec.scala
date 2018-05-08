@@ -19,7 +19,7 @@ class IntegrationTests extends FlatSpec with Matchers with Inspectors {
         DynamoSettings(""),
         "",
         "",
-        EmailSettings("", "", Email("")),
+        EmailSettings("", Email("")),
     )
 
     val userReminder = new UserReminder(settings, emailService, bonoboService, loggingService)
