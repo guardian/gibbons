@@ -3,6 +3,7 @@ package com.gu.gibbons.services.interpreters
 import java.time.{Instant, OffsetDateTime}
 import java.time.temporal.TemporalAmount
 import monix.eval.Task
+import okhttp3.{OkHttpClient, Request}
 import com.amazonaws.services.dynamodbv2.{AmazonDynamoDBAsyncClientBuilder, AmazonDynamoDBAsync}
 import com.gu.scanamo._
 import com.gu.scanamo.ops.ScanamoOps
@@ -13,7 +14,7 @@ import com.gu.gibbons.config._
 import com.gu.gibbons.model._
 import com.gu.gibbons.services._
 
-class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoClient: AmazonDynamoDBAsync) extends BonoboService[Task] {
+class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoClient: AmazonDynamoDBAsync, httpClient: OkHttpClient) extends BonoboService[Task] {
   import cats.syntax.apply._
   import cats.syntax.flatMap._
 
@@ -46,9 +47,12 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
     } yield keys.collect { case Right(key) => key }.toVector
   }
 
-  def deleteKey(key: Key) = getKey(key.rangeKey) >>= {
-    case Some(key) => deleteKeyInDynamo(key) *> deleteKeyInKong(key)
-    case None => Task.now(())
+  def deleteKey(key: Key) = Task.deferFutureAction { implicit scheduler =>
+    val request = new Request.Builder()
+      .url(UrlGenerator.url(key))
+      .delete()
+      .build()
+    val response = client.newCall(request).execute()
   }
 
   def setExtendedOn(key: Key, when: Instant) = updateTime(key, 'extendedAt, when.toEpochMilli) 
@@ -74,12 +78,6 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
     ScanamoAsync.exec(dynamoClient)(program) 
   }
 
-  private def deleteKeyInDynamo(key: Key) = run {
-    keysTable.delete('hashkey -> key.hashKey and 'rangekey -> key.rangeKey)
-  }
-
-  private def deleteKeyInKong(key: Key) = ???
-
   private def getKeysMatching[C: ConditionExpression](period: TemporalAmount, filter: C) = run {
     keysTable
       .filter(not('tier -> "Internal") and 'status -> "Active" and filter)
@@ -97,6 +95,8 @@ object BonoboInterpreter {
       .withRegion(config.region)
       .build()
 
-    new BonoboInterpreter(config, logger, dynamoClient)
+    val httpClient = new OkHttpClient()
+
+    new BonoboInterpreter(config, logger, dynamoClient, httpClient)
   }
 }
