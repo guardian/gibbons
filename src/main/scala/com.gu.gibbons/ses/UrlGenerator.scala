@@ -19,7 +19,5 @@ class HashGenerator {
 }
 
 class UrlGenerator(settings: ScheduledSettings) extends HashGenerator {
-  def keep(key: Key): String = settings.email.lambdaYesUrl + s"?${params(key, settings.nonce)}"
-
-  def delete(key: Key): String = settings.email.lambdaNoUrl + s"?${params(key, settings.nonce)}"
+  def url(key: Key): String = settings.email.bonoboUrl + s"?${params(key, settings.nonce)}"
 }

@@ -26,8 +26,7 @@ case class ScheduledSettings(
 ) extends Settings
 
 case class EmailSettings(
-  lambdaYesUrl: String,
-  lambdaNoUrl: String,
+  bonoboUrl: String,
   /** The email address used in the From field of emails sent to API users */
   origin: Email
 )
@@ -58,8 +57,7 @@ object ScheduledSettings extends EnvGetter {
     for{
       region <- getEnv(env, "AWS_REGION")
       kongBasePath <- getEnv(env, "KONG_BASE_PATH")
-      yesUrl <- getEnv(env, "GATEWAY_API_YES")
-      noUrl  <- getEnv(env, "GATEWAY_API_NO")
+      bonoboUrl <- getEnv(env, "BONOBO_BASE_PATH")
       nonce <- getEnv(env, "GATEWAY_API_SECRET")
       origin <- getEnv(env, "EMAIL_ORIGIN")
       usersTableName <- getEnv(env, "BONOBO_USERS_TABLE")
@@ -70,7 +68,7 @@ object ScheduledSettings extends EnvGetter {
         DynamoSettings(usersTableName), DynamoSettings(keysTableName),
         kongBasePath,
         nonce,
-        EmailSettings(yesUrl, noUrl, Email(origin)),
+        EmailSettings(bonoboUrl, Email(origin)),
       )
     }
   }
