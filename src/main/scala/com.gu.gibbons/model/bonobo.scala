@@ -87,8 +87,3 @@ object Key {
   def create(id: String, userId: String, createdOn: String, extendedOn: Option[String] = None, remindedOn: Option[String] = None) =
     Key("", KeyId(id), UserId(userId), UserId(id), "", Instant.parse(createdOn), extendedOn.map(Instant.parse(_)), remindedOn.map(Instant.parse(_)))
 }
-
-
-sealed trait BonoboResult
-case object Success extends BonoboResult
-case class KeyNotFound(keyId: KeyId) extends BonoboResult
