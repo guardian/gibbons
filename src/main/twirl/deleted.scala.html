@@ -1,6 +1,5 @@
-@import com.gu.gibbons.model.{Key, User}
+@import com.gu.gibbons.model.{Key, User, UrlGenerator}
 @import java.time.{Instant, ZoneOffset}
-@import com.gu.gibbons.ses.UrlGenerator
 @(to: User, keys: Vector[Key])
 
 @shell("Your API keys have been deleted") {

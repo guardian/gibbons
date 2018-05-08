@@ -1,4 +1,4 @@
-package com.gu.gibbons.kong
+package com.gu.gibbons.services.interpreters
 
 import cats.~>
 import io.circe.parser._
@@ -7,8 +7,8 @@ import monix.eval.Task
 import okhttp3.{OkHttpClient, Request, Response}
 
 import com.gu.gibbons.config.Settings
-import com.gu.gibbons.model.{KeyId, UserId}
-import com.gu.gibbons.services.LoggingService
+import com.gu.gibbons.model.{KeyId, UserId, KongKey, KongListConsumerKeys}
+import com.gu.gibbons.services._
 
 class KongInterpreter(settings: Settings, logger: LoggingService[Task], client: OkHttpClient) extends (KongServiceF ~> Task) {
   import KongKey._

@@ -1,4 +1,4 @@
-package com.gu.gibbons.ses
+package com.gu.gibbons.services.interpreters
 
 import com.amazonaws.handlers.AsyncHandler
 import com.amazonaws.services.simpleemail.model.{ Destination => SESDestination, Message => SESMessage, _ }

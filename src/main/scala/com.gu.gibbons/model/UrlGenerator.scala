@@ -1,9 +1,9 @@
-package com.gu.gibbons.ses
+package com.gu.gibbons
+package model
 
 import java.security.MessageDigest
 
-import com.gu.gibbons.config._
-import com.gu.gibbons.model.User
+import config._
 
 class HashGenerator {
   def params(user: User, nonce: String): String = {

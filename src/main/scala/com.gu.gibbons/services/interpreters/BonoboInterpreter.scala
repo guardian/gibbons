@@ -1,4 +1,4 @@
-package com.gu.gibbons.dynamo
+package com.gu.gibbons.services.interpreters
 
 import java.time.{Instant, OffsetDateTime}
 import java.time.temporal.TemporalAmount
@@ -10,7 +10,6 @@ import com.gu.scanamo.query.ConditionExpression
 import com.gu.scanamo.syntax._
 
 import com.gu.gibbons.config._
-import com.gu.gibbons.kong._
 import com.gu.gibbons.model._
 import com.gu.gibbons.services._
 

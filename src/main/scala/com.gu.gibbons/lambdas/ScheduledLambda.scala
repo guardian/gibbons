@@ -12,10 +12,7 @@ import scala.concurrent.duration._
 
 import config._
 import model.JsonFormats
-import dynamo.BonoboInterpreter
-import log4j.LoggingInterpreter
-import kong.KongInterpreter
-import ses.EmailInterpreter
+import services.interpreters._
 
 class ScheduledLambda {
   import cats.instances.either._
