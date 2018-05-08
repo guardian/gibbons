@@ -25,10 +25,8 @@ class ScheduledLambda {
       val program = for {
         logger <- LoggingInterpreter.apply
         _ <- logger.info("Hello")
-        _ <- logger.info("Opening up a connection to Kong...")
-        kong <- KongInterpreter(settings, logger)
         _ <- logger.info("Opening up a connection to Bonobo...")
-        bonobo <- BonoboInterpreter(settings, kong, logger)
+        bonobo <- BonoboInterpreter(settings, logger)
         _ <- logger.info("Opening up a connection to SES...")
         email <- EmailInterpreter(settings, logger)
         _ <- logger.info("We're all set, starting...")

@@ -13,7 +13,7 @@ import com.gu.gibbons.config._
 import com.gu.gibbons.model._
 import com.gu.gibbons.services._
 
-class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: LoggingService[Task], dynamoClient: AmazonDynamoDBAsync) extends BonoboService[Task] {
+class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoClient: AmazonDynamoDBAsync) extends BonoboService[Task] {
   import cats.syntax.apply._
   import cats.syntax.flatMap._
 
@@ -78,8 +78,7 @@ class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: Logging
     keysTable.delete('hashkey -> key.hashKey and 'rangekey -> key.rangeKey)
   }
 
-  private def deleteKeyInKong(key: Key) =
-    KongService.deleteKey(key.kongId).foldMap(kong)
+  private def deleteKeyInKong(key: Key) = ???
 
   private def getKeysMatching[C: ConditionExpression](period: TemporalAmount, filter: C) = run {
     keysTable
@@ -93,11 +92,11 @@ class BonoboInterpreter(config: Settings, kong: KongInterpreter, logger: Logging
 }
 
 object BonoboInterpreter {
-  def apply(config: Settings, kong: KongInterpreter, logger: LoggingService[Task]): Task[BonoboInterpreter] = Task.evalOnce {
+  def apply(config: Settings, logger: LoggingService[Task]): Task[BonoboInterpreter] = Task.evalOnce {
     val dynamoClient = AmazonDynamoDBAsyncClientBuilder.standard()
       .withRegion(config.region)
       .build()
 
-    new BonoboInterpreter(config, kong, logger, dynamoClient)
+    new BonoboInterpreter(config, logger, dynamoClient)
   }
 }
