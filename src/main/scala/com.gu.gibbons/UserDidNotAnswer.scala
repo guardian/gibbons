@@ -43,7 +43,7 @@ class UserDidNotAnswer[F[_] : Monad](settings: Settings, email: EmailService[F],
           _ <- keys.traverse(key => bonobo.deleteKey(key))
           _ <- logger.info("Swell! Now we can send a last email to those poor souls...")
           ress <- users.traverse { user => 
-            email.sendDeleted(Destination(user.email), keysByUser(user.id)) >>= 
+            email.sendDeleted(user, keysByUser(user.id)) >>= 
               (res => Monad[F].pure((user.id -> res)))
           }
           ress2 = ress.toMap
