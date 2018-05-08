@@ -3,11 +3,11 @@ package com.gu.gibbons.ses
 import java.security.MessageDigest
 
 import com.gu.gibbons.config._
-import com.gu.gibbons.model.Key
+import com.gu.gibbons.model.User
 
 class HashGenerator {
-  def params(key: Key, nonce: String): String = {
-    s"k=key.rangeKey&h=${hash(key.rangeKey.id, nonce)}"
+  def params(user: User, nonce: String): String = {
+    s"u=user.id.id&h=${hash(user.id.id, nonce)}"
   }
 
   def hash(keyId: String, nonce: String): String = {
@@ -19,5 +19,5 @@ class HashGenerator {
 }
 
 class UrlGenerator(settings: ScheduledSettings) extends HashGenerator {
-  def url(key: Key): String = settings.email.bonoboUrl + s"?${params(key, settings.nonce)}"
+  def url(user: User): String = settings.email.bonoboUrl + s"?${params(user, settings.nonce)}"
 }
