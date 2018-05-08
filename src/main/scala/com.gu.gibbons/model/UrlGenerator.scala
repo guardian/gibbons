@@ -23,7 +23,7 @@ class HashGenerator {
 }
 
 class UrlGenerator(settings: ScheduledSettings) extends HashGenerator {
-  def url(user: User): String = settings.email.bonoboListUrl + s"?${params(user, settings.nonce)}"
+  def url(user: User): String = settings.bonoboListUrl + s"?${params(user, settings.nonce)}"
 
-  def url(key: Key): String = settings.email.bonoboDeleteUrl + s"?${params(key, settings.nonce)}"
+  def url(key: Key): String = settings.bonoboDeleteUrl + s"?${params(key, settings.nonce)}"
 }

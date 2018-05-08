@@ -63,7 +63,7 @@ object ScheduledSettings extends EnvGetter {
       keysTableName <- getEnv(env, "BONOBO_KEYS_TABLE")
     } yield {
       ScheduledSettings(
-        regions = Regions.fromName(region),
+        region = Regions.fromName(region),
         users = DynamoSettings(usersTableName), 
         keys = DynamoSettings(keysTableName),
         nonce = nonce,
