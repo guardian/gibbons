@@ -13,11 +13,11 @@ import com.gu.gibbons.config._
 import com.gu.gibbons.model._
 import com.gu.gibbons.services._
 
-final class EmailInterpreter(settings: ScheduledSettings, logger: LoggingService[Task], emailClient: AmazonSimpleEmailServiceAsync) extends EmailService[Task] {
+final class EmailInterpreter(settings: Settings, logger: LoggingService[Task], emailClient: AmazonSimpleEmailServiceAsync) extends EmailService[Task] {
   def sendReminder(user: User, keys: Vector[Key]) = 
-    sendEmail(user, EmailSettings.reminderSubject, reminderEmail(user, keys))
+    sendEmail(user, Settings.reminderSubject, reminderEmail(user, keys))
   def sendDeleted(user: User, keys: Vector[Key]) = 
-    sendEmail(user, EmailSettings.deletedSubject, deletedEmail(user, keys))
+    sendEmail(user, Settings.deletedSubject, deletedEmail(user, keys))
 
   private def sendEmail(user: User, subject: String, content: String) = Task.create { (_, callback: Callback[EmailResult]) =>
     val request = new SendEmailRequest()
@@ -47,7 +47,7 @@ final class EmailInterpreter(settings: ScheduledSettings, logger: LoggingService
 }
 
 object EmailInterpreter {
-  def apply(settings: ScheduledSettings, logger: LoggingService[Task]): Task[EmailInterpreter] = Task.evalOnce {
+  def apply(settings: Settings, logger: LoggingService[Task]): Task[EmailInterpreter] = Task.evalOnce {
     val emailClient = AmazonSimpleEmailServiceAsyncClientBuilder.standard()
       .withRegion(settings.region)
       .build()

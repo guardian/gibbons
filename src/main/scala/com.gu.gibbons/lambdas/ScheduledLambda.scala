@@ -20,7 +20,7 @@ class ScheduledLambda {
   import JsonFormats._
 
   def handleRequest(is: InputStream, os: OutputStream, context: Context) = {
-    val result = ScheduledSettings.fromEnvironment >>= { settings =>
+    val result = Settings.fromEnvironment >>= { settings =>
 
       val program = for {
         logger <- LoggingInterpreter.apply

@@ -22,7 +22,7 @@ class HashGenerator {
   private val md5 = MessageDigest.getInstance("MD5")
 }
 
-class UrlGenerator(settings: ScheduledSettings) extends HashGenerator {
+class UrlGenerator(settings: Settings) extends HashGenerator {
   def url(user: User): String = settings.bonoboListUrl + s"?${params(user, settings.nonce)}"
 
   def url(key: Key): String = settings.bonoboDeleteUrl + s"?${params(key, settings.nonce)}"

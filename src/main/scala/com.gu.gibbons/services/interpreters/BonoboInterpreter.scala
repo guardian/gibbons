@@ -14,7 +14,7 @@ import com.gu.gibbons.config._
 import com.gu.gibbons.model._
 import com.gu.gibbons.services._
 
-class BonoboInterpreter(config: ScheduledSettings, logger: LoggingService[Task], dynamoClient: AmazonDynamoDBAsync, httpClient: OkHttpClient) extends BonoboService[Task] {
+class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoClient: AmazonDynamoDBAsync, httpClient: OkHttpClient) extends BonoboService[Task] {
   import cats.syntax.apply._
   import cats.syntax.flatMap._
 
@@ -92,7 +92,7 @@ class BonoboInterpreter(config: ScheduledSettings, logger: LoggingService[Task],
 }
 
 object BonoboInterpreter {
-  def apply(config: ScheduledSettings, logger: LoggingService[Task]): Task[BonoboInterpreter] = Task.evalOnce {
+  def apply(config: Settings, logger: LoggingService[Task]): Task[BonoboInterpreter] = Task.evalOnce {
     val dynamoClient = AmazonDynamoDBAsyncClientBuilder.standard()
       .withRegion(config.region)
       .build()

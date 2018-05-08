@@ -13,7 +13,7 @@ class IntegrationTests extends FlatSpec with Matchers with Inspectors {
     val bonoboService = new BonoboServiceInterpreter {} 
     val loggingService = new LoggingServiceInterpreter {}
 
-    val settings = ScheduledSettings(
+    val settings = Settings(
         Regions.fromName("eu-west-1"),
         DynamoSettings(""),
         DynamoSettings(""),
