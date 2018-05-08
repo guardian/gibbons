@@ -27,7 +27,7 @@ object User {
       id <- attrs.get("id").flatMap(a => Option(a.getS))
       email <- attrs.get("email").flatMap(a => Option(a.getS))
       name <- attrs.get("name").flatMap(a => Option(a.getS))
-    } yield User(UserId(id), name, Email(email))).fold(Left(MissingProperty): Either[DynamoReadError, User])(Right(_))
+    } yield User(UserId(id), name, Email(email, Some(name)))).fold(Left(MissingProperty): Either[DynamoReadError, User])(Right(_))
 
     // we will never add a new record
     def write(u: User) = new AttributeValue()

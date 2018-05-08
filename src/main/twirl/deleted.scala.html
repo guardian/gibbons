@@ -1,14 +1,17 @@
 @import com.gu.gibbons.model.{Key, Email}
 @import com.gu.gibbons.ses.UrlGenerator
 @import java.time.{Instant, ZoneOffset}
-@(from: Email, to: Email, keys: Vector[Key], gen: UrlGenerator)
+@(to: Email, keys: Vector[Key], gen: UrlGenerator)
 
-@shell("Your API keys have been revoked!") {
+@shell("Your API keys have been deleted") {
   <table width="100%" cellpadding="0" cellspacing="0">
     <tr>
       <td class="content-block">
-        <p>Dear @to,<br><br>blablabla GDPR.</p>
-        <p>Please take note that the following keys have been removed from our system and cannot be used to access our Content API anymore:</p>
+        <p>Dear @to.name.getOrElse("user"),
+          <br>
+          <br>
+          GDPR requires The Guardian to delete api keys that have not been used in the last 30 months.</p>
+        <p>Two weeks ago, we sent you an email asking whether you were still using your API keys, but haven't heard back from you. As requested by the legislation, the following keys have been removed and can no longer be used to query the Guardian's Open Platform.</p>
       </td>
     </tr>
     <tr>
@@ -18,8 +21,10 @@
     </tr>
     <tr>
       <td class="content-block">
-        —Guardian News Media<br>
-        @from.email
+        <p>If you would like to register for a new developer key, you can do so <a href="http://open-platform.theguardian.com/">here</a>.</p>
+      </td>
+      <td class="content-block">
+        —Guardian News Media
       </td>
     </tr>
   </table>

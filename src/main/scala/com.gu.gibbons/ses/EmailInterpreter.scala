@@ -42,8 +42,8 @@ final class EmailInterpreter(settings: ScheduledSettings, logger: LoggingService
 
   private val gen = new UrlGenerator(settings)
 
-  private def reminderEmail(email: Email, keys: Vector[Key]) = html.reminder(settings.email.origin, email, keys, gen).toString
-  private def deletedEmail(email: Email, keys: Vector[Key]) = html.deleted(settings.email.origin, email, keys, gen).toString
+  private def reminderEmail(email: Email, keys: Vector[Key]) = html.reminder(email, keys, gen).toString
+  private def deletedEmail(email: Email, keys: Vector[Key]) = html.deleted(email, keys, gen).toString
 }
 
 object EmailInterpreter {
