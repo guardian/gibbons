@@ -12,7 +12,6 @@ sealed trait Settings {
   def region: Regions
   def users: DynamoSettings
   def keys: DynamoSettings
-  def kongServerBasePath: String
   def nonce: String
 }
 
@@ -20,13 +19,13 @@ case class ScheduledSettings(
   region: Regions,
   users: DynamoSettings,
   keys: DynamoSettings,
-  kongServerBasePath: String,
   nonce: String,
+  bonoboListUrl: String,
+  bonoboDeleteUrl: String,
   email: EmailSettings
 ) extends Settings
 
 case class EmailSettings(
-  bonoboUrl: String,
   /** The email address used in the From field of emails sent to API users */
   origin: Email
 )
@@ -56,19 +55,21 @@ object ScheduledSettings extends EnvGetter {
     val env = System.getenv.asScala.toMap
     for{
       region <- getEnv(env, "AWS_REGION")
-      kongBasePath <- getEnv(env, "KONG_BASE_PATH")
-      bonoboUrl <- getEnv(env, "BONOBO_BASE_PATH")
       nonce <- getEnv(env, "GATEWAY_API_SECRET")
       origin <- getEnv(env, "EMAIL_ORIGIN")
+      bonoboListUrl <- getEnv(env, "BONOBO_LIST_URL")
+      bonoboDeleteUrl <- getEnv(env, "BONOBO_DELETE_URL")
       usersTableName <- getEnv(env, "BONOBO_USERS_TABLE")
       keysTableName <- getEnv(env, "BONOBO_KEYS_TABLE")
     } yield {
       ScheduledSettings(
-        Regions.fromName(region),
-        DynamoSettings(usersTableName), DynamoSettings(keysTableName),
-        kongBasePath,
-        nonce,
-        EmailSettings(bonoboUrl, Email(origin)),
+        regions = Regions.fromName(region),
+        users = DynamoSettings(usersTableName), 
+        keys = DynamoSettings(keysTableName),
+        nonce = nonce,
+        bonoboListUrl = bonoboListUrl,
+        bonoboDeleteUrl = bonoboDeleteUrl,
+        email = EmailSettings(Email(origin)),
       )
     }
   }
