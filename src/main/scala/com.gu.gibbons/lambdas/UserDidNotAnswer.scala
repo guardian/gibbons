@@ -14,7 +14,7 @@ import config._
 import model.JsonFormats
 import services.interpreters._
 
-class ScheduledLambda {
+class UserDidNotAnswerLambda {
   import cats.instances.either._
   import cats.syntax.flatMap._
   import JsonFormats._
@@ -33,10 +33,7 @@ class ScheduledLambda {
         userDidNotAnswer = new UserDidNotAnswer(settings, email, bonobo, logger)
         rDel <- userDidNotAnswer.run(true)
         _ <- logger.info("Goodbye")
-      } yield Json.obj(
-          "deletions" -> Json.Null, 
-          "reminders" -> rRem.asJson
-      )
+      } yield rDel.asJson
 
       val result = Await.result(program.runAsync, Duration(context.getRemainingTimeInMillis, MILLISECONDS))
 

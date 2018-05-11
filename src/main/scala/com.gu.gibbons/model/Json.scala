@@ -29,10 +29,9 @@ object JsonFormats {
                 )}.toSeq
                 Json.arr(objs:_*)
             case FullRun(result) => 
-                val objs = result.map { case (userId, (emailRes, keys)) => Json.obj(
+                val objs = result.map { case (userId, emailRes) => Json.obj(
                     "user" -> Json.fromString(userId.id),
-                    "email" -> emailRes.asJson,
-                    "keys" -> Json.arr(keys.map(_.asJson):_*)
+                    "email" -> emailRes.asJson
                 )}.toSeq
                 Json.arr(objs:_*)
         }

@@ -1,5 +1,5 @@
 @import com.gu.gibbons.model.{Key, User, UrlGenerator}
-@(to: User, keys: Vector[Key], gen: UrlGenerator)
+@(to: User, gen: UrlGenerator)
 
 @shell("Your API keys are about to expire") {
   <table width="100%" cellpadding="0" cellspacing="0">
@@ -17,11 +17,6 @@
         <p>@gen.delete(to)</p>
 
         <p><strong>If you do not take action within the next two weeks, your keys will be automatically deleted.</strong></p>
-      </td>
-    </tr>
-    <tr>
-      <td class="content-block">
-        @keysTable(keys)
       </td>
     </tr>
   </table>

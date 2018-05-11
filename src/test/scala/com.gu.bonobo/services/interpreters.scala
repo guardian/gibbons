@@ -30,11 +30,6 @@ class BonoboServiceInterpreter extends BonoboService[TestProgram] {
     (s, res)
   }
 
-  def deleteKey(key: Key) = State[Repo, Unit] { case (keys, users, es) =>
-    val newKeys = keys - key.rangeKey
-    ((newKeys, users, es), ())
-  }
-
   def setExtendedOn(key: Key, when: Instant) = State[Repo, Unit] { case (keys, users, es) =>
     val newKeys = keys.updated(key.rangeKey, key.copy(extendedOn = Some(when)))
     ((newKeys, users, es), ())
@@ -49,8 +44,8 @@ class BonoboServiceInterpreter extends BonoboService[TestProgram] {
     (s, users.get(userId))
   }
 
-  def deleteUser(userId: UserId) = State[Repo, Unit] { case (keys, users, es) =>
-    ((keys, users - userId, es), ())
+  def deleteUser(user: User) = State[Repo, Unit] { case (keys, users, es) =>
+    ((keys, users - user.id, es), ())
   }
 }
 
@@ -72,17 +67,16 @@ class LoggingServiceInterpreter extends LoggingService[TestProgram] {
 }
 
 class EmailServiceInterpreter extends EmailService[TestProgram] {
-  private def result(header: String, user: User, keys: Vector[Key]) = EmailResult(
+  private def result(header: String, user: User) = EmailResult(
     """${header}
-      |${user.email.email}
-      |${keys.mkString(",")}""".stripMargin
+      |${user.email.email}""".stripMargin
   )
 
-  def sendReminder(user: User, keys: Vector[Key]) = State[Repo, EmailResult] { case (ks, us, emails) =>
-    ((ks, us, emails + user.email), result("Reminder email", user, keys))
+  def sendReminder(user: User) = State[Repo, EmailResult] { case (ks, us, emails) =>
+    ((ks, us, emails + user.email), result("Reminder email", user))
   }
   
-  def sendDeleted(user: User, keys: Vector[Key]) = State[Repo, EmailResult] { case (ks, us, emails) =>
-    ((ks, us, emails + user.email), result("Deletion email", user, keys))
+  def sendDeleted(user: User) = State[Repo, EmailResult] { case (ks, us, emails) =>
+    ((ks, us, emails + user.email), result("Deletion email", user))
   }
 }

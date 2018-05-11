@@ -14,7 +14,7 @@ import config._
 import model.JsonFormats
 import services.interpreters._
 
-class ScheduledLambda {
+class UserReminderLambda {
   import cats.instances.either._
   import cats.syntax.flatMap._
   import JsonFormats._
@@ -33,10 +33,7 @@ class ScheduledLambda {
         userReminder = new UserReminder(settings, email, bonobo, logger)
         rRem <- userReminder.run(Instant.now, false)
         _ <- logger.info("Goodbye")
-      } yield Json.obj(
-          "deletions" -> Json.Null, 
-          "reminders" -> rRem.asJson
-      )
+      } yield rRem.asJson
 
       val result = Await.result(program.runAsync, Duration(context.getRemainingTimeInMillis, MILLISECONDS))
 

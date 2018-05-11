@@ -1,6 +1,6 @@
 @import com.gu.gibbons.model.{Key, User, UrlGenerator}
 @import java.time.{Instant, ZoneOffset}
-@(to: User, keys: Vector[Key])
+@(to: User)
 
 @shell("Your API keys have been deleted") {
   <table width="100%" cellpadding="0" cellspacing="0">
@@ -11,11 +11,6 @@
           <br>
           GDPR requires The Guardian to delete api keys that have not been used in the last 30 months.</p>
         <p>Two weeks ago, we sent you an email asking whether you were still using your API keys, but haven't heard back from you. As requested by the legislation, the following keys have been removed and can no longer be used to query the Guardian's Open Platform.</p>
-      </td>
-    </tr>
-    <tr>
-      <td class="content-block">
-        @keysTable(keys)
       </td>
     </tr>
     <tr>

@@ -37,16 +37,12 @@ class UserDidNotAnswer[F[_] : Monad](settings: Settings, email: EmailService[F],
           _ <- logger.info("Getting all the keys which have not been extended since ${Settings.gracePeriod}")
           keys <- bonobo.getInactiveKeys(Settings.gracePeriod)
           _ <- logger.info(s"Found ${keys.length} keys. Let's find out who the belong to...")
-          keysByUser = keys.groupBy(_.userId)
-          users <- keysByUser.keys.toVector.traverse(id => bonobo.getUser(id)).map(_.flatten)
+          userIds = keys.map(_.userId).distinct
+          users <- userIds.traverse(id => bonobo.getUser(id)).map(_.flatten)
           _ <- logger.info(s"Found ${users.length} users. Let's delete these keys...")
-          _ <- keys.traverse(key => bonobo.deleteKey(key))
+          _ <- users.traverse(user => bonobo.deleteUser(user))
           _ <- logger.info("Swell! Now we can send a last email to those poor souls...")
-          ress <- users.traverse { user => 
-            email.sendDeleted(user, keysByUser(user.id)) >>= 
-              (res => Monad[F].pure((user.id -> res)))
-          }
-          ress2 = ress.toMap
+          ress <- users.traverse { user => email.sendDeleted(user).map(user.id -> _) }.map(_.toMap)
           _ <- logger.info("That's a wrap! See ya.")
-        } yield FullRun(keysByUser.map { case (uid, keys) => uid -> (ress2(uid), keys) })
+        } yield FullRun(ress)
 }

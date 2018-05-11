@@ -19,7 +19,6 @@ class IntegrationTests extends FlatSpec with Matchers with Inspectors {
         DynamoSettings(""),
         "",
         "",
-        "",
         EmailSettings(Email("")),
     )
 

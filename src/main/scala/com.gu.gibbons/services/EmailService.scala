@@ -4,6 +4,6 @@ package services
 import model._
 
 trait EmailService[F[_]] {
-    def sendReminder(user: User, keys: Vector[Key]): F[EmailResult]
-    def sendDeleted(user: User, keys: Vector[Key]): F[EmailResult]
+    def sendReminder(user: User): F[EmailResult]
+    def sendDeleted(user: User): F[EmailResult]
 }

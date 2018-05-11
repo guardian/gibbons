@@ -47,14 +47,6 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
     } yield keys.collect { case Right(key) => key }.toVector
   }
 
-  def deleteKey(key: Key) = Task.eval {
-    val request = new Request.Builder()
-      .url(urlGenerator.url(key))
-      .delete()
-      .build()
-    val response = httpClient.newCall(request).execute()
-  }
-
   def setExtendedOn(key: Key, when: Instant) = updateTime(key, 'extendedAt, when.toEpochMilli) 
 
   def setRemindedOn(key: Key, when: Instant) = updateTime(key, 'remindedAt, when.toEpochMilli) 
@@ -63,8 +55,8 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
     usersTable.query('id -> userId.id).map(_.headOption.collect { case Right(user) => user })
   }
 
-  def deleteUser(userId: UserId) = run {
-    usersTable.delete('id -> userId.id).map(_ => ())
+  def deleteUser(user: User) = run {
+    usersTable.delete('id -> user.id.id).map(_ => ())
   }
 
   private val urlGenerator = new UrlGenerator(config)

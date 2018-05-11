@@ -37,12 +37,6 @@ trait BonoboService[F[_]] {
       */
     def getInactiveKeys(period: TemporalAmount): F[Vector[Key]]
 
-    /** Deletes a key
-      *
-      * @param key The key
-      */
-    def deleteKey(key: Key): F[Unit]
-
     /** Extend the key for another 30 months
       *
       * @param key The key
@@ -64,9 +58,9 @@ trait BonoboService[F[_]] {
       */
     def getUser(userId: UserId): F[Option[User]]
 
-    /** Deletes user by ID
+    /** Deletes a user and all their keys
       *
-      * @param userId The user's IDs
+      * @param user The user
       */
-    def deleteUser(userId: UserId): F[Unit]
+    def deleteUser(user: User): F[Unit]
 }

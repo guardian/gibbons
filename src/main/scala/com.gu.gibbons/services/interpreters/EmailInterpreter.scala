@@ -14,10 +14,10 @@ import com.gu.gibbons.model._
 import com.gu.gibbons.services._
 
 final class EmailInterpreter(settings: Settings, logger: LoggingService[Task], emailClient: AmazonSimpleEmailServiceAsync) extends EmailService[Task] {
-  def sendReminder(user: User, keys: Vector[Key]) = 
-    sendEmail(user, Settings.reminderSubject, reminderEmail(user, keys))
-  def sendDeleted(user: User, keys: Vector[Key]) = 
-    sendEmail(user, Settings.deletedSubject, deletedEmail(user, keys))
+  def sendReminder(user: User) = 
+    sendEmail(user, Settings.reminderSubject, reminderEmail(user))
+  def sendDeleted(user: User) = 
+    sendEmail(user, Settings.deletedSubject, deletedEmail(user))
 
   private def sendEmail(user: User, subject: String, content: String) = Task.create { (_, callback: Callback[EmailResult]) =>
     val request = new SendEmailRequest()
@@ -42,8 +42,8 @@ final class EmailInterpreter(settings: Settings, logger: LoggingService[Task], e
 
   private val gen = new UrlGenerator(settings)
 
-  private def reminderEmail(user: User, keys: Vector[Key]) = html.reminder(user, keys, gen).toString
-  private def deletedEmail(user: User, keys: Vector[Key]) = html.deleted(user, keys).toString
+  private def reminderEmail(user: User) = html.reminder(user, gen).toString
+  private def deletedEmail(user: User) = html.deleted(user).toString
 }
 
 object EmailInterpreter {
