@@ -6,16 +6,12 @@ import java.security.MessageDigest
 import config._
 
 class HashGenerator {
-  def params(user: User, nonce: String): String = {
-    s"u=user.id.id&h=${hash(user.id.id, nonce)}"
+  def params(user: User, salt: String): String = {
+    s"u=user.id.id&h=${hash(user.id.id, salt)}"
   }
 
-  def params(key: Key, nonce: String): String = {
-    s"u=key.keyValue&h=${hash(key.keyValue, nonce)}"
-  }
-
-  def hash(id: String, nonce: String): String = {
-    val hash = id + nonce
+  def hash(id: String, salt: String): String = {
+    val hash = id + salt
     md5.digest(hash.getBytes).map("%02X".format(_)).mkString
   }
 
@@ -23,7 +19,10 @@ class HashGenerator {
 }
 
 class UrlGenerator(settings: Settings) extends HashGenerator {
-  def url(user: User): String = settings.bonoboListUrl + s"?${params(user, settings.nonce)}"
+  private def url(action: String, user: User) =
+    s"${settings.bonoboUrl}/user/${user.id.id}/keys/${action}?h=${params(user, settings.salt)}"
 
-  def url(key: Key): String = settings.bonoboDeleteUrl + s"?${params(key, settings.nonce)}"
+  def extend(user: User): String = url("extend", user)
+
+  def delete(user: User): String = url("delete", user)
 }

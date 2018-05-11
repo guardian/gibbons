@@ -8,9 +8,13 @@
         <p>Dear @to.name,
           <br>
           <br>
-          GDPR requires The Guardian to delete api keys that have not been used in the last 30 months. If you wish to retain access to the following keys, please confirm <a href="@gen.url(to)">here</a>, or by copy-pasting the following URL in your browser:</p>
+          GDPR requires The Guardian to delete api keys that have not been used in the last 30 months. If you wish to retain access to the Guardian's Content API, please confirm <a href="@gen.extend(to)">here</a>, or by copy-pasting the following URL in your browser:</p>
           
-        <p>@gen.url(to)</p>
+        <p>@gen.extend(to)</p>
+
+        <p>If you do not wish to retain access, please confirm <a href="@gen.delete(to)">here</a>, or by copy-pasting the following URL in your browser:</p>
+
+        <p>@gen.delete(to)</p>
 
         <p><strong>If you do not take action within the next two weeks, your keys will be automatically deleted.</strong></p>
       </td>

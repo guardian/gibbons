@@ -28,13 +28,10 @@ Parameters:
     Origin:
         Description: Origin email address as set up in SES
         Type: String
-    BonoboListUrl:
+    BonoboUrl:
         Description: Bonobo URL for listing user's keys
         Type: String
-    BonoboDeleteUrl:
-        Description: Bonobo URL for deleting a key
-        Type: String
-    Nonce:
+    Salt:
         Description: Secret see to hash IDs
         Type: String
 
@@ -86,7 +83,7 @@ Resources:
                                 - ec2:DeleteNetworkInterface
                             Resource: "*"
 
-    ScheduledLambda:
+    UserReminderLambda:
         Type: AWS::Lambda::Function
         Properties:
             FunctionName:
@@ -95,9 +92,8 @@ Resources:
                 Variables:
                     KONG_BASE_PATH: !Ref KongBasePath
                     EMAIL_ORIGIN: !Ref Origin
-                    GATEWAY_API_SECRET: !Ref Nonce
-                    BONOBO_LIST_URL: !Ref BonoboListUrl
-                    BONOBO_DELETE_URL: !Ref BonoboDeleteUrl
+                    SALT: !Ref Salt
+                    BONOBO_URL: !Ref BonoboUrl
                     BONOBO_USERS_TABLE: !Sub bonobo-${Stage}-users
                     BONOBO_KEYS_TABLE: !Sub bonobo-${Stage}-keys
             Code:
@@ -105,7 +101,7 @@ Resources:
                 S3Key:
                     !Sub ${Stack}/${Stage}/${App}/${App}.jar
             Description: Lambda for sending email reminders to people owning old keys
-            Handler: com.gu.gibbons.lambdas.ScheduledLambda::handleRequest
+            Handler: com.gu.gibbons.lambdas.UserReminderLambda::handleRequest
             MemorySize: 512
             Role: !Sub ${LambdaRole.Arn}
             Runtime: java8

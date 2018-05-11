@@ -12,9 +12,8 @@ case class Settings(
   region: Regions,
   users: DynamoSettings,
   keys: DynamoSettings,
-  nonce: String,
-  bonoboListUrl: String,
-  bonoboDeleteUrl: String,
+  salt: String,
+  bonoboUrl: String,
   email: EmailSettings
 )
 
@@ -37,10 +36,9 @@ object Settings {
     val env = System.getenv.asScala.toMap
     for{
       region <- getEnv(env, "AWS_REGION")
-      nonce <- getEnv(env, "GATEWAY_API_SECRET")
+      salt <- getEnv(env, "SALT")
       origin <- getEnv(env, "EMAIL_ORIGIN")
-      bonoboListUrl <- getEnv(env, "BONOBO_LIST_URL")
-      bonoboDeleteUrl <- getEnv(env, "BONOBO_DELETE_URL")
+      bonoboUrl <- getEnv(env, "BONOBO_URL")
       usersTableName <- getEnv(env, "BONOBO_USERS_TABLE")
       keysTableName <- getEnv(env, "BONOBO_KEYS_TABLE")
     } yield {
@@ -48,9 +46,8 @@ object Settings {
         region = Regions.fromName(region),
         users = DynamoSettings(usersTableName), 
         keys = DynamoSettings(keysTableName),
-        nonce = nonce,
-        bonoboListUrl = bonoboListUrl,
-        bonoboDeleteUrl = bonoboDeleteUrl,
+        salt = salt,
+        bonoboUrl = bonoboUrl,
         email = EmailSettings(Email(origin)),
       )
     }
