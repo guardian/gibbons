@@ -7,10 +7,9 @@ import java.time.temporal.ChronoUnit
 import model._
 
 package object services {
-  type KeyRepo = Map[KeyId, Key]
   type UserRepo = Map[UserId, User]
   type EmailRepo = Set[Email]
-  type Repo = (KeyRepo, UserRepo, EmailRepo)
+  type Repo = (UserRepo, EmailRepo)
   type TestProgram[A] = State[Repo, A]
 }
 

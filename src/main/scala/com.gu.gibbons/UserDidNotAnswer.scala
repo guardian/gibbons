@@ -30,19 +30,19 @@ class UserDidNotAnswer[F[_] : Monad](settings: Settings, email: EmailService[F],
       if (dryRun)
         for {
           _ <- logger.info("Getting all the keys which have not been extended since ${Settings.gracePeriod}")
-          keys <- bonobo.getInactiveKeys(Settings.gracePeriod)
-        } yield DryRun(keys.groupBy(_.userId))
+          users <- bonobo.getInactiveUsers(Settings.gracePeriod)
+        } yield DryRun(users)
       else
         for {
-          _ <- logger.info("Getting all the keys which have not been extended since ${Settings.gracePeriod}")
-          keys <- bonobo.getInactiveKeys(Settings.gracePeriod)
-          _ <- logger.info(s"Found ${keys.length} keys. Let's find out who the belong to...")
-          userIds = keys.map(_.userId).distinct
-          users <- userIds.traverse(id => bonobo.getUser(id)).map(_.flatten)
+          _ <- logger.info("Getting all the users which have not extended their account since ${Settings.gracePeriod}")
+          users <- bonobo.getInactiveUsers(Settings.gracePeriod)
           _ <- logger.info(s"Found ${users.length} users. Let's delete these keys...")
-          _ <- users.traverse(user => bonobo.deleteUser(user))
-          _ <- logger.info("Swell! Now we can send a last email to those poor souls...")
-          ress <- users.traverse { user => email.sendDeleted(user).map(user.id -> _) }.map(_.toMap)
+          ress <- users.traverse { user =>
+            for {
+              _ <- bonobo.deleteUser(user)
+              res <- email.sendDeleted(user)
+            } yield user.id -> res
+          }.map(_.toMap)
           _ <- logger.info("That's a wrap! See ya.")
         } yield FullRun(ress)
 }

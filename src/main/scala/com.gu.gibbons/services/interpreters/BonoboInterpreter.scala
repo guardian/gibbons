@@ -18,14 +18,6 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
   import cats.syntax.apply._
   import cats.syntax.flatMap._
 
-  def getKeys(period: TemporalAmount) = {
-    val jadis = OffsetDateTime.now().minus(period).toInstant.toEpochMilli
-    for {
-      _ <- logger.info(s"Getting all the keys created before $jadis")
-      keys <- getKeysMatching(period, (not(attributeExists('extendedAt)) and 'createdAt <= jadis) or (attributeExists('extendedAt) and 'extendedAt <= jadis))
-    } yield keys.collect { case Right(key) => key }.toVector
-  }
-
   def getUsers(period: TemporalAmount) = {
     val jadis = OffsetDateTime.now().minus(period).toInstant.toEpochMilli
     for {
@@ -34,66 +26,38 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
     } yield users.collect { case Right(user) => user }.toVector
   }
 
-  def getKey(keyId: KeyId): Task[Option[Key]] = run {
-    keysTable
-      .query(hashKeyName -> hashKey and rangeKeyName -> keyId.id)
-      .map(_.headOption.collect { case Right(key) => key })
-  }
-
-  def getKeyCountFor(userId: UserId) = run {
-    keysTable
-      .filter('bonoboId -> userId.id)
-      .scan()
-      .map(_.length)
-  }
-
-  def getInactiveKeys(period: TemporalAmount) = {
+  def getInactiveUsers(period: TemporalAmount) = {
     val jadis = OffsetDateTime.now().minus(period).toInstant.toEpochMilli
     for {
       _ <- logger.info(s"Getting all the keys created before $jadis")
-      keys <- getKeysMatching(period, attributeExists('remindedAt) and 'remindedAt <= jadis)
-    } yield keys.collect { case Right(key) => key }.toVector
+      users <- getUsersMatching(period, attributeExists('remindedAt) and 'remindedAt <= jadis)
+    } yield users.collect { case Right(user) => user }.toVector
   }
 
-  def setExtendedOn(key: Key, when: Instant) = updateTime(key, 'extendedAt, when.toEpochMilli) 
-
-  def setRemindedOn(key: Key, when: Instant) = updateTime(key, 'remindedAt, when.toEpochMilli) 
-
-  def getUser(userId: UserId) = run {
-    usersTable.query('id -> userId.id).map(_.headOption.collect { case Right(user) => user })
+  def setRemindedOn(user: User, when: Instant) = run {
+    usersTable.update('bonoboId -> user.id.id, set('remindedAt -> when.toEpochMilli)).map(_ => ())
   }
 
-  def deleteUser(user: User) = run {
-    usersTable.delete('id -> user.id.id).map(_ => ())
+  def deleteUser(user: User) = Task {
+    val request = new Request.Builder()
+      .url(urlGenerator.delete(user))
+      .build
+    httpClient.newCall(request).execute()
+    ()
   }
 
   private val urlGenerator = new UrlGenerator(config)
 
-  private val keysTable = Table[Key](config.keys.tableName)
   private val usersTable = Table[User](config.users.tableName)
-
-  private val hashKey = "hashkey"
-  private val hashKeyName = 'hashkey
-  private val rangeKeyName = 'rangekey
 
   private def run[A](program: ScanamoOps[A]) = Task.deferFutureAction { implicit scheduler => 
     ScanamoAsync.exec(dynamoClient)(program) 
-  }
-
-  private def getKeysMatching[C: ConditionExpression](period: TemporalAmount, filter: C) = run {
-    keysTable
-      .filter(not('tier -> "Internal") and 'status -> "Active" and filter)
-      .scan()
   }
 
   private def getUsersMatching[C: ConditionExpression](period: TemporalAmount, filter: C) = run {
     usersTable
       .filter(filter)
       .scan()
-  }
-
-  private def updateTime(key: Key, col: Symbol, value: Long) = run {
-    keysTable.update(hashKeyName -> hashKey and rangeKeyName -> key.rangeKey.id, set(col -> value)).map(_ => ())
   }
 }
 

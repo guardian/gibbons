@@ -15,56 +15,24 @@ trait BonoboService[F[_]] {
       * @param period The amount of time during above which a key is
       *               potentially expired
       */
-    def getKeys(period: TemporalAmount): F[Vector[Key]]
-
-    /** Get all the keys which have created, or which
-      * have been extended, `period` ago
-      *
-      * @param period The amount of time during above which a key is
-      *               potentially expired
-      */
     def getUsers(period: TemporalAmount): F[Vector[User]]
 
-    /** Get a key by ID
-      *
-      * @param keyId The key ID
-      */
-    def getKey(keyId: KeyId): F[Option[Key]]
-
-    /** Gets the number of keys belonging to a user
-      *
-      * @param userId The user's ID
-      */
-    def getKeyCountFor(userId: UserId): F[Int]
-
-    /** Get all the keys that are potentially expired but have not
-      * been either confirmed or infirmed during an acceptable period
+    /** Get all the users that are potentially expired but have not
+      * either confirmed or infirmed during the grace period
       *
       * @param period The amount of time above which a key can
       *               be deleted
       */
-    def getInactiveKeys(period: TemporalAmount): F[Vector[Key]]
-
-    /** Extend the key for another 30 months
-      *
-      * @param key The key
-      */
-    def setExtendedOn(key: Key, when: Instant): F[Unit]
+    def getInactiveUsers(period: TemporalAmount): F[Vector[User]]
 
     /** Start the clock for a 14 days grace period. Users
       * have 14 days to take appropriate action for their
       * keys after receiving the email. If they don't their
-      * keys will be automatically deleted.
+      * account and keys will be automatically deleted.
       *
-      * @param key The key
+      * @param user The user
       */
-    def setRemindedOn(key: Key, when: Instant): F[Unit]
-
-    /** Gets user by ID
-      *
-      * @param userId The user's IDs
-      */
-    def getUser(userId: UserId): F[Option[User]]
+    def setRemindedOn(user: User, when: Instant): F[Unit]
 
     /** Deletes a user and all their keys
       *

@@ -22,12 +22,7 @@ object JsonFormats {
     
     implicit val encoder: Encoder[Result] = new Encoder[Result] {
         final def apply(res: Result) = res match {
-            case DryRun(keys) =>
-                val objs = keys.map { case (userId, keys) => Json.obj(
-                    "user" -> Json.fromString(userId.id),
-                    "keys" -> Json.arr(keys.map(_.asJson):_*)
-                )}.toSeq
-                Json.arr(objs:_*)
+            case DryRun(users) => users.asJson
             case FullRun(result) => 
                 val objs = result.map { case (userId, emailRes) => Json.obj(
                     "user" -> Json.fromString(userId.id),

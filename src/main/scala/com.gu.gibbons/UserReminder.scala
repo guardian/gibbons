@@ -31,21 +31,19 @@ class UserReminder[F[_] : Monad](settings: Settings, email: EmailService[F], bon
       if (dryRun) 
         for {
           _ <- logger.info("Yop, who's up for receiving a reminder?")
-          keys <- bonobo.getKeys(Settings.inactivityPeriod)
-        } yield DryRun(keys.groupBy(_.userId))
+          users <- bonobo.getUsers(Settings.inactivityPeriod)
+        } yield DryRun(users)
       else
         for {
-          _ <- logger.info(s"Getting all the keys older than ${Settings.inactivityPeriod}")
-          keys <- bonobo.getKeys(Settings.inactivityPeriod)
-          _ <- logger.info(s"Found ${keys.length} keys. Let's find out who they belong to...")
-          userIds = keys.map(_.userId).distinct
-          users <- userIds.traverse(id => bonobo.getUser(id)).map(_.flatten)
+          _ <- logger.info(s"Getting all the users older than ${Settings.inactivityPeriod}")
+          users <- bonobo.getUsers(Settings.inactivityPeriod)
           _ <- logger.info(s"Found ${users.length} users. Let's send some emails...")
           ress <- users.traverse { user => 
-            email.sendReminder(user) >>= (res => Monad[F].pure((user.id -> res)))
+            for {
+              res <- email.sendReminder(user)
+              _ <- bonobo.setRemindedOn(user, now)
+            } yield (user.id -> res)
           }.map(_.toMap)
-          _ <- logger.info(s"Sent all the emailz! Let's make sure we keep track of that...")
-          _ <- keys.traverse(key => bonobo.setRemindedOn(key, now))
           _ <- logger.info("aaaand that's a wrap! See you next time.")
         } yield FullRun(ress)
 }
