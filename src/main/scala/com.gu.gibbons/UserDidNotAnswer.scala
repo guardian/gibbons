@@ -29,7 +29,7 @@ class UserDidNotAnswer[F[_] : Monad](settings: Settings, email: EmailService[F],
     def run(dryRun: Boolean): F[Result] = 
       if (dryRun)
         for {
-          _ <- logger.info("Getting all the keys which have not been extended since ${Settings.gracePeriod}")
+          _ <- logger.info("Getting all the users which have not been extended since ${Settings.gracePeriod}")
           users <- bonobo.getInactiveUsers(Settings.gracePeriod)
         } yield DryRun(users)
       else

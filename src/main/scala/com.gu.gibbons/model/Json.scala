@@ -14,11 +14,9 @@ object JsonFormats {
     }
 
     implicit val userId: Encoder[UserId] = deriveEncoder
-    implicit val keyId: Encoder[KeyId] = deriveEncoder
     implicit val email: Encoder[Email] = deriveEncoder
     implicit val emailResult: Encoder[EmailResult] = deriveEncoder
     implicit val user: Encoder[User] = deriveEncoder
-    implicit val key: Encoder[Key] = deriveEncoder
     
     implicit val encoder: Encoder[Result] = new Encoder[Result] {
         final def apply(res: Result) = res match {
