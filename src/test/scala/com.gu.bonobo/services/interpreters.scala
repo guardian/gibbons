@@ -15,6 +15,13 @@ class BonoboServiceInterpreter extends BonoboService[TestProgram] {
     (s, res)
   }
 
+  def getUsers(period: TemporalAmount) = State[Repo, Vector[Key]] { case s@(_, users, _) =>
+    val res = users.filter { 
+      case (_, user) => fixtures.today.minus(period).toInstant.compareTo(user.extendedOn.getOrElse(user.createdOn)) >= 0
+    }.values.toVector
+    (s, res)
+  }
+
   def getKey(keyId: KeyId) = State[Repo, Option[Key]] { case s@(keys, _, _) =>
     (s, keys.get(keyId))
   }

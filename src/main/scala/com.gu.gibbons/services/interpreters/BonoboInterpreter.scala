@@ -26,6 +26,14 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
     } yield keys.collect { case Right(key) => key }.toVector
   }
 
+  def getUsers(period: TemporalAmount) = {
+    val jadis = OffsetDateTime.now().minus(period).toInstant.toEpochMilli
+    for {
+      _ <- logger.info(s"Getting all the users created before $jadis")
+      users <- getUsersMatching(period, (not(attributeExists('extendedAt)) and 'createdAt <= jadis) or (attributeExists('extendedAt) and 'extendedAt <= jadis))
+    } yield users.collect { case Right(user) => user }.toVector
+  }
+
   def getKey(keyId: KeyId): Task[Option[Key]] = run {
     keysTable
       .query(hashKeyName -> hashKey and rangeKeyName -> keyId.id)
@@ -75,6 +83,12 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
   private def getKeysMatching[C: ConditionExpression](period: TemporalAmount, filter: C) = run {
     keysTable
       .filter(not('tier -> "Internal") and 'status -> "Active" and filter)
+      .scan()
+  }
+
+  private def getUsersMatching[C: ConditionExpression](period: TemporalAmount, filter: C) = run {
+    usersTable
+      .filter(filter)
       .scan()
   }
 

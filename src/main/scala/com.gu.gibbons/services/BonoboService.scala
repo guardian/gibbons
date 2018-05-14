@@ -17,6 +17,14 @@ trait BonoboService[F[_]] {
       */
     def getKeys(period: TemporalAmount): F[Vector[Key]]
 
+    /** Get all the keys which have created, or which
+      * have been extended, `period` ago
+      *
+      * @param period The amount of time during above which a key is
+      *               potentially expired
+      */
+    def getUsers(period: TemporalAmount): F[Vector[User]]
+
     /** Get a key by ID
       *
       * @param keyId The key ID

@@ -17,7 +17,10 @@ import scala.collection.JavaConverters._
 case class User(
     id: UserId,
     name: String,
-    email: Email
+    email: Email,
+    createdAt: Instant,
+    remindedAt: Option[Instant],
+    extendedAt: Option[Instant]
 )
 
 object User {
@@ -27,14 +30,24 @@ object User {
       id <- attrs.get("id").flatMap(a => Option(a.getS))
       email <- attrs.get("email").flatMap(a => Option(a.getS))
       name <- attrs.get("name").flatMap(a => Option(a.getS))
-    } yield User(UserId(id), name, Email(email, Some(name)))).fold(Left(MissingProperty): Either[DynamoReadError, User])(Right(_))
+      createdAt <- attrs.get("createdAt").flatMap(a => Option(a.getN).map(_.toLong))
+      remindedAt <- attrs.get("remindedAt").map(a => Option(a.getS).map(_.toLong).orElse(None))
+      extendedAt <- attrs.get("extendedAt").map(a => Option(a.getS).map(_.toLong).orElse(None))
+    } yield User(
+      UserId(id), 
+      name, 
+      Email(email, Some(name)), 
+      Instant.ofEpochMilli(createdAt), 
+      remindedAt.map(Instant.ofEpochMilli(_)), 
+      extendedAt.map(Instant.ofEpochMilli(_))
+    )).fold(Left(MissingProperty): Either[DynamoReadError, User])(Right(_))
 
     // we will never add a new record
     def write(u: User) = new AttributeValue()
   }
 
   def create(id: String, name: String, email: String) =
-    User(UserId(id), name, Email(email))
+    User(UserId(id), name, Email(email), Instant.now, None, None)
 }
 
 /** An identifier for API users */
@@ -55,10 +68,7 @@ case class Key(
   rangeKey: KeyId,
   userId: UserId,
   kongId: UserId,
-  keyValue: String,
-  createdOn: Instant,
-  extendedOn: Option[Instant],
-  remindedOn: Option[Instant]
+  keyValue: String
 )
 
 object Key {
@@ -68,22 +78,20 @@ object Key {
       hashKey <- attrs.get("hashkey").flatMap(a => Option(a.getS))
       rangeKey <- attrs.get("rangekey").flatMap(a => Option(a.getS))
       userId <- attrs.get("bonoboId").flatMap(a => Option(a.getS))
-      createdAt <- attrs.get("createdAt").flatMap(a => Option(a.getN)).map(_.toLong)
-      extendedAt <- attrs.get("extendedAt").flatMap(a => Option(a.getN)).map(n => Some(n.toLong)).orElse(Some(None))
-      remindedAt <- attrs.get("remindedAt").flatMap(a => Option(a.getN)).map(n => Some(n.toLong)).orElse(Some(None))
       keyValue <- attrs.get("keyValue").flatMap(a => Option(a.getS))
       kongId <- attrs.get("kongConsumerId").flatMap(a => Option(a.getS))
     } yield Key(
-      hashKey, KeyId(rangeKey), UserId(userId), UserId(kongId), keyValue, 
-      Instant.ofEpochMilli(createdAt),
-      extendedAt.map(Instant.ofEpochMilli(_)),
-      remindedAt.map(Instant.ofEpochMilli(_))
+      hashKey, 
+      KeyId(rangeKey), 
+      UserId(userId), 
+      UserId(kongId), 
+      keyValue
     )).fold(Left(MissingProperty): Either[DynamoReadError, Key])(Right(_))
 
     // we will never add a new record
     def write(k: Key) = new AttributeValue()
   }
 
-  def create(id: String, userId: String, createdOn: String, extendedOn: Option[String] = None, remindedOn: Option[String] = None) =
-    Key("", KeyId(id), UserId(userId), UserId(id), "", Instant.parse(createdOn), extendedOn.map(Instant.parse(_)), remindedOn.map(Instant.parse(_)))
+  def create(id: String, userId: String) =
+    Key("", KeyId(id), UserId(userId), UserId(id), "")
 }
