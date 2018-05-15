@@ -22,7 +22,7 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
     val jadis = OffsetDateTime.now().minus(period).toInstant.toEpochMilli
     for {
       _ <- logger.info(s"Getting all the users created before $jadis")
-      users <- getUsersMatching(period, ('extendedAt <= jadis or (not(attributeExists('extendedAt)) and 'createdAt <= jadis))))
+      users <- getUsersMatching(period, ('extendedAt <= jadis or (not(attributeExists('extendedAt)) and 'createdAt <= jadis)))
     } yield users.collect { case Right(user) => user }.toVector
   }
 
