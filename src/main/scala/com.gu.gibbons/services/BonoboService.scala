@@ -32,7 +32,7 @@ trait BonoboService[F[_]] {
       *
       * @param user The user
       */
-    def setRemindedOn(user: User, when: Instant): F[Unit]
+    def setRemindedOn(user: User, when: Instant): F[User]
 
     /** Deletes a user and all their keys
       *

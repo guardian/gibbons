@@ -22,9 +22,9 @@ class BonoboServiceInterpreter extends BonoboService[TestProgram] {
     (s, res)
   }
 
-  def setRemindedOn(user: User, when: Instant) = State[Repo, Unit] { case s@(users, es) =>
+  def setRemindedOn(user: User, when: Instant) = State[Repo, User] { case s@(users, es) =>
     val newUser = users(user.id).copy(remindedAt = Some(when))
-    ((users.updated(user.id, newUser), es), ())
+    ((users.updated(user.id, newUser), es), newUser)
   }
 
   def deleteUser(user: User) = State[Repo, Unit] { case (users, es) =>
