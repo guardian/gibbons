@@ -46,8 +46,11 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
     val request = new Request.Builder()
       .url(urlGenerator.delete(user))
       .build
-    httpClient.newCall(request).execute()
-    ()
+    val response = httpClient.newCall(request).execute()
+    response.code match {
+      case 200 => ()
+      case _ => throw new Throwable(s"Call to Bonobo failed with ${response.message}: ${response.body}")
+    }
   }
 
   private val urlGenerator = new UrlGenerator(config)
