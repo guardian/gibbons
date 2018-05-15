@@ -17,12 +17,16 @@ import com.gu.gibbons.services._
 class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoClient: AmazonDynamoDBAsync, httpClient: OkHttpClient) extends BonoboService[Task] {
   import cats.syntax.apply._
   import cats.syntax.flatMap._
+  import cats.syntax.traverse._
+  import cats.syntax.show._
+  import cats.instances.list._
 
   def getUsers(period: TemporalAmount) = {
     val jadis = OffsetDateTime.now().minus(period).toInstant.toEpochMilli
     for {
       _ <- logger.info(s"Getting all the users created before $jadis")
       users <- getUsersMatching(period, ('extendedAt <= jadis or (not(attributeExists('extendedAt)) and 'createdAt <= jadis)))
+      _ <- users.collect { case Left(err) => err }.traverse(e => logger.warn(e.show))
     } yield users.collect { case Right(user) => user }.toVector
   }
 
