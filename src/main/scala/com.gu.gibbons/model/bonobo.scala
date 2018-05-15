@@ -46,8 +46,8 @@ object User {
     def write(u: User) = new AttributeValue()
   }
 
-  def create(id: String, name: String, email: String) =
-    User(UserId(id), name, Email(email), Instant.now, None, None)
+  def create(id: String, name: String, email: String, createdAt: String, remindedAt: Option[String] = None, extendedAt: Option[String] = None) =
+    User(UserId(id), name, Email(email), Instant.parse(createdAt), remindedAt.map(Instant.parse(_)), extendedAt.map(Instant.parse(_)))
 }
 
 /** An identifier for API users */
