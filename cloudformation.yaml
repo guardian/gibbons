@@ -25,12 +25,6 @@ Parameters:
     Salt:
         Description: Secret see to hash IDs
         Type: String
-    BonoboSecurityGroupId:
-        Description: Security group to allow access to Bonobo
-        Type: AWS::EC2::SecurityGroup::Id
-    BonoboSubnetIds:
-        Description: Subnets including Bonobo
-        Type: List<AWS::EC2::Subnet::Id>
 
 Resources:
     LambdaRole:
@@ -94,10 +88,6 @@ Resources:
             Role: !Sub ${LambdaRole.Arn}
             Runtime: java8
             Timeout: 300
-            VpcConfig:
-                SecurityGroupIds:
-                    - !Ref BonoboSecurityGroupId
-                SubnetIds: !Ref BonoboSubnetIds
         DependsOn: LambdaRole
 
     DidNotAnswerLambda:
@@ -121,9 +111,5 @@ Resources:
             Role: !Sub ${LambdaRole.Arn}
             Runtime: java8
             Timeout: 300
-            VpcConfig:
-                SecurityGroupIds:
-                    - !Ref BonoboSecurityGroupId
-                SubnetIds: !Ref BonoboSubnetIds
         DependsOn: LambdaRole
 
