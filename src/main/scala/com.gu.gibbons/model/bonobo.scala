@@ -31,15 +31,13 @@ object User {
       email <- attrs.get("email").flatMap(a => Option(a.getS))
       name <- attrs.get("name").flatMap(a => Option(a.getS))
       createdAt <- attrs.get("createdAt").flatMap(a => Option(a.getN).map(_.toLong))
-      remindedAt <- attrs.get("remindedAt").map(a => Option(a.getS).map(_.toLong).orElse(None))
-      extendedAt <- attrs.get("extendedAt").map(a => Option(a.getS).map(_.toLong).orElse(None))
     } yield User(
       UserId(id), 
       name, 
       Email(email, Some(name)), 
       Instant.ofEpochMilli(createdAt), 
-      remindedAt.map(Instant.ofEpochMilli(_)), 
-      extendedAt.map(Instant.ofEpochMilli(_))
+      attrs.get("remindedAt").flatMap(a => Option(a.getN)).map(_.toLong).map(Instant.ofEpochMilli(_)), 
+      attrs.get("extendedAt").flatMap(a => Option(a.getN)).map(_.toLong).map(Instant.ofEpochMilli(_))
     )).fold(Left(MissingProperty): Either[DynamoReadError, User])(Right(_))
 
     // we will never add a new record
