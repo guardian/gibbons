@@ -16,15 +16,6 @@ Parameters:
             - PROD
             - CODE
         Default: CODE
-    KongSecurityGroupId:
-        Description: Security group to access Kong's LB
-        Type: AWS::EC2::SecurityGroup::Id
-    KongSubnetId:
-        Description: Subnet to access Kong's LB
-        Type: List<AWS::EC2::Subnet::Id>
-    KongBasePath:
-        Description: Base URL for querying Kong
-        Type: String
     Origin:
         Description: Origin email address as set up in SES
         Type: String
@@ -34,6 +25,12 @@ Parameters:
     Salt:
         Description: Secret see to hash IDs
         Type: String
+    BonoboSecurityGroupId:
+        Description: Security group to allow access to Bonobo
+        Type: AWS::EC2::SecurityGroup::Id
+    BonoboSubnetIds:
+        Description: Subnets including Bonobo
+        Type: List<AWS::EC2::Subnet::Id>
 
 Resources:
     LambdaRole:
@@ -76,21 +73,13 @@ Resources:
                             Condition:
                                 StringEquals:
                                     ses:FromAddress: !Ref Origin
-                          - Effect: Allow
-                            Action:
-                                - ec2:CreateNetworkInterface
-                                - ec2:DescribeNetworkInterfaces
-                                - ec2:DeleteNetworkInterface
-                            Resource: "*"
-
     UserReminderLambda:
         Type: AWS::Lambda::Function
         Properties:
             FunctionName:
-                !Sub gibbons-${Stage}
+                !Sub gibbons-reminder-${Stage}
             Environment:
                 Variables:
-                    KONG_BASE_PATH: !Ref KongBasePath
                     EMAIL_ORIGIN: !Ref Origin
                     SALT: !Ref Salt
                     BONOBO_URL: !Ref BonoboUrl
@@ -105,9 +94,36 @@ Resources:
             Role: !Sub ${LambdaRole.Arn}
             Runtime: java8
             Timeout: 300
-            # VpcConfig:
-            #     SecurityGroupIds:
-            #         - !Ref KongSecurityGroupId
-            #     SubnetIds: !Ref KongSubnetId
+            VpcConfig:
+                SecurityGroupIds:
+                    - !Ref BonoboSecurityGroupId
+                SubnetIds: !Ref BonoboSubnetIds
+        DependsOn: LambdaRole
+
+    DidNotAnswerLambda:
+        Type: AWS::Lambda::Function
+        Properties:
+            FunctionName:
+                !Sub gibbons-cleanup-${Stage}
+            Environment:
+                Variables:
+                    EMAIL_ORIGIN: !Ref Origin
+                    SALT: !Ref Salt
+                    BONOBO_URL: !Ref BonoboUrl
+                    BONOBO_USERS_TABLE: !Sub bonobo-${Stage}-users
+            Code:
+                S3Bucket: content-api-dist
+                S3Key:
+                    !Sub ${Stack}/${Stage}/${App}/${App}.jar
+            Description: Lambda for cleaning up expired accounts and keys
+            Handler: com.gu.gibbons.lambdas.UserDidNotAnswerLambda::handleRequest
+            MemorySize: 512
+            Role: !Sub ${LambdaRole.Arn}
+            Runtime: java8
+            Timeout: 300
+            VpcConfig:
+                SecurityGroupIds:
+                    - !Ref BonoboSecurityGroupId
+                SubnetIds: !Ref BonoboSubnetIds
         DependsOn: LambdaRole
 
