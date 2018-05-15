@@ -1,14 +1,18 @@
 package com.gu.gibbons
 package lambdas
 
+import cats.syntax.either._
 import com.amazonaws.services.lambda.runtime.Context; 
 import java.time.Instant
 import io.circe.Json
+import io.circe.parser.decode
 import io.circe.syntax._
 import java.io.{InputStream, OutputStream}
 import monix.execution.Scheduler.Implicits.global
+import monix.eval.Task
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.io.Source
 
 import config._
 import model.JsonFormats
@@ -20,33 +24,37 @@ class UserDidNotAnswerLambda {
   import JsonFormats._
 
   def handleRequest(is: InputStream, os: OutputStream, context: Context) = {
-    val result = Settings.fromEnvironment >>= { settings =>
-
-      val program = for {
-        logger <- LoggingInterpreter.apply
-        _ <- logger.info("Hello")
-        _ <- logger.info("Opening up a connection to Bonobo...")
-        bonobo <- BonoboInterpreter(settings, logger)
-        _ <- logger.info("Opening up a connection to SES...")
-        email <- EmailInterpreter(settings, logger)
-        _ <- logger.info("We're all set, starting...")
-        userDidNotAnswer = new UserDidNotAnswer(settings, email, bonobo, logger)
-        rDel <- userDidNotAnswer.run(true)
-        _ <- logger.info("Goodbye")
-      } yield rDel.asJson
-
-      val result = Await.result(program.runAsync, Duration(context.getRemainingTimeInMillis, MILLISECONDS))
-
-      Right(result)
+    go(is).map { program =>
+      Await.result(program.runAsync, Duration(context.getRemainingTimeInMillis, MILLISECONDS))
+    } match {
+      case Right(result) => os.write(result.toString.getBytes)
+      case Left(error) => os.write(s"Something went horribly wrong: $error".getBytes)
     }
 
-    result match {
-      case Left(error) =>
-        os.write(s"Something went horribly wrong: $error".getBytes)
-      case Right(result) =>
-        os.write(result.toString.getBytes)
-    }
     is.close()
     os.close()
+  }
+
+  def go(is: InputStream): Either[String, Task[Json]] = for {
+    settings <- Settings.fromEnvironment
+    dryRun <- readArgs(is)
+  } yield {
+    for {
+      logger <- LoggingInterpreter.apply
+      _ <- logger.info("Hello")
+      _ <- logger.info("Opening up a connection to Bonobo...")
+      bonobo <- BonoboInterpreter(settings, logger)
+      _ <- logger.info("Opening up a connection to SES...")
+      email <- EmailInterpreter(settings, logger)
+      _ <- logger.info("We're all set, starting...")
+      userDidNotAnswer = new UserDidNotAnswer(settings, email, bonobo, logger)
+      rDel <- userDidNotAnswer.run(true)
+      _ <- logger.info("Goodbye")
+    } yield rDel.asJson
+  }
+ 
+  def readArgs(is: InputStream): Either[String, Boolean] = {
+    val input = Source.fromInputStream(is).mkString
+    decode[Boolean](input).leftMap(_.toString)
   }
 }
