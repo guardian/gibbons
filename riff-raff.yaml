@@ -3,15 +3,27 @@ stacks:
 regions:
 - eu-west-1
 deployments:
-  gibbons:
+  gibbons-reminder:
     type: aws-lambda
     parameters:
       fileName: gibbons.jar
       bucket: content-api-dist
       functions:
         CODE:
-          name: gibbons-CODE
+          name: gibbons-reminder-CODE
           filename: gibbons.jar
         PROD:
-          name: gibbons-PROD
+          name: gibbons-reminder-PROD
+          filename: gibbons.jar
+  gibbons-cleanup:
+    type: aws-lambda
+    parameters:
+      fileName: gibbons.jar
+      bucket: content-api-dist
+      functions:
+        CODE:
+          name: gibbons-cleanup-CODE
+          filename: gibbons.jar
+        PROD:
+          name: gibbons-cleanup-PROD
           filename: gibbons.jar
