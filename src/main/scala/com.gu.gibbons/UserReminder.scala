@@ -40,9 +40,9 @@ class UserReminder[F[_] : Monad](settings: Settings, email: EmailService[F], bon
           _ <- logger.info(s"Found ${users.length} users. Let's send some emails...")
           ress <- users.traverse { user => 
             for {
-              res <- email.sendReminder(user)
-              _ <- bonobo.setRemindedOn(user, now)
-            } yield (user.id -> res)
+              newUser <- bonobo.setRemindedOn(user, now)
+              res <- email.sendReminder(newUser)
+            } yield (newUser.id -> res)
           }.map(_.toMap)
           _ <- logger.info("aaaand that's a wrap! See you next time.")
         } yield FullRun(ress)

@@ -40,7 +40,7 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
 
   def setRemindedOn(user: User, when: Instant) = run {
     usersTable.update('bonoboId -> user.id.id, set('remindedAt -> when.toEpochMilli)).map(_ => ())
-  }
+  }.map { _ => user.copy(remindedAt = Some(when)) }
 
   def deleteUser(user: User) = Task {
     val request = new Request.Builder()
