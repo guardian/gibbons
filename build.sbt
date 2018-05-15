@@ -27,6 +27,7 @@ lazy val root = (project in file(".")).
       cats,
       scanamo,
       okhttp,
+      bouncyCastle,
       lambdaLog4J,
       log4jCore,
       log4jApi,

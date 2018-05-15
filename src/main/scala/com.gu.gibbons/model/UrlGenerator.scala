@@ -2,21 +2,27 @@ package com.gu.gibbons
 package model
 
 import java.time.Instant
-import java.security.MessageDigest
+import java.security.{ MessageDigest, Security }
+import org.bouncycastle.jce.provider.BouncyCastleProvider
 
 import config._
 
 class HashGenerator {
+  import HashGenerator._
+
   def params(user: User, salt: String): String = {
     s"h=${hash(user.id.id, user.remindedAt.get, salt)}"
   }
 
   def hash(id: String, when: Instant, salt: String): String = {
     val hash = id + when.toEpochMilli.toString + salt
-    md5.digest(hash.getBytes).map("%02X".format(_)).mkString
+    md.digest(hash.getBytes).map("%02X".format(_)).mkString
   }
+}
 
-  private val md5 = MessageDigest.getInstance("MD5")
+object HashGenerator {
+  Security.addProvider(new BouncyCastleProvider())
+  private val md = MessageDigest.getInstance("SHA3-512")
 }
 
 class UrlGenerator(settings: Settings) extends HashGenerator {

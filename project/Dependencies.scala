@@ -8,6 +8,7 @@ object Dependencies {
   lazy val log4jApi = "org.apache.logging.log4j" % "log4j-api" % "2.8.2"
   lazy val scanamo = "com.gu" %% "scanamo" % "1.0.0-M6"
   lazy val okhttp = "com.squareup.okhttp3" % "okhttp" % "3.10.0"
+  lazy val bouncyCastle = "org.bouncycastle" % "bcpkix-jdk15on" % "1.59"
 
   val awsVersion = "1.11.319"
   lazy val aws = Seq(
