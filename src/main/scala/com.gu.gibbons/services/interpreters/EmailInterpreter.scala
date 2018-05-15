@@ -21,7 +21,7 @@ final class EmailInterpreter(settings: Settings, logger: LoggingService[Task], e
 
   private def sendEmail(user: User, subject: String, content: String) = Task.create { (_, callback: Callback[EmailResult]) =>
     val request = new SendEmailRequest()
-      .withSource(settings.email.origin.email)
+      .withSource(settings.fromAddress.email)
       .withDestination(new SESDestination().withToAddresses(user.email.email))
       .withMessage(new SESMessage().withSubject(new Content(subject)).withBody(new Body().withHtml(new Content(content))))
 

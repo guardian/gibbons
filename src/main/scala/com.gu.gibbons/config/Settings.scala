@@ -10,20 +10,10 @@ import model.Email
 
 case class Settings(
   region: Regions,
-  users: DynamoSettings,
-  keys: DynamoSettings,
+  usersTableName: String,
   salt: String,
   bonoboUrl: String,
-  email: EmailSettings
-)
-
-case class EmailSettings(
-  /** The email address used in the From field of emails sent to API users */
-  origin: Email
-)
-
-case class DynamoSettings(
-  tableName: String,
+  fromAddress: Email
 )
 
 object Settings {
@@ -40,15 +30,13 @@ object Settings {
       origin <- getEnv(env, "EMAIL_ORIGIN")
       bonoboUrl <- getEnv(env, "BONOBO_URL")
       usersTableName <- getEnv(env, "BONOBO_USERS_TABLE")
-      keysTableName <- getEnv(env, "BONOBO_KEYS_TABLE")
     } yield {
       Settings(
         region = Regions.fromName(region),
-        users = DynamoSettings(usersTableName), 
-        keys = DynamoSettings(keysTableName),
+        usersTableName = usersTableName, 
         salt = salt,
         bonoboUrl = bonoboUrl,
-        email = EmailSettings(Email(origin)),
+        fromAddress = Email(origin),
       )
     }
   }

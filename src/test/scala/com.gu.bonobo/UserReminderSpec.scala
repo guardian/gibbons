@@ -15,19 +15,18 @@ class IntegrationTests extends FlatSpec with Matchers with Inspectors {
 
     val settings = Settings(
         Regions.fromName("eu-west-1"),
-        DynamoSettings(""),
-        DynamoSettings(""),
         "",
         "",
-        EmailSettings(Email("")),
+        "",
+        Email("")
     )
 
     val userReminder = new UserReminder(settings, emailService, bonoboService, loggingService)
     val userDidNotAnswer = new UserDidNotAnswer(settings, emailService, bonoboService, loggingService)
 
     "The Reminder service" should "send reminders, duh" in {
-        val ((newKeys, _, emailService), sentEmails) = userReminder.run(todayInstant, false).run((keys, users, Set.empty)).value
-        val remindedUsers = newKeys.filter(_._2.remindedOn.exists(_ == todayInstant)).map(_._2.userId).toSet
+        val ((newUsers, emailService), sentEmails) = userReminder.run(todayInstant, false).run((users, Set.empty)).value
+        val remindedUsers = newUsers.filter(_._2.remindedAt.exists(_ == todayInstant)).map(_._2.id).toSet
         forAll(remindedUsers) { u => 
             emailService should contain (users(u).email)  
         }
@@ -35,8 +34,9 @@ class IntegrationTests extends FlatSpec with Matchers with Inspectors {
     }
 
     "The DidNotAnswer service" should "remove expired keys" in {
-        val ((newKeys, _, emailService), _) = userDidNotAnswer.run(false).run((keys, users, Set.empty)).value
-        val deletedKeys = newKeys.filter(_._2.remindedOn.exists(t => today.minus(Settings.gracePeriod).toInstant.compareTo(t) >= 0))
-        deletedKeys.size should be (0)
+        val ((newUsers, emailService), _) = userDidNotAnswer.run(false).run((users, Set.empty)).value
+        val deletedKeys = newUsers.filter(_._2.remindedAt.exists(t => today.minus(Settings.gracePeriod).toInstant.compareTo(t) >= 0))
+        
+        deletedKeys.size shouldBe 0
     }
 }

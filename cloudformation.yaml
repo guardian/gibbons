@@ -95,7 +95,6 @@ Resources:
                     SALT: !Ref Salt
                     BONOBO_URL: !Ref BonoboUrl
                     BONOBO_USERS_TABLE: !Sub bonobo-${Stage}-users
-                    BONOBO_KEYS_TABLE: !Sub bonobo-${Stage}-keys
             Code:
                 S3Bucket: content-api-dist
                 S3Key:

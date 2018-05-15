@@ -29,7 +29,7 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
   def getInactiveUsers(period: TemporalAmount) = {
     val jadis = OffsetDateTime.now().minus(period).toInstant.toEpochMilli
     for {
-      _ <- logger.info(s"Getting all the keys created before $jadis")
+      _ <- logger.info(s"Getting all the users created before $jadis")
       users <- getUsersMatching(period, attributeExists('remindedAt) and 'remindedAt <= jadis)
     } yield users.collect { case Right(user) => user }.toVector
   }
@@ -48,7 +48,7 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
 
   private val urlGenerator = new UrlGenerator(config)
 
-  private val usersTable = Table[User](config.users.tableName)
+  private val usersTable = Table[User](config.usersTableName)
 
   private def run[A](program: ScanamoOps[A]) = Task.deferFutureAction { implicit scheduler => 
     ScanamoAsync.exec(dynamoClient)(program) 

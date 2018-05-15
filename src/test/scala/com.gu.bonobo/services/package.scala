@@ -30,25 +30,25 @@ package object fixtures {
         User.create("user9", "Mary Allen", "mary.allen@domain.com")
     ).map(user => user.id -> user): _*)
 
-    val keys: Map[KeyId, Key] = Map(Seq(
-        Key.create("key01", "user0", "2012-04-25T10:15:30.00Z"),
-        Key.create("key02", "user0", "2013-04-25T10:15:30.00Z"),
-        Key.create("key03", "user0", "2017-04-25T10:15:30.00Z"),
-        Key.create("key04", "user3", "2012-04-25T10:15:30.00Z"),
-        Key.create("key05", "user4", "2017-08-25T10:15:30.00Z"),
-        Key.create("key06", "user6", "2015-08-25T10:15:30.00Z", Some("2015-08-25T10:15:30.00Z")),
-        Key.create("key07", "user6", "2003-02-25T10:15:30.00Z", Some("2017-08-25T10:15:30.00Z"), Some("2018-04-01T10:15:30.00Z")),
-        Key.create("key08", "user7", "2012-04-25T10:15:30.00Z"),
-        Key.create("key09", "user7", "2012-04-25T10:15:30.00Z", Some("2015-08-25T10:15:30.00Z")),
-        Key.create("key10", "user7", "2012-04-25T10:15:30.00Z", Some("2015-08-25T10:15:30.00Z"), Some("2015-08-25T10:15:30.00Z")),
-        Key.create("key11", "user8", "2012-04-25T10:15:30.00Z"),
-        Key.create("key12", "user8", "2012-04-25T10:15:30.00Z", Some("2015-08-25T10:15:30.00Z")),
-        Key.create("key13", "user8", "2012-04-25T10:15:30.00Z", Some("2017-08-25T10:15:30.00Z")),
-        Key.create("key14", "user8", "2012-04-25T10:15:30.00Z", Some("2015-08-25T10:15:30.00Z"), Some("2018-04-25T10:15:30.00Z")),
-        Key.create("key15", "user9", "2012-04-25T10:15:30.00Z"),
-        Key.create("key16", "user9", "2012-04-25T10:15:30.00Z", Some("2015-08-25T10:15:30.00Z"), Some("2018-04-01T10:15:30.00Z")),
-        Key.create("key17", "user9", "2012-04-25T10:15:30.00Z", Some("2015-08-25T10:15:30.00Z"), Some("2018-04-01T10:15:30.00Z")),
-        Key.create("key18", "user9", "2012-04-25T10:15:30.00Z", Some("2017-08-25T10:15:30.00Z"), Some("2018-04-25T10:15:30.00Z")),
-        Key.create("key19", "user9", "2012-04-25T10:15:30.00Z", Some("2017-08-25T10:15:30.00Z"), Some("2018-04-25T10:15:30.00Z"))
-    ).map(key => key.rangeKey -> key): _*)
+    // val keys: Map[KeyId, Key] = Map(Seq(
+    //     Key.create("key01", "user0", "2012-04-25T10:15:30.00Z"),
+    //     Key.create("key02", "user0", "2013-04-25T10:15:30.00Z"),
+    //     Key.create("key03", "user0", "2017-04-25T10:15:30.00Z"),
+    //     Key.create("key04", "user3", "2012-04-25T10:15:30.00Z"),
+    //     Key.create("key05", "user4", "2017-08-25T10:15:30.00Z"),
+    //     Key.create("key06", "user6", "2015-08-25T10:15:30.00Z", Some("2015-08-25T10:15:30.00Z")),
+    //     Key.create("key07", "user6", "2003-02-25T10:15:30.00Z", Some("2017-08-25T10:15:30.00Z"), Some("2018-04-01T10:15:30.00Z")),
+    //     Key.create("key08", "user7", "2012-04-25T10:15:30.00Z"),
+    //     Key.create("key09", "user7", "2012-04-25T10:15:30.00Z", Some("2015-08-25T10:15:30.00Z")),
+    //     Key.create("key10", "user7", "2012-04-25T10:15:30.00Z", Some("2015-08-25T10:15:30.00Z"), Some("2015-08-25T10:15:30.00Z")),
+    //     Key.create("key11", "user8", "2012-04-25T10:15:30.00Z"),
+    //     Key.create("key12", "user8", "2012-04-25T10:15:30.00Z", Some("2015-08-25T10:15:30.00Z")),
+    //     Key.create("key13", "user8", "2012-04-25T10:15:30.00Z", Some("2017-08-25T10:15:30.00Z")),
+    //     Key.create("key14", "user8", "2012-04-25T10:15:30.00Z", Some("2015-08-25T10:15:30.00Z"), Some("2018-04-25T10:15:30.00Z")),
+    //     Key.create("key15", "user9", "2012-04-25T10:15:30.00Z"),
+    //     Key.create("key16", "user9", "2012-04-25T10:15:30.00Z", Some("2015-08-25T10:15:30.00Z"), Some("2018-04-01T10:15:30.00Z")),
+    //     Key.create("key17", "user9", "2012-04-25T10:15:30.00Z", Some("2015-08-25T10:15:30.00Z"), Some("2018-04-01T10:15:30.00Z")),
+    //     Key.create("key18", "user9", "2012-04-25T10:15:30.00Z", Some("2017-08-25T10:15:30.00Z"), Some("2018-04-25T10:15:30.00Z")),
+    //     Key.create("key19", "user9", "2012-04-25T10:15:30.00Z", Some("2017-08-25T10:15:30.00Z"), Some("2018-04-25T10:15:30.00Z"))
+    // ).map(key => key.rangeKey -> key): _*)
 }
