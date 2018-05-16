@@ -28,7 +28,8 @@ object Settings {
   val whitelist = Set(
     "e3e345ef-b366-4641-c634-1228b1b9ff9a",
     "7d8f16ba-b57b-491e-91cf-d9a9d1431ccf",
-    "10f1ba90-838e-4bc2-aa56-c084011012e6"
+    "10f1ba90-838e-4bc2-aa56-c084011012e6",
+    "ea39a2bb-630d-4565-97ef-a47eff4ec300"
   )
 
   def fromEnvironment: Either[String, Settings] = {
