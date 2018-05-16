@@ -2,8 +2,9 @@ package com.gu.gibbons.services.interpreters
 
 import java.time.{Instant, OffsetDateTime}
 import java.time.temporal.TemporalAmount
+import java.util.concurrent.TimeUnit
 import monix.eval.Task
-import okhttp3.{OkHttpClient, Request}
+import okhttp3._
 import com.amazonaws.services.dynamodbv2.{AmazonDynamoDBAsyncClientBuilder, AmazonDynamoDBAsync}
 import com.gu.scanamo._
 import com.gu.scanamo.ops.ScanamoOps
@@ -74,7 +75,11 @@ object BonoboInterpreter {
       .withRegion(config.region)
       .build()
 
-    val httpClient = new OkHttpClient()
+    val httpClient = new OkHttpClient.Builder()
+      .connectTimeout(1, TimeUnit.SECONDS)
+      .readTimeout(1, TimeUnit.SECONDS)
+      .connectionPool(new ConnectionPool(5, 10, TimeUnit.SECONDS))
+      .build
 
     new BonoboInterpreter(config, logger, dynamoClient, httpClient)
   }
