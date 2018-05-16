@@ -81,7 +81,7 @@ Resources:
             Code:
                 S3Bucket: content-api-dist
                 S3Key:
-                    !Sub ${Stack}/${Stage}/${App}/${App}.jar
+                    !Sub ${Stack}/${Stage}/${App}-reminder/${App}.jar
             Description: Lambda for sending email reminders to people owning old keys
             Handler: com.gu.gibbons.lambdas.UserReminderLambda::handleRequest
             MemorySize: 512
@@ -104,7 +104,7 @@ Resources:
             Code:
                 S3Bucket: content-api-dist
                 S3Key:
-                    !Sub ${Stack}/${Stage}/${App}/${App}.jar
+                    !Sub ${Stack}/${Stage}/${App}-cleanup/${App}.jar
             Description: Lambda for cleaning up expired accounts and keys
             Handler: com.gu.gibbons.lambdas.UserDidNotAnswerLambda::handleRequest
             MemorySize: 512
