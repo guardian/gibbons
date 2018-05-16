@@ -37,7 +37,7 @@ class UserDidNotAnswer[F[_] : Monad](settings: Settings, email: EmailService[F],
           _ <- logger.info(s"Getting all the users which have not extended their account since ${Settings.gracePeriod}")
           users <- bonobo.getInactiveUsers(Settings.gracePeriod)
           _ <- logger.info(s"Found ${users.length} users. Let's delete these keys...")
-          ress <- users.traverse { user =>
+          ress <- users.filterNot(u => Settings.whitelist(u.id.id)).traverse { user =>
             for {
               _ <- bonobo.deleteUser(user)
               res <- email.sendDeleted(user)

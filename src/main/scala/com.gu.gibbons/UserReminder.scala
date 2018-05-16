@@ -38,7 +38,7 @@ class UserReminder[F[_] : Monad](settings: Settings, email: EmailService[F], bon
           _ <- logger.info(s"Getting all the users older than ${Settings.inactivityPeriod}")
           users <- bonobo.getUsers(Settings.inactivityPeriod)
           _ <- logger.info(s"Found ${users.length} users. Let's send some emails...")
-          ress <- users.traverse { user => 
+          ress <- users.filterNot(u => Settings.whitelist(u.id.id)).traverse { user => 
             for {
               newUser <- bonobo.setRemindedOn(user, now)
               res <- email.sendReminder(newUser)
