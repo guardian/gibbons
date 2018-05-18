@@ -84,7 +84,7 @@ Resources:
                     !Sub ${Stack}/${Stage}/${App}-reminder/${App}.jar
             Description: Lambda for sending email reminders to people owning old keys
             Handler: com.gu.gibbons.lambdas.UserReminderLambda::handleRequest
-            MemorySize: 256
+            MemorySize: 384
             Role: !Sub ${LambdaRole.Arn}
             Runtime: java8
             Timeout: 100
@@ -107,7 +107,7 @@ Resources:
                     !Sub ${Stack}/${Stage}/${App}-cleanup/${App}.jar
             Description: Lambda for cleaning up expired accounts and keys
             Handler: com.gu.gibbons.lambdas.UserDidNotAnswerLambda::handleRequest
-            MemorySize: 256
+            MemorySize: 384
             Role: !Sub ${LambdaRole.Arn}
             Runtime: java8
             Timeout: 100
