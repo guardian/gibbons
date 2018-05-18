@@ -90,9 +90,10 @@ Resources:
             Timeout: 100
             Events:
                 DailyEvent:
-                Type: Schedule
-                Properties:
-                    Schedule: cron(30 16 * * ? *)  # Run at 16:30 every day
+                    Type: Schedule
+                    Properties:
+                        Schedule: cron(30 16 * * ? *)  # Run at 16:30 every day
+                        Input: "true" # this is not a test
         DependsOn: LambdaRole
 
     DidNotAnswerLambda:
@@ -117,8 +118,9 @@ Resources:
             Timeout: 100
             Events:
                 DailyEvent:
-                Type: Schedule
-                Properties:
-                    Schedule: cron(30 16 * * ? *)  # Run at 16:30 every day
+                    Type: Schedule
+                    Properties:
+                        Schedule: cron(30 16 * * ? *)  # Run at 16:30 every day
+                        Input: "true" # this is not a test
         DependsOn: LambdaRole
 
