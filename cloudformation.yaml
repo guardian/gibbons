@@ -88,11 +88,6 @@ Resources:
             Role: !Sub ${LambdaRole.Arn}
             Runtime: java8
             Timeout: 100
-            Events:
-                DailyEvent:
-                Type: Schedule
-                Properties:
-                    Schedule: cron(30 16 * * ? *)  # Run at 16:30 every day
         DependsOn: LambdaRole
 
     DidNotAnswerLambda:
@@ -116,10 +111,5 @@ Resources:
             Role: !Sub ${LambdaRole.Arn}
             Runtime: java8
             Timeout: 100
-            Events:
-                DailyEvent:
-                Type: Schedule
-                Properties:
-                    Schedule: cron(30 16 * * ? *)  # Run at 16:30 every day
         DependsOn: LambdaRole
 
