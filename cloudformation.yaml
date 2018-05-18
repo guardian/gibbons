@@ -87,7 +87,7 @@ Resources:
             MemorySize: 256
             Role: !Sub ${LambdaRole.Arn}
             Runtime: java8
-            Timeout: 300
+            Timeout: 100
         DependsOn: LambdaRole
 
     DidNotAnswerLambda:
@@ -110,6 +110,6 @@ Resources:
             MemorySize: 256
             Role: !Sub ${LambdaRole.Arn}
             Runtime: java8
-            Timeout: 300
+            Timeout: 100
         DependsOn: LambdaRole
 
