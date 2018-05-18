@@ -1,5 +1,4 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Transform: 'AWS::Serverless-2016-10-31'
 Description: Lambdas for handling expired CAPI keys
 Parameters:
     Stack:
@@ -69,7 +68,7 @@ Resources:
                                 StringEquals:
                                     ses:FromAddress: !Ref Origin
     UserReminderLambda:
-        Type: AWS::Serverless::Function
+        Type: AWS::Lambda::Function
         Properties:
             FunctionName:
                 !Sub gibbons-reminder-${Stage}
@@ -79,9 +78,10 @@ Resources:
                     SALT: !Ref Salt
                     BONOBO_URL: !Ref BonoboUrl
                     BONOBO_USERS_TABLE: !Sub bonobo-${Stage}-users
-            CodeUri:
-                Bucket: content-api-dist
-                Key: !Sub ${Stack}/${Stage}/${App}-reminder/${App}.jar
+            Code:
+                S3Bucket: content-api-dist
+                S3Key:
+                    !Sub ${Stack}/${Stage}/${App}-reminder/${App}.jar
             Description: Lambda for sending email reminders to people owning old keys
             Handler: com.gu.gibbons.lambdas.UserReminderLambda::handleRequest
             MemorySize: 512
@@ -97,7 +97,7 @@ Resources:
         DependsOn: LambdaRole
 
     DidNotAnswerLambda:
-        Type: AWS::Serverless::Function
+        Type: AWS::Lambda::Function
         Properties:
             FunctionName:
                 !Sub gibbons-cleanup-${Stage}
@@ -107,9 +107,10 @@ Resources:
                     SALT: !Ref Salt
                     BONOBO_URL: !Ref BonoboUrl
                     BONOBO_USERS_TABLE: !Sub bonobo-${Stage}-users
-            CodeUri:
-                Bucket: content-api-dist
-                Key: !Sub ${Stack}/${Stage}/${App}-cleanup/${App}.jar
+            Code:
+                S3Bucket: content-api-dist
+                S3Key:
+                    !Sub ${Stack}/${Stage}/${App}-cleanup/${App}.jar
             Description: Lambda for cleaning up expired accounts and keys
             Handler: com.gu.gibbons.lambdas.UserDidNotAnswerLambda::handleRequest
             MemorySize: 512
