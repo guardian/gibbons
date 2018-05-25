@@ -122,3 +122,19 @@ Resources:
                   Input: "true" # required to perform a full run
                 - Arn: !Ref DidNotAnswerLambda
                   Input: "true" # required to perform a full run
+
+    UserRemminderPermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            Action: lambda:InvokeFunction
+            FunctionName: !GetAtt UserReminderLambda.Arn
+            Principal: events.amazonaws.com
+            SourceArn: !GetAtt Scheduler.Arn
+
+    UserDidNotAnswerPermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            Action: lambda:InvokeFunction
+            FunctionName: !GetAtt DidNotAnswerLambda.Arn
+            Principal: events.amazonaws.com
+            SourceArn: !GetAtt Scheduler.Arn
