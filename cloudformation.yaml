@@ -123,7 +123,7 @@ Resources:
                 - Arn: !Ref DidNotAnswerLambda
                   Input: "true" # required to perform a full run
 
-    UserRemminderPermission:
+    UserReminderPermission:
         Type: AWS::Lambda::Permission
         Properties:
             Action: lambda:InvokeFunction
