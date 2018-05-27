@@ -22,22 +22,19 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
   import cats.syntax.show._
   import cats.instances.list._
 
-  def getUsers(period: TemporalAmount) = {
-    val jadis = OffsetDateTime.now().minus(period).toInstant.toEpochMilli
-    for {
-      _ <- logger.info(s"Getting all the users created before $jadis")
-      users <- getUsersMatching(period, (not(attributeExists('remindedAt)) and ('extendedAt <= jadis or (not(attributeExists('extendedAt)) and 'createdAt <= jadis))))
-      _ <- users.collect { case Left(err) => err }.traverse(e => logger.warn(e.show))
-    } yield users.collect { case Right(user) => user }.toVector
-  }
+  def getUsers(period: TemporalAmount) = for {
+    jadis <- timeAgo(period)
+    millis = jadis.toEpochMilli
+    _ <- logger.info(s"Getting all the users created $period ago")
+    users <- getUsersMatching(not(attributeExists('remindedAt)) and ('extendedAt <= millis or (not(attributeExists('extendedAt)) and 'createdAt <= millis)))
+  } yield users
 
-  def getInactiveUsers(period: TemporalAmount) = {
-    val jadis = OffsetDateTime.now().minus(period).toInstant.toEpochMilli
-    for {
-      _ <- logger.info(s"Getting all the users created before $jadis")
-      users <- getUsersMatching(period, attributeExists('remindedAt) and 'remindedAt <= jadis)
-    } yield users.collect { case Right(user) => user }.toVector
-  }
+  def getInactiveUsers(period: TemporalAmount) = for {
+    jadis <- timeAgo(period)
+    millis = jadis.toEpochMilli
+    _ <- logger.info(s"Getting all the users reminded $period ago")
+    users <- getUsersMatching(attributeExists('remindedAt) and 'remindedAt <= millis)
+  } yield users
 
   def setRemindedOn(user: User, when: Instant) = run {
     usersTable.update('id -> user.id.id, set('remindedAt -> when.toEpochMilli)).map(_ => ())
@@ -58,14 +55,22 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
 
   private val usersTable = Table[User](config.usersTableName)
 
-  private def run[A](program: ScanamoOps[A]) = Task.deferFutureAction { implicit scheduler => 
+  private def timeAgo(period: TemporalAmount) = Task.eval { 
+    OffsetDateTime.now().minus(period).toInstant
+  }
+
+  private def run[A](program: ScanamoOps[A]): Task[A] = Task.deferFutureAction { implicit scheduler => 
     ScanamoAsync.exec(dynamoClient)(program) 
   }
 
-  private def getUsersMatching[C: ConditionExpression](period: TemporalAmount, filter: C) = run {
+  private def getUsersMatching[C: ConditionExpression](filter: C): Task[Vector[User]] = run {
     usersTable
       .filter(filter)
       .scan()
+  }.flatMap { results =>
+    for {
+      _ <- results.collect { case Left(error) => error }.traverse(error => logger.warn(error.show))
+    } yield results.collect { case Right(user) => user }.toVector
   }
 }
 
