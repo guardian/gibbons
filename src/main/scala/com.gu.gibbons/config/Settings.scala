@@ -34,15 +34,16 @@ object Settings {
     "ea39a2bb-630d-4565-97ef-a47eff4ec300"
   )
 
-  def fromEnvironment: ValidatedNel[String, Settings] = {
-    val env = System.getenv.asScala.toMap
+  def fromEnvironment: ValidatedNel[String, Settings] =
+    parseEnv(System.getenv.asScala.toMap)
+    
+  def parseEnv(env: Map[String, String]) =
     ( getEnv(env, "AWS_REGION").map(Regions.fromName(_))
     , getEnv(env, "BONOBO_USERS_TABLE")
     , getEnv(env, "SALT")
     , getEnv(env, "BONOBO_URL")
     , getEnv(env, "EMAIL_ORIGIN").map(Email(_))
     ).mapN(Settings(_, _, _, _, _))
-  }
 
   private def getEnv(env: Map[String, String], key: String): ValidatedNel[String, String] =
     env.get(key) match {
