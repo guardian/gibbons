@@ -1,12 +1,13 @@
 package com.gu.gibbons
 package config
 
-import cats.data.ValidatedNel
+import cats.data.{Validated, ValidatedNel}
 import cats.implicits._
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.regions.Regions
 import java.time.Period
 import scala.collection.JavaConverters._
+import scala.util.Try
 
 import model.Email
 
@@ -38,12 +39,16 @@ object Settings {
     parseEnv(System.getenv.asScala.toMap)
     
   def parseEnv(env: Map[String, String]) =
-    ( getEnv(env, "AWS_REGION").map(Regions.fromName(_))
+    ( getEnv(env, "AWS_REGION").andThen(makeRegion)
     , getEnv(env, "BONOBO_USERS_TABLE")
     , getEnv(env, "SALT")
     , getEnv(env, "BONOBO_URL")
     , getEnv(env, "EMAIL_ORIGIN").map(Email(_))
     ).mapN(Settings(_, _, _, _, _))
+
+  private def makeRegion(r: String): ValidatedNel[String, Regions] = Validated.fromTry {
+    Try(Regions.fromName(r))
+  }.bimap(_.getMessage, identity).toValidatedNel
 
   private def getEnv(env: Map[String, String], key: String): ValidatedNel[String, String] =
     env.get(key) match {

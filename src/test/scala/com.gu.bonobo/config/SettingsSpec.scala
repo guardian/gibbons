@@ -11,24 +11,42 @@ class SettingsSpec extends FlatSpec with Matchers with Inspectors {
     "EMAIL_ORIGIN"       -> "Doing"
   )
 
+  private val invalidRegion = Map(
+    "AWS_REGION"         -> "Hello",
+    "BONOBO_USERS_TABLE" -> "How",
+    "SALT"               -> "Are",
+    "BONOBO_URL"         -> "You",
+    "EMAIL_ORIGIN"       -> "Doing"
+  )
+
   private val emptyEnv: Map[String, String] = Map.empty
 
   "Parsing settings" should "produce a valid settings instance" in {
     val result = Settings.parseEnv(validEnv)
     
-    result.isValid should be (true)
+    result.isValid shouldBe true
     result.fold(
       _ => fail("Hmm, Houston, we should have a Settings here"),
       r => r shouldBe a [Settings]
     )
   }
 
+  it should "catch invalid region" in {
+    val result = Settings.parseEnv(invalidRegion)
+
+    result.isValid shouldBe false
+    result.fold(
+      es => es.length shouldBe 1,
+      _ => fail("Won't happen")
+    )
+  }
+
   it should "find all missing keys" in {
     val result = Settings.parseEnv(emptyEnv)
 
-    result.isValid should be (false)
+    result.isValid shouldBe false
     result.fold(
-      es => es.length should be (5),
+      es => es.length shouldBe 5,
       _ => fail("Won't happen")
     )
   }
