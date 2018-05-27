@@ -2,7 +2,6 @@ package com.gu.gibbons
 package lambdas
 
 import cats.data.{ Validated, ValidatedNel }
-import cats.syntax.either._
 import com.amazonaws.services.lambda.runtime.Context; 
 import java.time.Instant
 import io.circe.parser.decode
