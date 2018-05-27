@@ -1,5 +1,6 @@
 package com.gu.gibbons.services.interpreters
 
+import cats.syntax.flatMap._
 import com.amazonaws.handlers.AsyncHandler
 import com.amazonaws.services.simpleemail.model.{ Destination => SESDestination, Message => SESMessage, _ }
 import com.amazonaws.services.simpleemail.{AmazonSimpleEmailServiceAsyncClientBuilder, AmazonSimpleEmailServiceAsync}
@@ -52,5 +53,9 @@ object EmailInterpreter {
       .withRegion(settings.region)
       .build()
     new EmailInterpreter(settings, logger, emailClient)
+  }.attempt.flatMap {
+    case Left(error) => 
+      logger.error(s"Failed to initialize Email service: $error") >>= (_ => Task.raiseError(error))
+    case Right(bonobo) => Task.now(bonobo)
   }
 }
