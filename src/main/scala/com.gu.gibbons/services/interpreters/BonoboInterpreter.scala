@@ -1,5 +1,10 @@
 package com.gu.gibbons.services.interpreters
 
+import cats.syntax.apply._
+import cats.syntax.flatMap._
+import cats.syntax.traverse._
+import cats.syntax.show._
+import cats.instances.list._
 import java.time.{Instant, OffsetDateTime}
 import java.time.temporal.TemporalAmount
 import java.util.concurrent.TimeUnit
@@ -16,11 +21,6 @@ import com.gu.gibbons.model._
 import com.gu.gibbons.services._
 
 class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoClient: AmazonDynamoDBAsync, httpClient: OkHttpClient) extends BonoboService[Task] {
-  import cats.syntax.apply._
-  import cats.syntax.flatMap._
-  import cats.syntax.traverse._
-  import cats.syntax.show._
-  import cats.instances.list._
 
   def getUsers(period: TemporalAmount) = for {
     jadis <- timeAgo(period)
@@ -87,5 +87,9 @@ object BonoboInterpreter {
       .build
 
     new BonoboInterpreter(config, logger, dynamoClient, httpClient)
+  }.attempt.flatMap {
+    case Left(error) => 
+      logger.error(s"Failed to initialize Bonobo service: $error") >>= (_ => Task.raiseError(error))
+    case Right(bonobo) => Task.now(bonobo)
   }
 }
