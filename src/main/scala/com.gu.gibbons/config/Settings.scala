@@ -1,6 +1,8 @@
 package com.gu.gibbons
 package config
 
+import cats.data.ValidatedNel
+import cats.implicits._
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.regions.Regions
 import java.time.Period
@@ -32,26 +34,20 @@ object Settings {
     "ea39a2bb-630d-4565-97ef-a47eff4ec300"
   )
 
-  def fromEnvironment: Either[String, Settings] = {
+  def fromEnvironment: ValidatedNel[String, Settings] = {
     val env = System.getenv.asScala.toMap
-    for{
-      region <- getEnv(env, "AWS_REGION")
-      salt <- getEnv(env, "SALT")
-      origin <- getEnv(env, "EMAIL_ORIGIN")
-      bonoboUrl <- getEnv(env, "BONOBO_URL")
-      usersTableName <- getEnv(env, "BONOBO_USERS_TABLE")
-    } yield {
-      Settings(
-        region = Regions.fromName(region),
-        usersTableName = usersTableName, 
-        salt = salt,
-        bonoboUrl = bonoboUrl,
-        fromAddress = Email(origin),
-      )
-    }
+    ( getEnv(env, "AWS_REGION").map(Regions.fromName(_))
+    , getEnv(env, "BONOBO_USERS_TABLE")
+    , getEnv(env, "SALT")
+    , getEnv(env, "BONOBO_URL")
+    , getEnv(env, "EMAIL_ORIGIN").map(Email(_))
+    ).mapN(Settings(_, _, _, _, _))
   }
 
-  private def getEnv(env: Map[String, String], key: String): Either[String, String] =
-    env.get(key).fold(Left(s"Missing $key"): Either[String, String])(Right(_))
+  private def getEnv(env: Map[String, String], key: String): ValidatedNel[String, String] =
+    env.get(key) match {
+      case None => (s"Missing $key").invalidNel
+      case Some(x) => x.validNel
+    }
 }
 
