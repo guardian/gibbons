@@ -46,16 +46,3 @@ final class EmailInterpreter(settings: Settings, logger: LoggingService[Task], e
   private def reminderEmail(user: User) = html.reminder(user, gen).toString
   private def deletedEmail(user: User) = html.deleted(user).toString
 }
-
-object EmailInterpreter {
-  def apply(settings: Settings, logger: LoggingService[Task]): Task[EmailInterpreter] = Task.evalOnce {
-    val emailClient = AmazonSimpleEmailServiceAsyncClientBuilder.standard()
-      .withRegion(settings.region)
-      .build()
-    new EmailInterpreter(settings, logger, emailClient)
-  }.attempt.flatMap {
-    case Left(error) => 
-      logger.error(s"Failed to initialize Email service: $error") >>= (_ => Task.raiseError(error))
-    case Right(bonobo) => Task.now(bonobo)
-  }
-}

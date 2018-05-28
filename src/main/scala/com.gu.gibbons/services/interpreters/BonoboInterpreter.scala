@@ -73,23 +73,3 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
     } yield results.collect { case Right(user) => user }.toVector
   }
 }
-
-object BonoboInterpreter {
-  def apply(config: Settings, logger: LoggingService[Task]): Task[BonoboInterpreter] = Task.evalOnce {
-    val dynamoClient = AmazonDynamoDBAsyncClientBuilder.standard()
-      .withRegion(config.region)
-      .build()
-
-    val httpClient = new OkHttpClient.Builder()
-      .connectTimeout(1, TimeUnit.SECONDS)
-      .readTimeout(1, TimeUnit.SECONDS)
-      .connectionPool(new ConnectionPool(5, 10, TimeUnit.SECONDS))
-      .build
-
-    new BonoboInterpreter(config, logger, dynamoClient, httpClient)
-  }.attempt.flatMap {
-    case Left(error) => 
-      logger.error(s"Failed to initialize Bonobo service: $error") >>= (_ => Task.raiseError(error))
-    case Right(bonobo) => Task.now(bonobo)
-  }
-}

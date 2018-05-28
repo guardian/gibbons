@@ -12,17 +12,15 @@ import services.interpreters._
 class UserReminderLambda extends GenericLambda {
   import JsonFormats._
 
-  override def go(settings: Settings, dryRun: Boolean) = 
+  override def go(resources: Resources, logger: LoggingInterpreter, settings: Settings, dryRun: Boolean) = {
+    val bonobo = new BonoboInterpreter(settings, logger, resources.dynamo, resources.http)
+    val email = new EmailInterpreter(settings, logger, resources.email)
+
     for {
-      logger <- LoggingInterpreter.apply
       _ <- logger.info("Hello")
-      _ <- logger.info("Opening up a connection to Bonobo...")
-      bonobo <- BonoboInterpreter(settings, logger)
-      _ <- logger.info("Opening up a connection to SES...")
-      email <- EmailInterpreter(settings, logger)
-      _ <- logger.info("We're all set, starting...")
       userReminder = new UserReminder(settings, email, bonobo, logger)
       rRem <- userReminder.run(Instant.now, dryRun)
       _ <- logger.info("Goodbye")
     } yield rRem.asJson
+  }
 }
