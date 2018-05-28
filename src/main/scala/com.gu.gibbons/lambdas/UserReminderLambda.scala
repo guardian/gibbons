@@ -15,12 +15,8 @@ class UserReminderLambda extends GenericLambda {
   override def go(resources: Resources, logger: LoggingInterpreter, settings: Settings, dryRun: Boolean) = {
     val bonobo = new BonoboInterpreter(settings, logger, resources.dynamo, resources.http, resources.url)
     val email = new EmailInterpreter(settings, logger, resources.email, resources.url)
+    val userReminder = new UserReminder(settings, email, bonobo, logger)
 
-    for {
-      _ <- logger.info("Hello")
-      userReminder = new UserReminder(settings, email, bonobo, logger)
-      rRem <- userReminder.run(Instant.now, dryRun)
-      _ <- logger.info("Goodbye")
-    } yield rRem.asJson
+    userReminder.run(Instant.now, dryRun).map(_.asJson)
   }
 }
