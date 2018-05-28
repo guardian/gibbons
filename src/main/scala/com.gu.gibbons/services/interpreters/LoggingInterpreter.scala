@@ -20,8 +20,8 @@ class LoggingInterpreter(logger: Logger) extends LoggingService[Task] {
 }
 
 object LoggingInterpreter {
-    def apply(): Task[LoggingInterpreter] = Task.evalOnce {
-        val logger = LogManager.getLogger(classOf[LoggingInterpreter])
+    def apply(owner: String): Task[LoggingInterpreter] = Task.evalOnce {
+        val logger = LogManager.getLogger(owner)
         new LoggingInterpreter(logger)
     }
 }
