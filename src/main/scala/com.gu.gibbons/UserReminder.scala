@@ -2,6 +2,7 @@ package com.gu.gibbons
 
 // ------------------------------------------------------------------------
 import cats.Monad
+import cats.effect.Effect
 import config.Settings
 import java.time.Instant
 import model._
@@ -14,7 +15,7 @@ import services._
   * @param bonobo The bonobo service interpreter
   * @param logger The logging service interpreter
   */
-class UserReminder[F[_] : Monad](settings: Settings, email: EmailService[F], bonobo: BonoboService[F], logger: LoggingService[F]) {
+class UserReminder[F[_] : Monad : Effect](settings: Settings, email: EmailService[F], bonobo: BonoboService[F], logger: LoggingService[F]) extends Script[F] {
     import cats.instances.vector._
     import cats.instances.map._
     import cats.syntax.flatMap._
@@ -27,7 +28,7 @@ class UserReminder[F[_] : Monad](settings: Settings, email: EmailService[F], bon
       * 3- Sends a reminder email to each user 
       * 4- Update keys to log when a reminder has been sent
       */
-    def run(now: Instant, dryRun: Boolean): F[Result] = 
+    def run(dryRun: Boolean): F[Result] = 
       if (dryRun) 
         for {
           _ <- logger.info("Yop, who's up for receiving a reminder?")
@@ -38,6 +39,7 @@ class UserReminder[F[_] : Monad](settings: Settings, email: EmailService[F], bon
           _ <- logger.info(s"Getting all the users older than ${Settings.inactivityPeriod}")
           users <- bonobo.getUsers(Settings.inactivityPeriod)
           _ <- logger.info(s"Found ${users.length} users. Let's send some emails...")
+          now <- implicitly[Effect[F]].delay { Instant.now }
           ress <- users.filterNot(u => Settings.whitelist(u.id.id)).traverse { user => 
             for {
               newUser <- bonobo.setRemindedOn(user, now)

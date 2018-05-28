@@ -2,7 +2,7 @@ package com.gu.gibbons
 package lambdas
 
 import cats.data.{ Validated, ValidatedNel }
-import com.amazonaws.services.lambda.runtime.Context; 
+import com.amazonaws.services.lambda.runtime.Context
 import io.circe.Json
 import io.circe.parser.decode
 import java.io.{InputStream, OutputStream}
@@ -15,8 +15,12 @@ import scala.io.Source
 import config._
 import services.interpreters._
 
-abstract class GenericLambda(implicit sched: Scheduler) extends ResourceProvider {
+abstract class GenericLambda(
+  load: (Settings, EmailInterpreter, BonoboInterpreter, LoggingInterpreter) => Script[Task]
+)(implicit sched: Scheduler) extends ResourceProvider {
   import cats.implicits._
+  import io.circe.syntax._
+  import model.JsonFormats._
 
   def handleRequest(is: InputStream, os: OutputStream, context: Context) = {
     ( Settings.fromEnvironment
@@ -37,7 +41,12 @@ abstract class GenericLambda(implicit sched: Scheduler) extends ResourceProvider
     os.close()
   }
 
-  def go(resources: Resources, logger: LoggingInterpreter, settings: Settings, dryRun: Boolean): Task[Json]
+  def go(resources: Resources, logger: LoggingInterpreter, settings: Settings, dryRun: Boolean): Task[Json] = {
+    val bonobo = new BonoboInterpreter(settings, logger, resources.dynamo, resources.http, resources.url)
+    val email = new EmailInterpreter(settings, logger, resources.email, resources.url)
+    val script = load(settings, email, bonobo, logger)
+    script.run(dryRun).map(_.asJson)
+  }
  
   private def readArgs(is: InputStream): ValidatedNel[String, Boolean] = Validated.fromEither {
     val input = Source.fromInputStream(is).mkString
