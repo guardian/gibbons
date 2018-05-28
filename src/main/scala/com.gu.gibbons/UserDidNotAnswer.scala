@@ -14,7 +14,7 @@ import services._
   * @param bonobo The bonobo service interpreter
   * @param logger The logging service interpreter
   */
-class UserDidNotAnswer[F[_] : Monad](settings: Settings, email: EmailService[F], bonobo: BonoboService[F], logger: LoggingService[F]) {
+class UserDidNotAnswer[F[_] : Monad](settings: Settings, email: EmailService[F], bonobo: BonoboService[F], logger: LoggingService[F]) extends Script[F] {
     import cats.instances.vector._
     import cats.syntax.functor._
     import cats.syntax.flatMap._
