@@ -5,24 +5,21 @@ import cats.data.{ Validated, ValidatedNel }
 import com.amazonaws.services.dynamodbv2.{AmazonDynamoDBAsyncClientBuilder, AmazonDynamoDBAsync}
 import com.amazonaws.services.lambda.runtime.Context; 
 import com.amazonaws.services.simpleemail.{AmazonSimpleEmailServiceAsyncClientBuilder, AmazonSimpleEmailServiceAsync}
-import java.time.Instant
 import io.circe.Json
 import io.circe.parser.decode
-import io.circe.syntax._
 import java.io.{InputStream, OutputStream}
 import java.util.concurrent.TimeUnit
-import monix.execution.Scheduler.Implicits.global
 import monix.eval.Task
-import okhttp3._
+import monix.execution.Scheduler
+import okhttp3.{OkHttpClient, ConnectionPool}
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 import scala.io.Source
 
 import config._
-import model.JsonFormats
 import services.interpreters._
 
-abstract class GenericLambda(implicit ec: ExecutionContext) {
+abstract class GenericLambda(implicit sched: Scheduler) {
   import cats.implicits._
 
   def handleRequest(is: InputStream, os: OutputStream, context: Context) = {

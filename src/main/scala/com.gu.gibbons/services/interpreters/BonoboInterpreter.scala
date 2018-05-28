@@ -7,10 +7,9 @@ import cats.syntax.show._
 import cats.instances.list._
 import java.time.{Instant, OffsetDateTime}
 import java.time.temporal.TemporalAmount
-import java.util.concurrent.TimeUnit
 import monix.eval.Task
-import okhttp3._
-import com.amazonaws.services.dynamodbv2.{AmazonDynamoDBAsyncClientBuilder, AmazonDynamoDBAsync}
+import okhttp3.{OkHttpClient, Request}
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsync
 import com.gu.scanamo._
 import com.gu.scanamo.ops.ScanamoOps
 import com.gu.scanamo.query.ConditionExpression
