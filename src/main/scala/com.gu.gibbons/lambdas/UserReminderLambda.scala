@@ -13,8 +13,8 @@ class UserReminderLambda extends GenericLambda {
   import JsonFormats._
 
   override def go(resources: Resources, logger: LoggingInterpreter, settings: Settings, dryRun: Boolean) = {
-    val bonobo = new BonoboInterpreter(settings, logger, resources.dynamo, resources.http)
-    val email = new EmailInterpreter(settings, logger, resources.email)
+    val bonobo = new BonoboInterpreter(settings, logger, resources.dynamo, resources.http, resources.url)
+    val email = new EmailInterpreter(settings, logger, resources.email, resources.url)
 
     for {
       _ <- logger.info("Hello")
