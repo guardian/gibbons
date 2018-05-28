@@ -21,9 +21,12 @@ trait ResourceProvider {
       .build()
 
     val httpClient = new OkHttpClient.Builder()
-      .connectTimeout(1, TimeUnit.SECONDS)
-      .readTimeout(1, TimeUnit.SECONDS)
-      .connectionPool(new ConnectionPool(5, 10, TimeUnit.SECONDS))
+      .connectTimeout(settings.httpSettings.connectionTimeout, TimeUnit.SECONDS)
+      .readTimeout(settings.httpSettings.readTimeout, TimeUnit.SECONDS)
+      .connectionPool(new ConnectionPool(
+        settings.httpSettings.idleConnections, 
+        settings.httpSettings.keepAlive, 
+        TimeUnit.SECONDS))
       .build
 
     val urlGenerator = UrlGenerator(settings)
