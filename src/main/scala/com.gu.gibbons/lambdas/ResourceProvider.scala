@@ -4,6 +4,7 @@ import com.amazonaws.services.dynamodbv2.{AmazonDynamoDBAsyncClientBuilder, Amaz
 import com.amazonaws.services.simpleemail.{AmazonSimpleEmailServiceAsyncClientBuilder, AmazonSimpleEmailServiceAsync}
 import com.gu.gibbons.config.Settings
 import com.gu.gibbons.services.interpreters.LoggingInterpreter
+import com.gu.gibbons.utils.UrlGenerator
 import java.util.concurrent.TimeUnit
 import monix.eval.Task
 import okhttp3.{OkHttpClient, ConnectionPool}
@@ -25,7 +26,9 @@ trait ResourceProvider {
       .connectionPool(new ConnectionPool(5, 10, TimeUnit.SECONDS))
       .build
 
-    Resources(emailClient, dynamoClient, httpClient)
+    val urlGenerator = UrlGenerator(settings)
+
+    Resources(emailClient, dynamoClient, httpClient, urlGenerator)
   }.attempt.flatMap {
     case Left(error) => 
       logger.error(s"Failed to initialize resources: $error").flatMap(_ => Task.raiseError(error))
@@ -38,5 +41,10 @@ trait ResourceProvider {
     res.http.dispatcher.executorService.shutdown()
   }
 
-  case class Resources(email: AmazonSimpleEmailServiceAsync, dynamo: AmazonDynamoDBAsync, http: OkHttpClient)
+  case class Resources(
+    email: AmazonSimpleEmailServiceAsync, 
+    dynamo: AmazonDynamoDBAsync, 
+    http: OkHttpClient,
+    url: UrlGenerator
+  )
 }

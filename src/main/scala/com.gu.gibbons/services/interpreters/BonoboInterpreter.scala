@@ -18,8 +18,9 @@ import com.gu.scanamo.syntax._
 import com.gu.gibbons.config._
 import com.gu.gibbons.model._
 import com.gu.gibbons.services._
+import com.gu.gibbons.utils._
 
-class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoClient: AmazonDynamoDBAsync, httpClient: OkHttpClient) extends BonoboService[Task] {
+class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoClient: AmazonDynamoDBAsync, httpClient: OkHttpClient, urlGenerator: UrlGenerator) extends BonoboService[Task] {
 
   def getUsers(period: TemporalAmount) = for {
     jadis <- timeAgo(period)
@@ -49,8 +50,6 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
       case _ => throw new Throwable(s"Call to Bonobo failed with ${response.message}: ${response.body}")
     }
   }
-
-  private val urlGenerator = new UrlGenerator(config)
 
   private val usersTable = Table[User](config.usersTableName)
 
