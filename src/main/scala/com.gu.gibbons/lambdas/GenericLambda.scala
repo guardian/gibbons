@@ -6,6 +6,7 @@ import com.amazonaws.services.lambda.runtime.Context
 import io.circe.Json
 import io.circe.parser.decode
 import java.io.{InputStream, OutputStream}
+import java.time.OffsetDateTime
 import monix.eval.Task
 import monix.execution.Scheduler
 import scala.concurrent.Await
@@ -28,7 +29,8 @@ abstract class GenericLambda(
     ).mapN { case (settings: Settings, dryRun: Boolean) =>
       for {
         logger <- LoggingInterpreter(this.getClass.toString)
-        _ <- resources(settings, logger).bracket(go(_, logger, settings, dryRun))(cleanup _)
+        now <- Task.eval { OffsetDateTime.now }
+        _ <- resources(settings, logger).bracket(go(_, logger, settings, now, dryRun))(cleanup _)
       } yield ()
     }.map { program =>
       Await.result(program.runAsync, Duration(context.getRemainingTimeInMillis, MILLISECONDS))
@@ -41,11 +43,11 @@ abstract class GenericLambda(
     os.close()
   }
 
-  def go(resources: Resources, logger: LoggingInterpreter, settings: Settings, dryRun: Boolean): Task[Json] = {
+  def go(resources: Resources, logger: LoggingInterpreter, settings: Settings, now: OffsetDateTime, dryRun: Boolean): Task[Json] = {
     val bonobo = new BonoboInterpreter(settings, logger, resources.dynamo, resources.http, resources.url)
     val email = new EmailInterpreter(settings, logger, resources.email, resources.url)
     val script = load(settings, email, bonobo, logger)
-    script.run(dryRun).map(_.asJson)
+    script.run(now, dryRun).map(_.asJson)
   }
  
   private def readArgs(is: InputStream): ValidatedNel[String, Boolean] = Validated.fromEither {

@@ -5,8 +5,7 @@ import cats.syntax.flatMap._
 import cats.syntax.traverse._
 import cats.syntax.show._
 import cats.instances.list._
-import java.time.{Instant, OffsetDateTime}
-import java.time.temporal.TemporalAmount
+import java.time.Instant
 import monix.eval.Task
 import okhttp3.{OkHttpClient, Request}
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsync
@@ -22,17 +21,15 @@ import com.gu.gibbons.utils._
 
 class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoClient: AmazonDynamoDBAsync, httpClient: OkHttpClient, urlGenerator: UrlGenerator) extends BonoboService[Task] {
 
-  def getUsers(period: TemporalAmount) = for {
-    jadis <- timeAgo(period)
+  def getUsers(jadis: Instant) = for {
+    _ <- logger.info(s"Getting all the users created $jadis ago")
     millis = jadis.toEpochMilli
-    _ <- logger.info(s"Getting all the users created $period ago")
     users <- getUsersMatching(not(attributeExists('remindedAt)) and ('extendedAt <= millis or (not(attributeExists('extendedAt)) and 'createdAt <= millis)))
   } yield users
 
-  def getInactiveUsers(period: TemporalAmount) = for {
-    jadis <- timeAgo(period)
+  def getInactiveUsers(jadis: Instant) = for {
+    _ <- logger.info(s"Getting all the users reminded $jadis ago")
     millis = jadis.toEpochMilli
-    _ <- logger.info(s"Getting all the users reminded $period ago")
     users <- getUsersMatching(attributeExists('remindedAt) and 'remindedAt <= millis)
   } yield users
 
@@ -52,10 +49,6 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
   }
 
   private val usersTable = Table[User](config.usersTableName)
-
-  private def timeAgo(period: TemporalAmount) = Task.eval { 
-    OffsetDateTime.now().minus(period).toInstant
-  }
 
   private def run[A](program: ScanamoOps[A]): Task[A] = Task.deferFutureAction { implicit scheduler => 
     ScanamoAsync.exec(dynamoClient)(program) 
