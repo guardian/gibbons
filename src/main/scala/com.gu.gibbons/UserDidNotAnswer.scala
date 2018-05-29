@@ -3,6 +3,7 @@ package com.gu.gibbons
 // ------------------------------------------------------------------------
 import cats.Monad
 import config.Settings
+import java.time.OffsetDateTime
 import model._
 import services._
 // ------------------------------------------------------------------------
@@ -26,16 +27,18 @@ class UserDidNotAnswer[F[_] : Monad](settings: Settings, email: EmailService[F],
       * 3- Delete those keys
       * 4- Send an email to inform users their keys have been deleted
       */
-    def run(dryRun: Boolean): F[Result] = 
+    def run(now: OffsetDateTime, dryRun: Boolean): F[Result] = {
+      val fromBefore = now.minus(Settings.gracePeriod).toInstant
+
       if (dryRun)
         for {
           _ <- logger.info(s"Getting all the users which have not been extended since ${Settings.gracePeriod}")
-          users <- bonobo.getInactiveUsers(Settings.gracePeriod)
+          users <- bonobo.getInactiveUsers(fromBefore)
         } yield DryRun(users)
       else
         for {
           _ <- logger.info(s"Getting all the users which have not extended their account since ${Settings.gracePeriod}")
-          users <- bonobo.getInactiveUsers(Settings.gracePeriod)
+          users <- bonobo.getInactiveUsers(fromBefore)
           _ <- logger.info(s"Found ${users.length} users. Let's delete these keys...")
           ress <- users.filterNot(u => Settings.whitelist(u.id.id)).traverse { user =>
             for {
@@ -45,4 +48,5 @@ class UserDidNotAnswer[F[_] : Monad](settings: Settings, email: EmailService[F],
           }.map(_.toMap)
           _ <- logger.info("That's a wrap! See ya.")
         } yield FullRun(ress)
+    }
 }

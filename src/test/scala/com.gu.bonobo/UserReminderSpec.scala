@@ -26,7 +26,7 @@ class IntegrationTests extends FlatSpec with Matchers with Inspectors {
     val userDidNotAnswer = new UserDidNotAnswer(settings, emailService, bonoboService, loggingService)
 
     "The Reminder service" should "send reminders, duh" in {
-        val ((newUsers, emailService), sentEmails) = userReminder.run(todayInstant, false).run((users, Set.empty)).value
+        val ((newUsers, emailService), sentEmails) = userReminder.run(false).run((users, Set.empty)).value
         val remindedUsers = newUsers.filter(_._2.remindedAt.exists(_ == todayInstant)).map(_._2.id).toSet
         forAll(remindedUsers) { u => 
             emailService should contain (users(u).email)  
