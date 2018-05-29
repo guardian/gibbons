@@ -4,20 +4,19 @@ package services
 import cats.Monad
 import cats.data.State
 import java.time.Instant
-import java.time.temporal.TemporalAmount
 import model._
 
 class BonoboServiceInterpreter extends BonoboService[TestProgram] {
-  def getUsers(period: TemporalAmount) = State[Repo, Vector[User]] { case s@(users, _) =>
+  def getUsers(jadis: Instant) = State[Repo, Vector[User]] { case s@(users, _) =>
     val res = users.filter { 
-      case (_, user) => fixtures.today.minus(period).toInstant.compareTo(user.extendedAt.getOrElse(user.createdAt)) >= 0
+      case (_, user) => user.extendedAt.getOrElse(user.createdAt).compareTo(jadis) <= 0
     }.values.toVector
     (s, res)
   }
 
-  def getInactiveUsers(period: TemporalAmount) = State[Repo, Vector[User]] { case s@(users, _) =>
+  def getInactiveUsers(jadis: Instant) = State[Repo, Vector[User]] { case s@(users, _) =>
     val res = users.filter { 
-      case (_, user) => user.remindedAt.exists(r => fixtures.today.minus(period).toInstant.compareTo(r) >= 0)
+      case (_, user) => user.remindedAt.exists(r => r.compareTo(jadis) <= 0)
     }.values.toVector
     (s, res)
   }
