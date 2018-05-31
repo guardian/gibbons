@@ -113,3 +113,28 @@ Resources:
             Timeout: 100
         DependsOn: LambdaRole
 
+    Scheduler:
+        Type: AWS::Events::Rule
+        Properties:
+            ScheduleExpression: cron(12 14 * * * *) # run daily at 14:13
+            Targets:
+                - Arn: !Ref UserReminderLambda
+                  Input: "true" # required to perform a full run
+                - Arn: !Ref DidNotAnswerLambda
+                  Input: "true" # required to perform a full run
+
+    UserReminderPermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            Action: lambda:InvokeFunction
+            FunctionName: !GetAtt UserReminderLambda.Arn
+            Principal: events.amazonaws.com
+            SourceArn: !GetAtt Scheduler.Arn
+
+    UserDidNotAnswerPermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            Action: lambda:InvokeFunction
+            FunctionName: !GetAtt DidNotAnswerLambda.Arn
+            Principal: events.amazonaws.com
+            SourceArn: !GetAtt Scheduler.Arn
