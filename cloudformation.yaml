@@ -45,6 +45,8 @@ Resources:
     LambdaRole:
         Type: AWS::IAM::Role
         Properties:
+            ManagedPolicyArns:
+                - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
             AssumeRolePolicyDocument:
                 Statement:
                     - Effect: Allow
@@ -55,7 +57,6 @@ Resources:
                           - sts:AssumeRole
             Path: /
             Policies:
-                - AWSLambdaBasicExecutionRole
                 - PolicyName: LambdaPolicy
                   PolicyDocument:
                       Statement:
@@ -88,7 +89,7 @@ Resources:
                 ScheduleLambda:
                     Type: Schedule
                     Properties:
-                        Schedule: cron(12 14 * * * *) # run daily at 14:12
+                        Schedule: cron(12 14 * * ? *) # run daily at 14:12
                         Input: "true"
         DependsOn: LambdaRole
 
@@ -103,6 +104,6 @@ Resources:
                 ScheduleLambda:
                     Type: Schedule
                     Properties:
-                        Schedule: cron(12 14 * * * *) # run daily at 14:12
+                        Schedule: cron(12 14 * * ? *) # run daily at 14:12
                         Input: "true"
         DependsOn: LambdaRole
