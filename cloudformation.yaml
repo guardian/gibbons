@@ -41,12 +41,6 @@ Globals:
         MemorySize: 384
         Runtime: java8
         Timeout: 100
-        Events:
-            ScheduleLambda:
-                Type: Schedule
-                Properties:
-                    Schedule: cron(12 14 * * * *) # run daily at 14:12
-                    Input: "true"
 Resources:
     LambdaRole:
         Type: AWS::IAM::Role
@@ -95,6 +89,12 @@ Resources:
             Description: Lambda for sending email reminders to people owning old keys
             Handler: com.gu.gibbons.lambdas.UserReminderLambda::handleRequest
             Role: !Sub ${LambdaRole.Arn}
+            Events:
+                ScheduleLambda:
+                    Type: Schedule
+                    Properties:
+                        Schedule: cron(12 14 * * * *) # run daily at 14:12
+                        Input: "true"
         DependsOn: LambdaRole
 
     DidNotAnswerLambda:
@@ -104,4 +104,10 @@ Resources:
             Description: Lambda for cleaning up expired accounts and keys
             Handler: com.gu.gibbons.lambdas.UserDidNotAnswerLambda::handleRequest
             Role: !Sub ${LambdaRole.Arn}
+            Events:
+                ScheduleLambda:
+                    Type: Schedule
+                    Properties:
+                        Schedule: cron(12 14 * * * *) # run daily at 14:12
+                        Input: "true"
         DependsOn: LambdaRole
