@@ -30,8 +30,8 @@ abstract class GenericLambda(
       for {
         logger <- LoggingInterpreter(this.getClass.toString)
         now <- Task.eval { OffsetDateTime.now }
-        _ <- resources(settings, logger).bracket(go(_, logger, settings, now, dryRun))(cleanup _)
-      } yield ()
+        res <- resources(settings, logger).bracket(go(_, logger, settings, now, dryRun))(cleanup _)
+      } yield res.asJson
     }.map { program =>
       Await.result(program.runAsync, Duration(context.getRemainingTimeInMillis, MILLISECONDS))
     }.fold(
