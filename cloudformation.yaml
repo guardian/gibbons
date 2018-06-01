@@ -45,6 +45,8 @@ Resources:
     LambdaRole:
         Type: AWS::IAM::Role
         Properties:
+            ManagedPolicyArns:
+                - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
             AssumeRolePolicyDocument:
                 Statement:
                     - Effect: Allow
@@ -58,12 +60,6 @@ Resources:
                 - PolicyName: LambdaPolicy
                   PolicyDocument:
                       Statement:
-                          - Effect: Allow
-                            Action:
-                                - logs:CreateLogGroup
-                                - logs:CreateLogStream
-                                - logs:PutLogEvents
-                            Resource: "*"
                           - Effect: Allow
                             Action:
                                 - dynamodb:Query
