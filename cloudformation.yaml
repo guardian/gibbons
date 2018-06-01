@@ -90,7 +90,7 @@ Resources:
                     Type: Schedule
                     Properties:
                         Schedule: cron(12 14 * * ? *) # run daily at 14:12
-                        Input: "true"
+                        Input: "false"
         DependsOn: LambdaRole
 
     DidNotAnswerLambda:
@@ -105,5 +105,5 @@ Resources:
                     Type: Schedule
                     Properties:
                         Schedule: cron(12 14 * * ? *) # run daily at 14:12
-                        Input: "true"
+                        Input: "false"
         DependsOn: LambdaRole
