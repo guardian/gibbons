@@ -1,10 +1,13 @@
 package com.gu.gibbons
 package config
 
+import cats.data.{Validated, ValidatedNel}
+import cats.implicits._
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.regions.Regions
 import java.time.Period
 import scala.collection.JavaConverters._
+import scala.util.Try
 
 import model.Email
 
@@ -32,26 +35,25 @@ object Settings {
     "ea39a2bb-630d-4565-97ef-a47eff4ec300"
   )
 
-  def fromEnvironment: Either[String, Settings] = {
-    val env = System.getenv.asScala.toMap
-    for{
-      region <- getEnv(env, "AWS_REGION")
-      salt <- getEnv(env, "SALT")
-      origin <- getEnv(env, "EMAIL_ORIGIN")
-      bonoboUrl <- getEnv(env, "BONOBO_URL")
-      usersTableName <- getEnv(env, "BONOBO_USERS_TABLE")
-    } yield {
-      Settings(
-        region = Regions.fromName(region),
-        usersTableName = usersTableName, 
-        salt = salt,
-        bonoboUrl = bonoboUrl,
-        fromAddress = Email(origin),
-      )
-    }
-  }
+  def fromEnvironment: ValidatedNel[String, Settings] =
+    parseEnv(System.getenv.asScala.toMap)
+    
+  def parseEnv(env: Map[String, String]) =
+    ( getEnv(env, "AWS_REGION").andThen(makeRegion)
+    , getEnv(env, "BONOBO_USERS_TABLE")
+    , getEnv(env, "SALT")
+    , getEnv(env, "BONOBO_URL")
+    , getEnv(env, "EMAIL_ORIGIN").map(Email(_))
+    ).mapN(Settings(_, _, _, _, _))
 
-  private def getEnv(env: Map[String, String], key: String): Either[String, String] =
-    env.get(key).fold(Left(s"Missing $key"): Either[String, String])(Right(_))
+  private def makeRegion(r: String): ValidatedNel[String, Regions] = Validated.fromTry {
+    Try(Regions.fromName(r))
+  }.bimap(_.getMessage, identity).toValidatedNel
+
+  private def getEnv(env: Map[String, String], key: String): ValidatedNel[String, String] =
+    env.get(key) match {
+      case None => (s"Missing $key").invalidNel
+      case Some(x) => x.validNel
+    }
 }
 

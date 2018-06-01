@@ -1,7 +1,7 @@
 package com.gu.gibbons
 package lambdas
 
-import cats.syntax.either._
+import cats.data.{ Validated, ValidatedNel }
 import com.amazonaws.services.lambda.runtime.Context; 
 import java.time.Instant
 import io.circe.parser.decode
@@ -19,42 +19,38 @@ import model.{JsonFormats, Result}
 import services.interpreters._
 
 class UserReminderLambda {
-  import cats.instances.either._
-  import cats.syntax.flatMap._
+  import cats.implicits._
   import JsonFormats._
 
   def handleRequest(is: InputStream, os: OutputStream, context: Context) = {
     go(is).map { program =>
       Await.result(program.runAsync, Duration(context.getRemainingTimeInMillis, MILLISECONDS))
-    } match {
-      case Right(result) => os.write(result.toString.getBytes)
-      case Left(error) => os.write(s"Something went horribly wrong: $error".getBytes)
-    }
+    }.fold(error => os.write(s"Something went horribly wrong: $error".getBytes), result => os.write(result.toString.getBytes))
 
     is.close()
     os.close()
   }
 
-  def go(is: InputStream): Either[String, Task[Json]] = for {
-    settings <- Settings.fromEnvironment
-    dryRun <- readArgs(is)
-  } yield {
-    for {
-      logger <- LoggingInterpreter.apply
-      _ <- logger.info("Hello")
-      _ <- logger.info("Opening up a connection to Bonobo...")
-      bonobo <- BonoboInterpreter(settings, logger)
-      _ <- logger.info("Opening up a connection to SES...")
-      email <- EmailInterpreter(settings, logger)
-      _ <- logger.info("We're all set, starting...")
-      userReminder = new UserReminder(settings, email, bonobo, logger)
-      rRem <- userReminder.run(Instant.now, dryRun)
-      _ <- logger.info("Goodbye")
-    } yield rRem.asJson
-  }
+  def go(is: InputStream): ValidatedNel[String, Task[Json]] = 
+    ( Settings.fromEnvironment
+    , readArgs(is)
+    ).mapN { case (settings, dryRun) => 
+      for {
+        logger <- LoggingInterpreter.apply
+        _ <- logger.info("Hello")
+        _ <- logger.info("Opening up a connection to Bonobo...")
+        bonobo <- BonoboInterpreter(settings, logger)
+        _ <- logger.info("Opening up a connection to SES...")
+        email <- EmailInterpreter(settings, logger)
+        _ <- logger.info("We're all set, starting...")
+        userReminder = new UserReminder(settings, email, bonobo, logger)
+        rRem <- userReminder.run(Instant.now, dryRun)
+        _ <- logger.info("Goodbye")
+      } yield rRem.asJson
+    }
 
-  def readArgs(is: InputStream): Either[String, Boolean] = {
+  def readArgs(is: InputStream): ValidatedNel[String, Boolean] = Validated.fromEither {
     val input = Source.fromInputStream(is).mkString
     decode[Boolean](input).leftMap(_.toString)
-  }
+  }.toValidatedNel
 }
