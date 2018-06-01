@@ -1,15 +1,13 @@
-package com.gu.gibbons
-package model
+package com.gu.gibbons.utils
 
+import com.gu.gibbons.config.Settings
+import com.gu.gibbons.model.User
 import java.time.Instant
 import java.security.{ MessageDigest, Security }
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 
-import config._
 
-class HashGenerator {
-  import HashGenerator._
-
+abstract class HashGenerator(md: MessageDigest) {
   def params(user: User, salt: String): String = {
     s"h=${hash(user.id.id, user.remindedAt.get, salt)}"
   }
@@ -20,16 +18,19 @@ class HashGenerator {
   }
 }
 
-object HashGenerator {
-  Security.addProvider(new BouncyCastleProvider())
-  private val md = MessageDigest.getInstance("SHA3-512")
-}
-
-class UrlGenerator(settings: Settings) extends HashGenerator {
+class UrlGenerator(settings: Settings, md: MessageDigest) extends HashGenerator(md) {
   private def url(action: String, user: User) =
     s"${settings.bonoboUrl}/user/${user.id.id}/${action}?${params(user, settings.salt)}"
 
   def extend(user: User): String = url("extend", user)
 
   def delete(user: User): String = url("delete", user)
+}
+
+object UrlGenerator {
+  def apply(settings: Settings) = {
+    Security.addProvider(new BouncyCastleProvider())
+    val md = MessageDigest.getInstance("SHA3-512")
+    new UrlGenerator(settings, md)
+  }
 }

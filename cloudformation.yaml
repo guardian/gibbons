@@ -1,4 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
 Description: Lambdas for handling expired CAPI keys
 Parameters:
     Stack:
@@ -26,10 +27,26 @@ Parameters:
         Description: Secret see to hash IDs
         Type: String
 
+Globals:
+    Function:
+        Environment:
+            Variables:
+                EMAIL_ORIGIN: !Ref Origin
+                SALT: !Ref Salt
+                BONOBO_URL: !Ref BonoboUrl
+                BONOBO_USERS_TABLE: !Sub bonobo-${Stage}-users
+        CodeUri:
+            Bucket: content-api-dist
+            Key: !Sub ${Stack}/${Stage}/${App}-reminder/${App}.jar
+        MemorySize: 384
+        Runtime: java8
+        Timeout: 100
 Resources:
     LambdaRole:
         Type: AWS::IAM::Role
         Properties:
+            ManagedPolicyArns:
+                - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
             AssumeRolePolicyDocument:
                 Statement:
                     - Effect: Allow
@@ -43,12 +60,6 @@ Resources:
                 - PolicyName: LambdaPolicy
                   PolicyDocument:
                       Statement:
-                          - Effect: Allow
-                            Action:
-                                - logs:CreateLogGroup
-                                - logs:CreateLogStream
-                                - logs:PutLogEvents
-                            Resource: "*"
                           - Effect: Allow
                             Action:
                                 - dynamodb:Query
@@ -68,48 +79,31 @@ Resources:
                                 StringEquals:
                                     ses:FromAddress: !Ref Origin
     UserReminderLambda:
-        Type: AWS::Lambda::Function
+        Type: AWS::Serverless::Function
         Properties:
-            FunctionName:
-                !Sub gibbons-reminder-${Stage}
-            Environment:
-                Variables:
-                    EMAIL_ORIGIN: !Ref Origin
-                    SALT: !Ref Salt
-                    BONOBO_URL: !Ref BonoboUrl
-                    BONOBO_USERS_TABLE: !Sub bonobo-${Stage}-users
-            Code:
-                S3Bucket: content-api-dist
-                S3Key:
-                    !Sub ${Stack}/${Stage}/${App}-reminder/${App}.jar
+            FunctionName: !Sub gibbons-reminder-${Stage}
             Description: Lambda for sending email reminders to people owning old keys
             Handler: com.gu.gibbons.lambdas.UserReminderLambda::handleRequest
-            MemorySize: 384
             Role: !Sub ${LambdaRole.Arn}
-            Runtime: java8
-            Timeout: 100
+            Events:
+                ScheduleLambda:
+                    Type: Schedule
+                    Properties:
+                        Schedule: cron(12 14 * * ? *) # run daily at 14:12
+                        Input: "false"
         DependsOn: LambdaRole
 
     DidNotAnswerLambda:
-        Type: AWS::Lambda::Function
+        Type: AWS::Serverless::Function
         Properties:
-            FunctionName:
-                !Sub gibbons-cleanup-${Stage}
-            Environment:
-                Variables:
-                    EMAIL_ORIGIN: !Ref Origin
-                    SALT: !Ref Salt
-                    BONOBO_URL: !Ref BonoboUrl
-                    BONOBO_USERS_TABLE: !Sub bonobo-${Stage}-users
-            Code:
-                S3Bucket: content-api-dist
-                S3Key:
-                    !Sub ${Stack}/${Stage}/${App}-cleanup/${App}.jar
+            FunctionName: !Sub gibbons-cleanup-${Stage}
             Description: Lambda for cleaning up expired accounts and keys
             Handler: com.gu.gibbons.lambdas.UserDidNotAnswerLambda::handleRequest
-            MemorySize: 384
             Role: !Sub ${LambdaRole.Arn}
-            Runtime: java8
-            Timeout: 100
+            Events:
+                ScheduleLambda:
+                    Type: Schedule
+                    Properties:
+                        Schedule: cron(12 14 * * ? *) # run daily at 14:12
+                        Input: "false"
         DependsOn: LambdaRole
-

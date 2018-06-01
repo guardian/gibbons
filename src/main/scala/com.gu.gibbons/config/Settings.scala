@@ -16,7 +16,15 @@ case class Settings(
   usersTableName: String,
   salt: String,
   bonoboUrl: String,
-  fromAddress: Email
+  fromAddress: Email,
+  httpSettings: HttpSettings
+)
+
+case class HttpSettings(
+  connectionTimeout: Int,
+  readTimeout: Int,
+  idleConnections: Int,
+  keepAlive: Int
 )
 
 object Settings {
@@ -44,7 +52,7 @@ object Settings {
     , getEnv(env, "SALT")
     , getEnv(env, "BONOBO_URL")
     , getEnv(env, "EMAIL_ORIGIN").map(Email(_))
-    ).mapN(Settings(_, _, _, _, _))
+    ).mapN(Settings(_, _, _, _, _, HttpSettings(1, 1, 5, 10)))
 
   private def makeRegion(r: String): ValidatedNel[String, Regions] = Validated.fromTry {
     Try(Regions.fromName(r))
