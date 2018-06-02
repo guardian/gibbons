@@ -8,28 +8,30 @@ import java.time.temporal.TemporalAmount
 import model._
 
 class BonoboServiceInterpreter extends BonoboService[TestProgram] {
-  def getUsers(period: TemporalAmount) = State[Repo, Vector[User]] { case s@(users, _) =>
-    val res = users.filter { 
+  import cats.implicits._
+
+  def getUsers(period: TemporalAmount): TestProgram[Vector[User]] = 
+    State.get.map(_._1.filter { 
       case (_, user) => fixtures.today.minus(period).toInstant.compareTo(user.extendedAt.getOrElse(user.createdAt)) >= 0
-    }.values.toVector
-    (s, res)
-  }
+    }.values.toVector)
 
-  def getInactiveUsers(period: TemporalAmount) = State[Repo, Vector[User]] { case s@(users, _) =>
-    val res = users.filter { 
+  def getInactiveUsers(period: TemporalAmount): TestProgram[Vector[User]] = 
+    State.get.map(_._1.filter { 
       case (_, user) => user.remindedAt.exists(r => fixtures.today.minus(period).toInstant.compareTo(r) >= 0)
-    }.values.toVector
-    (s, res)
-  }
+    }.values.toVector)
 
-  def setRemindedOn(user: User, when: Instant) = State[Repo, User] { case s@(users, es) =>
-    val newUser = users(user.id).copy(remindedAt = Some(when))
-    ((users.updated(user.id, newUser), es), newUser)
-  }
+  def setRemindedOn(user: User, when: Instant): TestProgram[User] = 
+    State.get.flatMap { case (users, emails) =>
+      val newUser = users(user.id).copy(remindedAt = Some(when))
+      for {
+        _ <- State.set((users.updated(user.id, newUser), emails))
+      } yield newUser
+    }
 
-  def deleteUser(user: User) = State[Repo, Unit] { case (users, es) =>
-    ((users - user.id, es), ())
-  }
+  def deleteUser(user: User): TestProgram[Unit] = for {
+    s <- State.get
+    _ <- State.set((s._1 - user.id, s._2))
+  } yield ()
 }
 
 class LoggingServiceInterpreter extends LoggingService[TestProgram] {
@@ -55,11 +57,13 @@ class EmailServiceInterpreter extends EmailService[TestProgram] {
       |${user.email.email}""".stripMargin
   )
 
-  def sendReminder(user: User) = State[Repo, EmailResult] { case (us, emails) =>
-    ((us, emails + user.email), result("Reminder email", user))
-  }
+  def sendReminder(user: User): TestProgram[EmailResult] = for { 
+    s <- State.get
+    _ <- State.set((s._1, s._2 + user.email))
+  } yield result("Reminder email", user)
   
-  def sendDeleted(user: User) = State[Repo, EmailResult] { case (us, emails) =>
-    ((us, emails + user.email), result("Deletion email", user))
-  }
+  def sendDeleted(user: User): TestProgram[EmailResult] = for {
+    s <- State.get
+    _ <- State.set((s._1, s._2 + user.email))
+  } yield result("Deletion email", user)
 }
