@@ -35,7 +35,7 @@ class UserReminder[F[_] : Monad](settings: Settings, email: EmailService[F], bon
         _ <- logger.info(s"Getting all developer keys")
         keys <- bonobo.getDevelopers
         _ <- logger.info(s"Getting all the users older than ${Settings.inactivityPeriod}")
-        users <- keys.foldMapM(bonobo.getUser(_, thenL).map(_.toVector))
+        users <- bonobo.getUsers(keys, thenL)
         _ <- logger.info(s"Found ${users.size} users.")
         ress <- if (dryRun) Monad[F].pure(Map.empty[UserId, EmailResult]) else users.traverse { user => 
           for {

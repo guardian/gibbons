@@ -21,22 +21,26 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
   import cats.syntax.traverse._
   import cats.syntax.show._
   import cats.instances.list._
+  import cats.instances.vector._
 
   def getDevelopers = for {
     keys <- run {
       keysTable.filter('tier -> "Developer").scan()
     }
     _ <- keys.collect { case Left(error) => error }.traverse(e => logger.warn(e.show))
-  } yield keys.collect { case Right(k) => k }.toVector.distinct
+  } yield keys.collect { case Right(k) => k }.toSet
 
-  def getUser(key: Key, jadis: Long) = for {
+  def getUsers(keys: Set[Key], jadis: Long) = for {
     users <- run {
-      usersTable
-        .filter(not(attributeExists('remindedAt)) and ('extendedAt <= jadis or (not(attributeExists('extendedAt)) and 'createdAt <= jadis)))
-        .query('id -> key.userId.id)
-    }
+      usersTable.getAll('id -> keys)
+    }.map(_.toVector)
     _ <- users.collect { case Left(error) => error }.traverse(e => logger.warn(e.show))
-  } yield users.collectFirst { case Right(u) => u }
+  } yield users.collect { case Right(u) if oldEnough(u, jadis) => u }
+
+  private def oldEnough(user: User, jadis: Long) =
+    !user.remindedAt.isDefined && (
+      user.extendedAt.exists(_ <= jadis) || !user.extendedAt.isDefined && user.createdAt <= jadis
+    )
 
   def getInactiveUsers(period: TemporalAmount) = {
     val jadis = OffsetDateTime.now(ZoneOffset.UTC).minus(period).toInstant.toEpochMilli
