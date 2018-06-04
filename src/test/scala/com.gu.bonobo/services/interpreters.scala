@@ -10,12 +10,12 @@ import model._
 class BonoboServiceInterpreter extends BonoboService[TestProgram] {
   import cats.implicits._
 
-  def getDevelopers: TestProgram[Set[Key]] = State.get.map(_._3)
+  def getUsers(period: TemporalAmount): TestProgram[Vector[User]] = 
+    State.get.map(_._1.filter { 
+      case (_, user) => fixtures.today.minus(period).toInstant.toEpochMilli >= user.extendedAt.getOrElse(user.createdAt)
+    }.values.toVector)
 
-  def getUsers(keys: Set[Key], when: Long): TestProgram[Vector[User]] =
-    State.get.map { case (users, _, _) => 
-      keys.map(k => users.get(k.userId)).toVector.flatten.filter(oldEnough(_, when))
-    }
+  def isDeveloper(user: User): TestProgram[Boolean] = State.pure(true)
 
   def getInactiveUsers(period: TemporalAmount): TestProgram[Vector[User]] = 
     State.get.map(_._1.filter { 
