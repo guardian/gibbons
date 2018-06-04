@@ -23,19 +23,18 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
   import cats.instances.list._
   import cats.instances.vector._
 
-  def getDevelopers = for {
-    keys <- run {
-      keysTable.filter('tier -> "Developer").scan()
-    }
-    _ <- keys.collect { case Left(error) => error }.traverse(e => logger.warn(e.show))
-  } yield keys.collect { case Right(k) => k }.toSet
+  def getUsers(period: TemporalAmount) = {
+    val jadis = OffsetDateTime.now().minus(period).toInstant.toEpochMilli
+    for {
+      _ <- logger.info(s"Getting all the users created before $jadis")
+      users <- getUsersMatching(period, (not(attributeExists('remindedAt)) and ('extendedAt <= jadis or (not(attributeExists('extendedAt)) and 'createdAt <= jadis))))
+      _ <- users.collect { case Left(err) => err }.traverse(e => logger.warn(e.show))
+    } yield users.collect { case Right(user) => user }.toVector
+  }
 
-  def getUsers(keys: Set[Key], jadis: Long) = for {
-    users <- run {
-      usersTable.getAll('id -> keys)
-    }.map(_.toVector)
-    _ <- users.collect { case Left(error) => error }.traverse(e => logger.warn(e.show))
-  } yield users.collect { case Right(u) if oldEnough(u, jadis) => u }
+  def isDeveloper(user: User) = for {
+    keys <- run { keysTable.filter('bonoboId -> user.id.id).scan() }
+  } yield keys.exists(_.contains { key: Key => key.tier == "Developer" })
 
   def getInactiveUsers(period: TemporalAmount) = {
     val jadis = OffsetDateTime.now(ZoneOffset.UTC).minus(period).toInstant.toEpochMilli

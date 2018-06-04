@@ -32,12 +32,12 @@ class UserReminder[F[_] : Monad](settings: Settings, email: EmailService[F], bon
       val nowL = now.toInstant.toEpochMilli
       val thenL = now.minus(Settings.inactivityPeriod).toInstant.toEpochMilli
       for {
-        _ <- logger.info(s"Getting all developer keys")
-        keys <- bonobo.getDevelopers
         _ <- logger.info(s"Getting all the users older than ${Settings.inactivityPeriod}")
-        users <- bonobo.getUsers(keys, thenL)
-        _ <- logger.info(s"Found ${users.size} users.")
-        ress <- if (dryRun) Monad[F].pure(Map.empty[UserId, EmailResult]) else users.traverse { user => 
+        users <- bonobo.getUsers(Settings.inactivityPeriod)
+        _ <- logger.info(s"... but we only need developer accounts")
+        devs <- users.foldMapM(u => bonobo.isDeveloper(u).map(b => if (b) Vector(u) else Vector.empty))
+        _ <- logger.info(s"Found ${devs.length} users.")
+        ress <- if (dryRun) Monad[F].pure(Map.empty[UserId, EmailResult]) else devs.traverse { user => 
           for {
             newUser <- bonobo.setRemindedOn(user, nowL)
             res <- email.sendReminder(newUser)
