@@ -34,7 +34,7 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
 
   def isDeveloper(user: User) = for {
     keys <- run { keysTable.filter('bonoboId -> user.id.id).scan() }
-  } yield keys.exists(_.contains("Developer"))
+  } yield keys.exists(_.exists(_.tier == "Developer"))
 
   def getInactiveUsers(period: TemporalAmount) = {
     val jadis = OffsetDateTime.now(ZoneOffset.UTC).minus(period).toInstant.toEpochMilli
