@@ -9,7 +9,7 @@ import model._
 package object services {
   type UserRepo = Map[UserId, User]
   type EmailRepo = Set[Email]
-  type KeyRepo = Vector[Key]
+  type KeyRepo = Set[Key]
   type Repo = (UserRepo, EmailRepo, KeyRepo)
   type TestProgram[A] = State[Repo, A]
 }
@@ -18,7 +18,7 @@ package object fixtures {
     val today = OffsetDateTime.of(2018, 4, 25, 10, 15, 30, 0, ZoneOffset.UTC)
     val todayInstant = today.toInstant
 
-    val keys: Vector[Key] = Vector(
+    val keys: Set[Key] = Set(
         Key(UserId("user0"), "Developer"),
         Key(UserId("user1"), "Developer"),
         Key(UserId("user2"), "Developer"),

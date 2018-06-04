@@ -37,11 +37,6 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
     _ <- users.collect { case Left(error) => error }.traverse(e => logger.warn(e.show))
   } yield users.collect { case Right(u) if oldEnough(u, jadis) => u }
 
-  private def oldEnough(user: User, jadis: Long) =
-    !user.remindedAt.isDefined && (
-      user.extendedAt.exists(_ <= jadis) || !user.extendedAt.isDefined && user.createdAt <= jadis
-    )
-
   def getInactiveUsers(period: TemporalAmount) = {
     val jadis = OffsetDateTime.now(ZoneOffset.UTC).minus(period).toInstant.toEpochMilli
     for {

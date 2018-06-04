@@ -37,4 +37,9 @@ trait BonoboService[F[_]] {
       * @param user The user
       */
     def deleteUser(user: User): F[Unit]
+
+    def oldEnough(user: User, jadis: Long) =
+      !user.remindedAt.isDefined && (
+        user.extendedAt.exists(_ <= jadis) || !user.extendedAt.isDefined && user.createdAt <= jadis
+      )
 }
