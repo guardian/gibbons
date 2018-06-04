@@ -13,7 +13,7 @@ trait BonoboService[F[_]] {
     def getDevelopers: F[Vector[Key]]
 
     /** Gets a user by their id */
-    def getUser(key: Key): F[Option[User]]
+    def getUser(key: Key, jadis: Long): F[Option[User]]
 
     /** Get all the users that are potentially expired but have not
       * either confirmed or infirmed during the grace period

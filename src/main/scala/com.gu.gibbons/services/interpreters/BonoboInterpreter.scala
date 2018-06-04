@@ -29,9 +29,11 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
     _ <- keys.collect { case Left(error) => error }.traverse(e => logger.warn(e.show))
   } yield keys.collect { case Right(k) => k }.toVector.distinct
 
-  def getUser(key: Key) = for {
+  def getUser(key: Key, jadis: Long) = for {
     users <- run {
-      usersTable.query('id -> key.userId.id)
+      usersTable
+        .filter(not(attributeExists('remindedAt)) and ('extendedAt <= jadis or (not(attributeExists('extendedAt)) and 'createdAt <= jadis)))
+        .query('id -> key.userId.id)
     }
     _ <- users.collect { case Left(error) => error }.traverse(e => logger.warn(e.show))
   } yield users.collectFirst { case Right(u) => u }

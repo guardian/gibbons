@@ -20,6 +20,7 @@ class UserReminder[F[_] : Monad](settings: Settings, email: EmailService[F], bon
     import cats.syntax.flatMap._
     import cats.syntax.functor._
     import cats.syntax.traverse._
+    import cats.syntax.foldable._
 
     /** The whole program:
       * 1- Finds out the keys which are older than xx months
@@ -34,7 +35,7 @@ class UserReminder[F[_] : Monad](settings: Settings, email: EmailService[F], bon
         _ <- logger.info(s"Getting all developer keys")
         keys <- bonobo.getDevelopers
         _ <- logger.info(s"Getting all the users older than ${Settings.inactivityPeriod}")
-        users <- keys.traverse(bonobo.getUser(_)).map(_.filter(_.exists(oldEnough(thenL))).map(_.get))
+        users <- keys.foldMapM(bonobo.getUser(_, thenL).map(_.toVector))
         _ <- logger.info(s"Found ${users.size} users.")
         ress <- if (dryRun) Monad[F].pure(Map.empty[UserId, EmailResult]) else users.traverse { user => 
           for {
@@ -45,9 +46,6 @@ class UserReminder[F[_] : Monad](settings: Settings, email: EmailService[F], bon
         _ <- logger.info("aaaand that's a wrap! See you next time.")
       } yield ress
     }
-
-    private def oldEnough(jadis: Long)(user: User): Boolean =
-      !user.remindedAt.isDefined && (user.extendedAt.exists(_ <= jadis) || !user.extendedAt.isDefined && user.createdAt <= jadis)
 
 }
 
