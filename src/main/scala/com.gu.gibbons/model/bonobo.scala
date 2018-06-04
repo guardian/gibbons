@@ -18,9 +18,9 @@ case class User(
     id: UserId,
     name: String,
     email: Email,
-    createdAt: Instant,
-    remindedAt: Option[Instant],
-    extendedAt: Option[Instant]
+    createdAt: Long,
+    remindedAt: Option[Long],
+    extendedAt: Option[Long]
 )
 
 object User {
@@ -35,9 +35,9 @@ object User {
       UserId(id), 
       name, 
       Email(email, Some(name)), 
-      Instant.ofEpochMilli(createdAt), 
-      attrs.get("remindedAt").flatMap(a => Option(a.getN)).map(_.toLong).map(Instant.ofEpochMilli(_)), 
-      attrs.get("extendedAt").flatMap(a => Option(a.getN)).map(_.toLong).map(Instant.ofEpochMilli(_))
+      createdAt,
+      attrs.get("remindedAt").flatMap(a => Option(a.getN)).map(_.toLong), 
+      attrs.get("extendedAt").flatMap(a => Option(a.getN)).map(_.toLong)
     )).fold(Left(MissingProperty): Either[DynamoReadError, User])(Right(_))
 
     // we will never add a new record
@@ -45,8 +45,30 @@ object User {
   }
 
   def create(id: String, name: String, email: String, createdAt: String, remindedAt: Option[String] = None, extendedAt: Option[String] = None) =
-    User(UserId(id), name, Email(email), Instant.parse(createdAt), remindedAt.map(Instant.parse(_)), extendedAt.map(Instant.parse(_)))
+    User(
+      UserId(id), 
+      name, 
+      Email(email), 
+      Instant.parse(createdAt).toEpochMilli, 
+      remindedAt.map(Instant.parse(_)).map(_.toEpochMilli), 
+      extendedAt.map(Instant.parse(_)).map(_.toEpochMilli))
 }
 
 /** An identifier for API users */
 case class UserId(val id: String) extends AnyVal
+
+/** Spurious wrapper to read from Dynamo */
+case class Key(userId: UserId, tier: String)
+
+object Key {
+  implicit val format = new DynamoFormat[Key] {
+    def read(av: AttributeValue) = (for {
+      attrs <- Option(av.getM).map(_.asScala)
+      userId <- attrs.get("bonoboId").flatMap(a => Option(a.getS))
+      tier <- attrs.get("tier").flatMap(a => Option(a.getS))
+    } yield Key(UserId(userId), tier)).fold(Left(MissingProperty): Either[DynamoReadError, Key])(Right(_))
+
+    // will never happen
+    def write(k: Key) = new AttributeValue()
+  }
+}

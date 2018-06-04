@@ -1,6 +1,6 @@
 package com.gu.gibbons.services.interpreters
 
-import java.time.{Instant, OffsetDateTime}
+import java.time.{OffsetDateTime, ZoneOffset}
 import java.time.temporal.TemporalAmount
 import java.util.concurrent.TimeUnit
 import monix.eval.Task
@@ -22,25 +22,30 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
   import cats.syntax.show._
   import cats.instances.list._
 
-  def getUsers(period: TemporalAmount) = {
-    val jadis = OffsetDateTime.now().minus(period).toInstant.toEpochMilli
-    for {
-      _ <- logger.info(s"Getting all the users created before $jadis")
-      users <- getUsersMatching(period, (not(attributeExists('remindedAt)) and ('extendedAt <= jadis or (not(attributeExists('extendedAt)) and 'createdAt <= jadis))))
-      _ <- users.collect { case Left(err) => err }.traverse(e => logger.warn(e.show))
-    } yield users.collect { case Right(user) => user }.toVector
-  }
+  def getDevelopers = for {
+    keys <- run {
+      keysTable.filter('tier -> "Developer").scan()
+    }
+    _ <- keys.collect { case Left(error) => error }.traverse(e => logger.warn(e.show))
+  } yield keys.collect { case Right(k) => k }.toVector.distinct
+
+  def getUser(key: Key) = for {
+    users <- run {
+      usersTable.query('id -> key.userId.id)
+    }
+    _ <- users.collect { case Left(error) => error }.traverse(e => logger.warn(e.show))
+  } yield users.collectFirst { case Right(u) => u }
 
   def getInactiveUsers(period: TemporalAmount) = {
-    val jadis = OffsetDateTime.now().minus(period).toInstant.toEpochMilli
+    val jadis = OffsetDateTime.now(ZoneOffset.UTC).minus(period).toInstant.toEpochMilli
     for {
       _ <- logger.info(s"Getting all the users created before $jadis")
       users <- getUsersMatching(period, attributeExists('remindedAt) and 'remindedAt <= jadis)
     } yield users.collect { case Right(user) => user }.toVector
   }
 
-  def setRemindedOn(user: User, when: Instant) = run {
-    usersTable.update('id -> user.id.id, set('remindedAt -> when.toEpochMilli)).map(_ => ())
+  def setRemindedOn(user: User, when: Long) = run {
+    usersTable.update('id -> user.id.id, set('remindedAt -> when)).map(_ => ())
   }.map { _ => user.copy(remindedAt = Some(when)) }
 
   def deleteUser(user: User) = Task {
@@ -57,6 +62,8 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
   private val urlGenerator = new UrlGenerator(config)
 
   private val usersTable = Table[User](config.usersTableName)
+
+  private val keysTable = Table[Key](config.keysTableName)
 
   private def run[A](program: ScanamoOps[A]) = Task.deferFutureAction { implicit scheduler => 
     ScanamoAsync.exec(dynamoClient)(program) 

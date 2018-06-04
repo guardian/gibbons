@@ -14,8 +14,8 @@ class HashGenerator {
     s"h=${hash(user.id.id, user.remindedAt.get, salt)}"
   }
 
-  def hash(id: String, when: Instant, salt: String): String = {
-    val hash = id + when.toEpochMilli.toString + salt
+  def hash(id: String, when: Long, salt: String): String = {
+    val hash = id + when.toString + salt
     md.digest(hash.getBytes).map("%02X".format(_)).mkString
   }
 }

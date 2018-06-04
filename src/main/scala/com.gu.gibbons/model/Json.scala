@@ -1,7 +1,7 @@
 package com.gu.gibbons
 package model
 
-import io.circe.{Encoder, Json}
+import io.circe.{Encoder, Json, JsonObject}
 import io.circe.generic.semiauto.deriveEncoder
 import io.circe.syntax._
 import java.time.{Instant, OffsetDateTime, ZoneOffset}
@@ -17,16 +17,9 @@ object JsonFormats {
     implicit val email: Encoder[Email] = deriveEncoder
     implicit val emailResult: Encoder[EmailResult] = deriveEncoder
     implicit val user: Encoder[User] = deriveEncoder
-    
-    implicit val encoder: Encoder[Result] = new Encoder[Result] {
-        final def apply(res: Result) = res match {
-            case DryRun(users) => users.asJson
-            case FullRun(result) => 
-                val objs = result.map { case (userId, emailRes) => Json.obj(
-                    "user" -> Json.fromString(userId.id),
-                    "email" -> emailRes.asJson
-                )}.toSeq
-                Json.arr(objs:_*)
-        }
+
+    implicit val map: Encoder[Map[UserId, EmailResult]] = new Encoder[Map[UserId, EmailResult]] {
+        final def apply(m: Map[UserId, EmailResult]) =
+            Json.fromJsonObject(JsonObject(m.map(u => u._1.id -> u._2.asJson).toSeq: _*))
     }
 }

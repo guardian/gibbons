@@ -9,13 +9,11 @@ import model._
 
 /** The algebra for interacting with the Bonobo database */
 trait BonoboService[F[_]] {
-    /** Get all the users which have been created, or which
-      * have been extended, `period` ago
-      *
-      * @param period The amount of time during above which a user is
-      *               potentially expired
-      */
-    def getUsers(period: TemporalAmount): F[Vector[User]]
+    /** Gets all the user Ids owning at least one developer key */
+    def getDevelopers: F[Vector[Key]]
+
+    /** Gets a user by their id */
+    def getUser(key: Key): F[Option[User]]
 
     /** Get all the users that are potentially expired but have not
       * either confirmed or infirmed during the grace period
@@ -32,7 +30,7 @@ trait BonoboService[F[_]] {
       *
       * @param user The user
       */
-    def setRemindedOn(user: User, when: Instant): F[User]
+    def setRemindedOn(user: User, when: Long): F[User]
 
     /** Deletes a user and all their keys
       *

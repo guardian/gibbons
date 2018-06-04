@@ -3,7 +3,7 @@ package com.gu.gibbons
 // ------------------------------------------------------------------------
 import cats.Monad
 import config.Settings
-import java.time.Instant
+import java.time.{OffsetDateTime, ZoneOffset}
 import model._
 import services._
 // ------------------------------------------------------------------------
@@ -27,24 +27,27 @@ class UserReminder[F[_] : Monad](settings: Settings, email: EmailService[F], bon
       * 3- Sends a reminder email to each user 
       * 4- Update keys to log when a reminder has been sent
       */
-    def run(now: Instant, dryRun: Boolean): F[Result] = 
-      if (dryRun) 
-        for {
-          _ <- logger.info("Yop, who's up for receiving a reminder?")
-          users <- bonobo.getUsers(Settings.inactivityPeriod)
-        } yield DryRun(users)
-      else
-        for {
-          _ <- logger.info(s"Getting all the users older than ${Settings.inactivityPeriod}")
-          users <- bonobo.getUsers(Settings.inactivityPeriod)
-          _ <- logger.info(s"Found ${users.length} users. Let's send some emails...")
-          ress <- users.filterNot(u => Settings.whitelist(u.id.id)).traverse { user => 
-            for {
-              newUser <- bonobo.setRemindedOn(user, now)
-              res <- email.sendReminder(newUser)
-            } yield (newUser.id -> res)
-          }.map(_.toMap)
-          _ <- logger.info("aaaand that's a wrap! See you next time.")
-        } yield FullRun(ress)
+    def run(now: OffsetDateTime, dryRun: Boolean): F[Map[UserId, EmailResult]] = {
+      val nowL = now.toInstant.toEpochMilli
+      val thenL = now.minus(Settings.inactivityPeriod).toInstant.toEpochMilli
+      for {
+        _ <- logger.info(s"Getting all developer keys")
+        keys <- bonobo.getDevelopers
+        _ <- logger.info(s"Getting all the users older than ${Settings.inactivityPeriod}")
+        users <- keys.traverse(bonobo.getUser(_)).map(_.filter(_.exists(oldEnough(thenL))).map(_.get))
+        _ <- logger.info(s"Found ${users.size} users.")
+        ress <- if (dryRun) Monad[F].pure(Map.empty[UserId, EmailResult]) else users.traverse { user => 
+          for {
+            newUser <- bonobo.setRemindedOn(user, nowL)
+            res <- email.sendReminder(newUser)
+          } yield (newUser.id -> res)
+        }.map(_.toMap)
+        _ <- logger.info("aaaand that's a wrap! See you next time.")
+      } yield ress
+    }
+
+    private def oldEnough(jadis: Long)(user: User): Boolean =
+      !user.remindedAt.isDefined && (user.extendedAt.exists(_ <= jadis) || !user.extendedAt.isDefined && user.createdAt <= jadis)
+
 }
 

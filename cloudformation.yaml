@@ -35,6 +35,7 @@ Globals:
                 SALT: !Ref Salt
                 BONOBO_URL: !Ref BonoboUrl
                 BONOBO_USERS_TABLE: !Sub bonobo-${Stage}-users
+                BONOBO_KEYS_TABLE: !Sub bonobo-${Stage}-keys
         CodeUri:
             Bucket: content-api-dist
             Key: !Sub ${Stack}/${Stage}/${App}-reminder/${App}.jar
