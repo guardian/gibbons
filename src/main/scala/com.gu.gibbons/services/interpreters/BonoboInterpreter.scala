@@ -34,6 +34,7 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
 
   def isDeveloper(user: User) = for {
     keys <- run { keysTable.filter('bonoboId -> user.id.id).scan() }
+    _ <- logger.info(s"Found ${keys.length} for user ${user.id.id}")
   } yield keys.exists(_.contains { key: Key => key.tier == "Developer" })
 
   def getInactiveUsers(period: TemporalAmount) = {
