@@ -20,6 +20,6 @@ object JsonFormats {
 
     implicit val map: Encoder[Map[UserId, EmailResult]] = new Encoder[Map[UserId, EmailResult]] {
         final def apply(m: Map[UserId, EmailResult]) =
-            Json.fromJsonObject(JsonObject(m.map(u => u._1.id -> u._2.asJson).toSeq: _*))
+            Json.fromJsonObject(JsonObject(m.map { case (UserId(id), result) => id -> result.asJson }.toSeq: _*))
     }
 }
