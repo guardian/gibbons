@@ -9,13 +9,27 @@ import model._
 package object services {
   type UserRepo = Map[UserId, User]
   type EmailRepo = Set[Email]
-  type Repo = (UserRepo, EmailRepo)
+  type KeyRepo = Set[Key]
+  type Repo = (UserRepo, EmailRepo, KeyRepo)
   type TestProgram[A] = State[Repo, A]
 }
 
 package object fixtures {
     val today = OffsetDateTime.of(2018, 4, 25, 10, 15, 30, 0, ZoneOffset.UTC)
     val todayInstant = today.toInstant
+
+    val keys: Set[Key] = Set(
+        Key(UserId("user0"), "Developer"),
+        Key(UserId("user1"), "Developer"),
+        Key(UserId("user2"), "Developer"),
+        Key(UserId("user3"), "Developer"),
+        Key(UserId("user4"), "Developer"),
+        Key(UserId("user5"), "Developer"),
+        Key(UserId("user6"), "Developer"),
+        Key(UserId("user7"), "Developer"),
+        Key(UserId("user8"), "Developer"),
+        Key(UserId("user9"), "Developer")
+    )
 
     val users: Map[UserId, User] = Map(Seq(
         User.create("user0", "Florence Bowen", "florence.bowen@domain.com", "2012-04-25T10:15:30.00Z"),

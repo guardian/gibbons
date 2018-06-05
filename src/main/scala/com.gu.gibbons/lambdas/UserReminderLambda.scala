@@ -3,11 +3,11 @@ package lambdas
 
 import cats.data.{ Validated, ValidatedNel }
 import com.amazonaws.services.lambda.runtime.Context; 
-import java.time.Instant
 import io.circe.parser.decode
 import io.circe.syntax._
 import io.circe.Json
 import java.io.{InputStream, OutputStream}
+import java.time.{OffsetDateTime, ZoneOffset}
 import monix.execution.Scheduler.Implicits.global
 import monix.eval.Task
 import scala.concurrent.Await
@@ -15,7 +15,7 @@ import scala.concurrent.duration._
 import scala.io.Source
 
 import config._
-import model.{JsonFormats, Result}
+import model.JsonFormats
 import services.interpreters._
 
 class UserReminderLambda {
@@ -44,7 +44,7 @@ class UserReminderLambda {
         email <- EmailInterpreter(settings, logger)
         _ <- logger.info("We're all set, starting...")
         userReminder = new UserReminder(settings, email, bonobo, logger)
-        rRem <- userReminder.run(Instant.now, dryRun)
+        rRem <- userReminder.run(OffsetDateTime.now(ZoneOffset.UTC), dryRun)
         _ <- logger.info("Goodbye")
       } yield rRem.asJson
     }

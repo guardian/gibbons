@@ -6,6 +6,7 @@ class SettingsSpec extends FlatSpec with Matchers with Inspectors {
   private val validEnv = Map(
     "AWS_REGION"         -> "eu-west-1",
     "BONOBO_USERS_TABLE" -> "How",
+    "BONOBO_KEYS_TABLE"  -> "Well",
     "SALT"               -> "Are",
     "BONOBO_URL"         -> "You",
     "EMAIL_ORIGIN"       -> "Doing"
@@ -14,6 +15,7 @@ class SettingsSpec extends FlatSpec with Matchers with Inspectors {
   private val invalidRegion = Map(
     "AWS_REGION"         -> "Hello",
     "BONOBO_USERS_TABLE" -> "How",
+    "BONOBO_KEYS_TABLE"  -> "Well",
     "SALT"               -> "Are",
     "BONOBO_URL"         -> "You",
     "EMAIL_ORIGIN"       -> "Doing"
@@ -46,7 +48,7 @@ class SettingsSpec extends FlatSpec with Matchers with Inspectors {
 
     result.isValid shouldBe false
     result.fold(
-      es => es.length shouldBe 5,
+      es => es.length shouldBe validEnv.size,
       _ => fail("Won't happen")
     )
   }
