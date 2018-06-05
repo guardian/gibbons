@@ -27,14 +27,18 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
     users <- getUsersMatching(not(attributeExists('remindedAt)) and ('extendedAt <= millis or (not(attributeExists('extendedAt)) and 'createdAt <= millis)))
   } yield users
 
+  def isDeveloper(user: User) = for {
+    keys <- run { keysTable.filter('bonoboId -> user.id.id).scan() }
+  } yield keys.exists(_.exists(_.tier == "Developer"))
+
   def getInactiveUsers(jadis: Instant) = for {
     _ <- logger.info(s"Getting all the users reminded $jadis ago")
     millis = jadis.toEpochMilli
     users <- getUsersMatching(attributeExists('remindedAt) and 'remindedAt <= millis)
   } yield users
 
-  def setRemindedOn(user: User, when: Instant) = run {
-    usersTable.update('id -> user.id.id, set('remindedAt -> when.toEpochMilli)).map(_ => ())
+  def setRemindedOn(user: User, when: Long) = run {
+    usersTable.update('id -> user.id.id, set('remindedAt -> when)).map(_ => ())
   }.map { _ => user.copy(remindedAt = Some(when)) }
 
   def deleteUser(user: User) = Task {
@@ -49,6 +53,8 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
   }
 
   private val usersTable = Table[User](config.usersTableName)
+
+  private val keysTable = Table[Key](config.keysTableName)
 
   private def run[A](program: ScanamoOps[A]): Task[A] = Task.deferFutureAction { implicit scheduler => 
     ScanamoAsync.exec(dynamoClient)(program) 

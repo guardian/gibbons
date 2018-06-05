@@ -9,27 +9,29 @@ import model._
 class BonoboServiceInterpreter extends BonoboService[TestProgram] {
   import cats.implicits._
 
-  def getUsers(period: TemporalAmount): TestProgram[Vector[User]] = 
+  def getUsers(jadis: Instant): TestProgram[Vector[User]] = 
     State.get.map(_._1.filter { 
-      case (_, user) => fixtures.today.minus(period).toInstant.compareTo(user.extendedAt.getOrElse(user.createdAt)) >= 0
+      case (_, user) => jadis.toEpochMilli >= user.extendedAt.getOrElse(user.createdAt)
     }.values.toVector)
 
-  def getInactiveUsers(period: TemporalAmount): TestProgram[Vector[User]] = 
+  def isDeveloper(user: User): TestProgram[Boolean] = State.pure(true)
+
+  def getInactiveUsers(jadis: Instant): TestProgram[Vector[User]] = 
     State.get.map(_._1.filter { 
-      case (_, user) => user.remindedAt.exists(r => fixtures.today.minus(period).toInstant.compareTo(r) >= 0)
+      case (_, user) => user.remindedAt.exists(r => jadis.toEpochMilli >= r)
     }.values.toVector)
 
-  def setRemindedOn(user: User, when: Instant): TestProgram[User] = 
-    State.get.flatMap { case (users, emails) =>
+  def setRemindedOn(user: User, when: Long): TestProgram[User] = 
+    State.get.flatMap { case (users, emails, keys) =>
       val newUser = users(user.id).copy(remindedAt = Some(when))
       for {
-        _ <- State.set((users.updated(user.id, newUser), emails))
+        _ <- State.set((users.updated(user.id, newUser), emails, keys))
       } yield newUser
     }
 
   def deleteUser(user: User): TestProgram[Unit] = for {
     s <- State.get
-    _ <- State.set((s._1 - user.id, s._2))
+    _ <- State.set((s._1 - user.id, s._2, s._3))
   } yield ()
 }
 
@@ -58,11 +60,11 @@ class EmailServiceInterpreter extends EmailService[TestProgram] {
 
   def sendReminder(user: User): TestProgram[EmailResult] = for { 
     s <- State.get
-    _ <- State.set((s._1, s._2 + user.email))
+    _ <- State.set((s._1, s._2 + user.email, s._3))
   } yield result("Reminder email", user)
   
   def sendDeleted(user: User): TestProgram[EmailResult] = for {
     s <- State.get
-    _ <- State.set((s._1, s._2 + user.email))
+    _ <- State.set((s._1, s._2 + user.email, s._3))
   } yield result("Deletion email", user)
 }

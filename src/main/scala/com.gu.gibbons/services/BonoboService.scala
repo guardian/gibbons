@@ -16,6 +16,8 @@ trait BonoboService[F[_]] {
       */
     def getUsers(jadis: Instant): F[Vector[User]]
 
+    def isDeveloper(user: User): F[Boolean]
+
     /** Get all the users that are potentially expired but have not
       * either confirmed or infirmed during the grace period
       *
@@ -30,11 +32,16 @@ trait BonoboService[F[_]] {
       *
       * @param user The user
       */
-    def setRemindedOn(user: User, when: Instant): F[User]
+    def setRemindedOn(user: User, when: Long): F[User]
 
     /** Deletes a user and all their keys
       *
       * @param user The user
       */
     def deleteUser(user: User): F[Unit]
+
+    def oldEnough(user: User, jadis: Long) =
+      !user.remindedAt.isDefined && (
+        user.extendedAt.exists(_ <= jadis) || !user.extendedAt.isDefined && user.createdAt <= jadis
+      )
 }

@@ -27,26 +27,17 @@ class UserDidNotAnswer[F[_] : Monad](settings: Settings, email: EmailService[F],
       * 3- Delete those keys
       * 4- Send an email to inform users their keys have been deleted
       */
-    def run(now: OffsetDateTime, dryRun: Boolean): F[Result] = {
-      val fromBefore = now.minus(Settings.gracePeriod).toInstant
-
-      if (dryRun)
-        for {
-          _ <- logger.info(s"Getting all the users which have not been extended since ${Settings.gracePeriod}")
-          users <- bonobo.getInactiveUsers(fromBefore)
-        } yield DryRun(users)
-      else
-        for {
-          _ <- logger.info(s"Getting all the users which have not extended their account since ${Settings.gracePeriod}")
-          users <- bonobo.getInactiveUsers(fromBefore)
-          _ <- logger.info(s"Found ${users.length} users. Let's delete these keys...")
-          ress <- users.filterNot(u => Settings.whitelist(u.id.id)).traverse { user =>
-            for {
-              _ <- bonobo.deleteUser(user)
-              res <- email.sendDeleted(user)
-            } yield user.id -> res
-          }.map(_.toMap)
-          _ <- logger.info("That's a wrap! See ya.")
-        } yield FullRun(ress)
-    }
+    def run(now: OffsetDateTime, dryRun: Boolean): F[Map[UserId, EmailResult]] = 
+      for {
+        _ <- logger.info(s"Getting all the users which have not extended their account since ${Settings.gracePeriod}")
+        users <- bonobo.getInactiveUsers(now.minus(Settings.gracePeriod).toInstant)
+        _ <- logger.info(s"Found ${users.length} users.")
+        ress <- if (dryRun) Monad[F].pure(Map.empty[UserId, EmailResult]) else users.traverse { user =>
+          for {
+            _ <- bonobo.deleteUser(user)
+            res <- email.sendDeleted(user)
+          } yield user.id -> res
+        }.map(_.toMap)
+        _ <- logger.info("That's a wrap! See ya.")
+      } yield ress
 }

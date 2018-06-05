@@ -3,7 +3,7 @@ package com.gu.gibbons
 // ------------------------------------------------------------------------
 import cats.Monad
 import config.Settings
-import java.time.OffsetDateTime
+import java.time.{OffsetDateTime, ZoneOffset}
 import model._
 import services._
 // ------------------------------------------------------------------------
@@ -20,6 +20,7 @@ class UserReminder[F[_] : Monad](settings: Settings, email: EmailService[F], bon
     import cats.syntax.flatMap._
     import cats.syntax.functor._
     import cats.syntax.traverse._
+    import cats.syntax.foldable._
 
     /** The whole program:
       * 1- Finds out the keys which are older than xx months
@@ -27,28 +28,21 @@ class UserReminder[F[_] : Monad](settings: Settings, email: EmailService[F], bon
       * 3- Sends a reminder email to each user 
       * 4- Update keys to log when a reminder has been sent
       */
-    def run(now: OffsetDateTime, dryRun: Boolean): F[Result] = {
-      val fromBefore = now.minus(Settings.inactivityPeriod).toInstant
-      
-      if (dryRun) 
-        for {
-          _ <- logger.info("Yop, who's up for receiving a reminder?")
-          users <- bonobo.getUsers(fromBefore)
-        } yield DryRun(users)
-      else
-        for {
-          _ <- logger.info(s"Getting all the users older than ${Settings.inactivityPeriod}")
-          users <- bonobo.getUsers(fromBefore)
-          _ <- logger.info(s"Found ${users.length} users. Let's send some emails...")
-          nowI = now.toInstant
-          ress <- users.filterNot(u => Settings.whitelist(u.id.id)).traverse { user => 
-            for {
-              newUser <- bonobo.setRemindedOn(user, nowI)
-              res <- email.sendReminder(newUser)
-            } yield (newUser.id -> res)
-          }.map(_.toMap)
-          _ <- logger.info("aaaand that's a wrap! See you next time.")
-        } yield FullRun(ress)
-    }
+    def run(now: OffsetDateTime, dryRun: Boolean): F[Map[UserId, EmailResult]] =
+      for {
+        _ <- logger.info(s"Getting all the users older than ${Settings.inactivityPeriod}")
+        users <- bonobo.getUsers(now.minus(Settings.inactivityPeriod).toInstant)
+        _ <- logger.info(s"Got ${users.length}... but we only need developer accounts")
+        devs <- users.foldMapM(u => bonobo.isDeveloper(u).map(b => if (b) Vector(u) else Vector.empty))
+        _ <- logger.info(s"Found ${devs.length} developers.")
+        ress <- if (dryRun) Monad[F].pure(Map.empty[UserId, EmailResult]) else devs.traverse { user => 
+          for {
+            newUser <- bonobo.setRemindedOn(user, now.toInstant.toEpochMilli)
+            res <- email.sendReminder(newUser)
+          } yield (newUser.id -> res)
+        }.map(_.toMap)
+        _ <- logger.info("aaaand that's a wrap! See you next time.")
+      } yield ress
+
 }
 
