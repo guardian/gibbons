@@ -18,8 +18,8 @@ object JsonFormats {
     implicit val emailResult: Encoder[EmailResult] = deriveEncoder
     implicit val user: Encoder[User] = deriveEncoder
 
-    implicit val map: Encoder[Map[UserId, EmailResult]] = new Encoder[Map[UserId, EmailResult]] {
-        final def apply(m: Map[UserId, EmailResult]) =
+    implicit val map: Encoder[Map[UserId, Option[EmailResult]]] = new Encoder[Map[UserId, Option[EmailResult]]] {
+        final def apply(m: Map[UserId, Option[EmailResult]]) =
             Json.fromJsonObject(JsonObject(m.map { case (UserId(id), result) => id -> result.asJson }.toSeq: _*))
     }
 }

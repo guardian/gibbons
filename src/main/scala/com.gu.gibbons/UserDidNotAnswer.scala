@@ -27,16 +27,16 @@ class UserDidNotAnswer[F[_] : Monad](settings: Settings, email: EmailService[F],
       * 3- Delete those keys
       * 4- Send an email to inform users their keys have been deleted
       */
-    def run(now: OffsetDateTime, dryRun: Boolean): F[Map[UserId, EmailResult]] = 
+    def run(now: OffsetDateTime, dryRun: Boolean) = 
       for {
         _ <- logger.info(s"Getting all the users which have not extended their account since ${Settings.gracePeriod}")
         users <- bonobo.getInactiveUsers(now.minus(Settings.gracePeriod).toInstant)
         _ <- logger.info(s"Found ${users.length} users.")
-        ress <- if (dryRun) Monad[F].pure(Map.empty[UserId, EmailResult]) else users.traverse { user =>
+        ress <- if (dryRun) Monad[F].pure(users.map(_.id -> (None: Option[EmailResult])).toMap) else users.traverse { user =>
           for {
             _ <- bonobo.deleteUser(user)
             res <- email.sendDeleted(user)
-          } yield user.id -> res
+          } yield user.id -> Some(res)
         }.map(_.toMap)
         _ <- logger.info("That's a wrap! See ya.")
       } yield ress

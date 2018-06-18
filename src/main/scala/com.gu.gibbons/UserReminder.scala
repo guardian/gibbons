@@ -28,7 +28,7 @@ class UserReminder[F[_] : Monad](settings: Settings, email: EmailService[F], bon
       * 3- Sends a reminder email to each user 
       * 4- Update keys to log when a reminder has been sent
       */
-    def run(now: OffsetDateTime, dryRun: Boolean): F[Map[UserId, EmailResult]] =
+    def run(now: OffsetDateTime, dryRun: Boolean) =
       for {
         _ <- logger.info(s"Getting all the users older than ${Settings.inactivityPeriod}")
         users <- bonobo.getUsers(now.minus(Settings.inactivityPeriod).toInstant)
@@ -36,11 +36,11 @@ class UserReminder[F[_] : Monad](settings: Settings, email: EmailService[F], bon
         devs <- users.foldMapM(u => bonobo.isDeveloper(u).map(b => if (b) Vector(u) else Vector.empty))
         _ <- logger.info(s"Found ${devs.length} developers.")
         nowL = now.toInstant.toEpochMilli
-        ress <- if (dryRun) Monad[F].pure(Map.empty[UserId, EmailResult]) else devs.traverse { user => 
+        ress <- if (dryRun) Monad[F].pure(devs.map(_.id -> (None: Option[EmailResult])).toMap) else devs.traverse { user => 
           for {
             newUser <- bonobo.setRemindedOn(user, nowL)
             res <- email.sendReminder(newUser)
-          } yield (newUser.id -> res)
+          } yield (newUser.id -> Some(res))
         }.map(_.toMap)
         _ <- logger.info("aaaand that's a wrap! See you next time.")
       } yield ress
