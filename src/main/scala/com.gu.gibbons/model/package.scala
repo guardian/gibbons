@@ -1,6 +1,7 @@
 package com.gu.gibbons
 
 package object model {
+  // see https://failex.blogspot.com/2017/04/the-high-cost-of-anyval-subclasses.html
   sealed abstract class UserIdImpl {
     type T
     def apply(s: String): T
