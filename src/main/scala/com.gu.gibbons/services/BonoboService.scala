@@ -3,29 +3,27 @@ package services
 
 // ------------------------------------------------------------------------
 import java.time.Instant
-import java.time.temporal.TemporalAmount
 import model._
 // ------------------------------------------------------------------------
 
 /** The algebra for interacting with the Bonobo database */
 trait BonoboService[F[_]] {
     /** Get all the users which have been created, or which
-      * have been extended, `period` ago 
-      * 
-      * @param period The amount of time during above which a user is
+      * have been extended, before `jadis`
+      *
+      * @param jadis  The time before which a user is
       *               potentially expired
       */
-    def getUsers(period: TemporalAmount): F[Vector[User]]
+    def getUsers(jadis: Instant): F[Vector[User]]
 
     def isDeveloper(user: User): F[Boolean]
 
     /** Get all the users that are potentially expired but have not
       * either confirmed or infirmed during the grace period
       *
-      * @param period The amount of time above which a user can
-      *               be deleted
+      * @param jadis The time before which a user can  be deleted
       */
-    def getInactiveUsers(period: TemporalAmount): F[Vector[User]]
+    def getInactiveUsers(jadis: Instant): F[Vector[User]]
 
     /** Start the clock for a 14 days grace period. Users
       * have 14 days to take appropriate action for their

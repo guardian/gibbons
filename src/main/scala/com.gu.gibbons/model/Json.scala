@@ -1,7 +1,7 @@
 package com.gu.gibbons
 package model
 
-import io.circe.{Encoder, Json, JsonObject}
+import io.circe.{Encoder, KeyEncoder, Json, JsonObject}
 import io.circe.generic.semiauto.deriveEncoder
 import io.circe.syntax._
 import java.time.{Instant, OffsetDateTime, ZoneOffset}
@@ -13,13 +13,15 @@ object JsonFormats {
             Json.fromString(OffsetDateTime.ofInstant(t, ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
     }
 
-    implicit val userId: Encoder[UserId] = deriveEncoder
     implicit val email: Encoder[Email] = deriveEncoder
     implicit val emailResult: Encoder[EmailResult] = deriveEncoder
     implicit val user: Encoder[User] = deriveEncoder
 
-    implicit val map: Encoder[Map[UserId, EmailResult]] = new Encoder[Map[UserId, EmailResult]] {
-        final def apply(m: Map[UserId, EmailResult]) =
-            Json.fromJsonObject(JsonObject(m.map { case (UserId(id), result) => id -> result.asJson }.toSeq: _*))
+    implicit val userId: Encoder[UserId] = new Encoder[UserId] {
+        final def apply(uid: UserId) = Json.fromString(UserId.unwrap(uid))
+    }
+
+    implicit val userIdAsKey: KeyEncoder[UserId] = new KeyEncoder[UserId] {
+        final def apply(uid: UserId) = UserId.unwrap(uid)
     }
 }

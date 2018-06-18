@@ -4,22 +4,21 @@ package services
 import cats.Monad
 import cats.data.State
 import java.time.Instant
-import java.time.temporal.TemporalAmount
 import model._
 
 class BonoboServiceInterpreter extends BonoboService[TestProgram] {
   import cats.implicits._
 
-  def getUsers(period: TemporalAmount): TestProgram[Vector[User]] = 
+  def getUsers(jadis: Instant): TestProgram[Vector[User]] = 
     State.get.map(_._1.filter { 
-      case (_, user) => fixtures.today.minus(period).toInstant.toEpochMilli >= user.extendedAt.getOrElse(user.createdAt)
+      case (_, user) => jadis.toEpochMilli >= user.extendedAt.getOrElse(user.createdAt)
     }.values.toVector)
 
   def isDeveloper(user: User): TestProgram[Boolean] = State.pure(true)
 
-  def getInactiveUsers(period: TemporalAmount): TestProgram[Vector[User]] = 
+  def getInactiveUsers(jadis: Instant): TestProgram[Vector[User]] = 
     State.get.map(_._1.filter { 
-      case (_, user) => user.remindedAt.exists(r => fixtures.today.minus(period).toInstant.toEpochMilli >= r)
+      case (_, user) => user.remindedAt.exists(r => jadis.toEpochMilli >= r)
     }.values.toVector)
 
   def setRemindedOn(user: User, when: Long): TestProgram[User] = 

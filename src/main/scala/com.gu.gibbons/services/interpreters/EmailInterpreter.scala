@@ -1,5 +1,6 @@
 package com.gu.gibbons.services.interpreters
 
+import cats.syntax.flatMap._
 import com.amazonaws.handlers.AsyncHandler
 import com.amazonaws.services.simpleemail.model.{ Destination => SESDestination, Message => SESMessage, _ }
 import com.amazonaws.services.simpleemail.{AmazonSimpleEmailServiceAsyncClientBuilder, AmazonSimpleEmailServiceAsync}
@@ -12,8 +13,9 @@ import scala.util.{Success, Failure}
 import com.gu.gibbons.config._
 import com.gu.gibbons.model._
 import com.gu.gibbons.services._
+import com.gu.gibbons.utils._
 
-final class EmailInterpreter(settings: Settings, logger: LoggingService[Task], emailClient: AmazonSimpleEmailServiceAsync) extends EmailService[Task] {
+final class EmailInterpreter(settings: Settings, logger: LoggingService[Task], emailClient: AmazonSimpleEmailServiceAsync, urlGenerator: UrlGenerator) extends EmailService[Task] {
   def sendReminder(user: User) = 
     sendEmail(user, Settings.reminderSubject, reminderEmail(user))
   def sendDeleted(user: User) = 
@@ -40,17 +42,6 @@ final class EmailInterpreter(settings: Settings, logger: LoggingService[Task], e
     Cancelable.empty
   }
 
-  private val gen = new UrlGenerator(settings)
-
-  private def reminderEmail(user: User) = html.reminder(user, gen).toString
+  private def reminderEmail(user: User) = html.reminder(user, urlGenerator).toString
   private def deletedEmail(user: User) = html.deleted(user).toString
-}
-
-object EmailInterpreter {
-  def apply(settings: Settings, logger: LoggingService[Task]): Task[EmailInterpreter] = Task.evalOnce {
-    val emailClient = AmazonSimpleEmailServiceAsyncClientBuilder.standard()
-      .withRegion(settings.region)
-      .build()
-    new EmailInterpreter(settings, logger, emailClient)
-  }
 }

@@ -54,9 +54,6 @@ object User {
       extendedAt.map(Instant.parse(_)).map(_.toEpochMilli))
 }
 
-/** An identifier for API users */
-case class UserId(val id: String) extends AnyVal
-
 /** Spurious wrapper to read from Dynamo */
 case class Key(userId: UserId, tier: String)
 
