@@ -15,29 +15,27 @@ import services._
   * @param bonobo The bonobo service interpreter
   * @param logger The logging service interpreter
   */
-class UserDidNotAnswer[F[_] : Monad](settings: Settings, email: EmailService[F], bonobo: BonoboService[F], logger: LoggingService[F]) extends Script[F] {
+class UserDidNotAnswer[F[_] : Monad](
+  settings: Settings, 
+  email: EmailService[F], 
+  bonobo: BonoboService[F], 
+  override val logger: LoggingService[F]
+) extends Script[F] {
     import cats.instances.vector._
     import cats.syntax.functor._
     import cats.syntax.flatMap._
     import cats.syntax.traverse._
 
-    /** The whole program:
-      * 1- Finds out the keys for which a reminder has been sent
-      * 2- Look up who's behind them
-      * 3- Delete those keys
-      * 4- Send an email to inform users their keys have been deleted
-      */
-    def run(now: OffsetDateTime, dryRun: Boolean) = 
+    def getUsers(now: OffsetDateTime): F[Vector[User]] =
       for {
         _ <- logger.info(s"Getting all the users which have not extended their account since ${Settings.gracePeriod}")
         users <- bonobo.getInactiveUsers(now.minus(Settings.gracePeriod).toInstant)
-        _ <- logger.info(s"Found ${users.length} users.")
-        ress <- if (dryRun) Monad[F].pure(users.map(_.id -> (None: Option[EmailResult])).toMap) else users.traverse { user =>
-          for {
-            _ <- bonobo.deleteUser(user)
-            res <- email.sendDeleted(user)
-          } yield user.id -> Some(res)
-        }.map(_.toMap)
-        _ <- logger.info("That's a wrap! See ya.")
-      } yield ress
+      } yield users
+
+    def processUser(now: OffsetDateTime)(user: User): F[(UserId, Option[EmailResult])] =
+      for {
+        _ <- bonobo.deleteUser(user)
+        res <- email.sendDeleted(user)
+      } yield user.id -> Some(res)
+
 }
