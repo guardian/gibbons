@@ -28,7 +28,7 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
   } yield users
 
   def isDeveloper(user: User) = for {
-    keys <- run { keysTable.filter('bonoboId -> user.id.id).scan() }
+    keys <- run { keysTable.filter('bonoboId -> UserId.unwrap(user.id)).scan() }
   } yield keys.exists(_.exists(_.tier == "Developer"))
 
   def getInactiveUsers(jadis: Instant) = for {
@@ -38,7 +38,7 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
   } yield users
 
   def setRemindedOn(user: User, when: Long) = run {
-    usersTable.update('id -> user.id.id, set('remindedAt -> when)).map(_ => ())
+    usersTable.update('id -> UserId.unwrap(user.id), set('remindedAt -> when)).map(_ => ())
   }.map { _ => user.copy(remindedAt = Some(when)) }
 
   def deleteUser(user: User) = Task {
