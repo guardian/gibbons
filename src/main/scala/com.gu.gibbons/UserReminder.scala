@@ -1,7 +1,7 @@
 package com.gu.gibbons
 
 // ------------------------------------------------------------------------
-import cats.Monad
+import cats.{ Parallel, Monad }
 import config.Settings
 import java.time.{OffsetDateTime, ZoneOffset}
 import model._
@@ -14,12 +14,12 @@ import services._
   * @param bonobo The bonobo service interpreter
   * @param logger The logging service interpreter
   */
-class UserReminder[F[_] : Monad](
+class UserReminder[F[_] : Monad, G[_]](
   settings: Settings, 
   email: EmailService[F], 
   bonobo: BonoboService[F], 
   override val logger: LoggingService[F]
-) extends Script[F] {
+)(implicit P: Parallel[F, G]) extends Script[F, G] {
     import cats.instances.vector._
     import cats.instances.map._
     import cats.syntax.flatMap._

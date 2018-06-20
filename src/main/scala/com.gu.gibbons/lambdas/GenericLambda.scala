@@ -17,7 +17,7 @@ import config._
 import services.interpreters._
 
 abstract class GenericLambda(
-  load: (Settings, EmailInterpreter, BonoboInterpreter, LoggingInterpreter) => Script[Task]
+  load: (Settings, EmailInterpreter, BonoboInterpreter, LoggingInterpreter) => Script[Task, Task.Par]
 )(implicit sched: Scheduler) extends ResourceProvider {
   import cats.implicits._
   import io.circe.syntax._

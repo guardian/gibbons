@@ -1,5 +1,7 @@
 package com.gu.gibbons
 
+import cats.{Applicative, Monad, Parallel}
+import cats.arrow.FunctionK
 import cats.data.State
 import config.Settings
 import java.time.{Instant, OffsetDateTime, ZoneOffset}
@@ -12,6 +14,13 @@ package object services {
   type KeyRepo = Set[Key]
   type Repo = (UserRepo, EmailRepo, KeyRepo)
   type TestProgram[A] = State[Repo, A]
+
+  implicit val parallelProgram = new Parallel[TestProgram, TestProgram] {
+      def parallel = FunctionK.id
+      def sequential = FunctionK.id
+      def applicative = Applicative[TestProgram]
+      def monad = Monad[TestProgram]
+  }
 }
 
 package object fixtures {
