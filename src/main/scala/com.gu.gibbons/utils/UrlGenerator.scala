@@ -1,16 +1,14 @@
 package com.gu.gibbons.utils
 
 import com.gu.gibbons.config.Settings
-import com.gu.gibbons.model.{User, UserId}
+import com.gu.gibbons.model.{ User, UserId }
 import java.time.Instant
 import java.security.{ MessageDigest, Security }
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 
-
 abstract class HashGenerator(md: MessageDigest) {
-  def params(user: User, salt: String): String = {
+  def params(user: User, salt: String): String =
     s"h=${hash(UserId.unwrap(user.id), user.remindedAt.get, salt)}"
-  }
 
   def hash(id: String, when: Long, salt: String): String = {
     val hash = id + when.toString + salt
