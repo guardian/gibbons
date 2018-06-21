@@ -25,12 +25,14 @@ class UserDidNotAnswer[F[_] : Monad, G[_]](
     import cats.syntax.functor._
     import cats.syntax.flatMap._
     import cats.syntax.traverse._
+    import cats.syntax.foldable._
 
     def getUsers(now: OffsetDateTime): F[Vector[User]] =
       for {
         _ <- logger.info(s"Getting all the users which have not extended their account since ${Settings.gracePeriod}")
         users <- bonobo.getInactiveUsers(now.minus(Settings.gracePeriod).toInstant)
-      } yield users
+        filteredUsers <- users.foldMapM(u => bonobo.isDeveloper(u).map(b => if (b) Vector(u) else Vector.empty))
+      } yield filteredUsers
 
     def processUser(now: OffsetDateTime)(user: User): F[(UserId, Option[EmailResult])] =
       for {

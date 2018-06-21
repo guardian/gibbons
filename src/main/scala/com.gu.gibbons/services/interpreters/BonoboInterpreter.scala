@@ -47,14 +47,19 @@ class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoCl
     usersTable.update('id -> UserId.unwrap(user.id), set('remindedAt -> when)).map(_ => ())
   }.map { _ => user.copy(remindedAt = Some(when)) }
 
-  def deleteUser(user: User) = Task {
+  def deleteUser(user: User) = Task.delay {
     val request = new Request.Builder()
       .url(urlGenerator.delete(user))
       .build
-    val response = httpClient.newCall(request).execute()
+    httpClient.newCall(request).execute()
+  }.bracket { response =>
     response.code match {
-      case 200 => ()
-      case _ => throw new Throwable(s"Call to Bonobo failed with ${response.message}: ${response.body}")
+      case 200 => Task(())
+      case _ => Task.raiseError(new Throwable(s"Call to Bonobo failed with ${response.message}: ${response.body}"))
+    }
+  } { response => 
+    Task {
+      response.close()
     }
   }
 
