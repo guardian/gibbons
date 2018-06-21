@@ -7,7 +7,7 @@ import cats.syntax.show._
 import cats.instances.list._
 import java.time.Instant
 import monix.eval.Task
-import okhttp3.{OkHttpClient, Request}
+import okhttp3.{ OkHttpClient, Request }
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsync
 import com.gu.scanamo._
 import com.gu.scanamo.ops.ScanamoOps
@@ -19,59 +19,74 @@ import com.gu.gibbons.model._
 import com.gu.gibbons.services._
 import com.gu.gibbons.utils._
 
-class BonoboInterpreter(config: Settings, logger: LoggingService[Task], dynamoClient: AmazonDynamoDBAsync, httpClient: OkHttpClient, urlGenerator: UrlGenerator) extends BonoboService[Task] {
+class BonoboInterpreter(config: Settings,
+                        logger: LoggingService[Task],
+                        dynamoClient: AmazonDynamoDBAsync,
+                        httpClient: OkHttpClient,
+                        urlGenerator: UrlGenerator)
+    extends BonoboService[Task] {
 
-  def getUsers(jadis: Instant) = for {
-    _ <- logger.info(s"Getting all the users created $jadis ago")
-    millis = jadis.toEpochMilli
-    users <- getUsersMatching(not(attributeExists('remindedAt)) and ('extendedAt <= millis or (not(attributeExists('extendedAt)) and 'createdAt <= millis)))
-  } yield users
+  def getUsers(jadis: Instant) =
+    for {
+      _ <- logger.info(s"Getting all the users created $jadis ago")
+      millis = jadis.toEpochMilli
+      users <- getUsersMatching(
+        not(attributeExists('remindedAt)) and ('extendedAt <= millis or (not(attributeExists('extendedAt)) and 'createdAt <= millis))
+      )
+    } yield users
 
-  def isDeveloper(user: User) = for {
-    keys <- run { keysTable.filter('bonoboId -> UserId.unwrap(user.id)).scan() }
-  } yield keys.exists(_.exists(_.tier == "Developer"))
+  def isDeveloper(user: User) =
+    for {
+      keys <- run { keysTable.filter('bonoboId -> UserId.unwrap(user.id)).scan() }
+    } yield keys.exists(_.exists(_.tier == "Developer"))
 
-  def getInactiveUsers(jadis: Instant) = for {
-    _ <- logger.info(s"Getting all the users reminded $jadis ago")
-    millis = jadis.toEpochMilli
-    users <- getUsersMatching(attributeExists('remindedAt) and 'remindedAt <= millis)
-  } yield users
+  def getInactiveUsers(jadis: Instant) =
+    for {
+      _ <- logger.info(s"Getting all the users reminded $jadis ago")
+      millis = jadis.toEpochMilli
+      users <- getUsersMatching(attributeExists('remindedAt) and 'remindedAt <= millis)
+    } yield users
 
-  def setRemindedOn(user: User, when: Long) = run {
-    usersTable.update('id -> UserId.unwrap(user.id), set('remindedAt -> when)).map(_ => ())
-  }.map { _ => user.copy(remindedAt = Some(when)) }
-
-  def deleteUser(user: User) = Task.delay {
-    val request = new Request.Builder()
-      .url(urlGenerator.delete(user))
-      .build
-    httpClient.newCall(request).execute()
-  }.bracket { response =>
-    response.code match {
-      case 200 => Task(())
-      case _ => Task.raiseError(new Throwable(s"Call to Bonobo failed with ${response.message}: ${response.body}"))
+  def setRemindedOn(user: User, when: Long) =
+    run {
+      usersTable.update('id -> UserId.unwrap(user.id), set('remindedAt -> when)).map(_ => ())
+    }.map { _ =>
+      user.copy(remindedAt = Some(when))
     }
-  } { response => 
-    Task {
-      response.close()
+
+  def deleteUser(user: User) =
+    Task.delay {
+      val request = new Request.Builder()
+        .url(urlGenerator.delete(user))
+        .build
+      httpClient.newCall(request).execute()
+    }.bracket { response =>
+      response.code match {
+        case 200 => Task(())
+        case _   => Task.raiseError(new Throwable(s"Call to Bonobo failed with ${response.message}: ${response.body}"))
+      }
+    } { response =>
+      Task {
+        response.close()
+      }
     }
-  }
 
   private val usersTable = Table[User](config.usersTableName)
 
   private val keysTable = Table[Key](config.keysTableName)
 
-  private def run[A](program: ScanamoOps[A]): Task[A] = Task.deferFutureAction { implicit scheduler => 
-    ScanamoAsync.exec(dynamoClient)(program) 
+  private def run[A](program: ScanamoOps[A]): Task[A] = Task.deferFutureAction { implicit scheduler =>
+    ScanamoAsync.exec(dynamoClient)(program)
   }
 
-  private def getUsersMatching[C: ConditionExpression](filter: C): Task[Vector[User]] = run {
-    usersTable
-      .filter(filter)
-      .scan()
-  }.flatMap { results =>
-    for {
-      _ <- results.collect { case Left(error) => error }.traverse(error => logger.warn(error.show))
-    } yield results.collect { case Right(user) => user }.toVector
-  }
+  private def getUsersMatching[C: ConditionExpression](filter: C): Task[Vector[User]] =
+    run {
+      usersTable
+        .filter(filter)
+        .scan()
+    }.flatMap { results =>
+      for {
+        _ <- results.collect { case Left(error) => error }.traverse(error => logger.warn(error.show))
+      } yield results.collect { case Right(user) => user }.toVector
+    }
 }

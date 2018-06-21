@@ -12,13 +12,13 @@ abstract class Script[F[_]: Monad] {
   import cats.syntax.traverse._
 
   def logger: LoggingService[F]
-  
+
   def run(now: OffsetDateTime, dryRun: Boolean): F[Map[UserId, Option[EmailResult]]] =
     for {
       users <- getUsers(now)
       _ <- logger.info(s"Found ${users.length} developers.")
-      ress <- if (dryRun) 
-        Monad[F].pure(users.map(_.id -> (None: Option[EmailResult])).toMap) 
+      ress <- if (dryRun)
+        Monad[F].pure(users.map(_.id -> (None: Option[EmailResult])).toMap)
       else users.traverse(processUser(now)).map(_.toMap)
       _ <- logger.info("aaaand that's a wrap! See you next time.")
     } yield ress
