@@ -1,6 +1,6 @@
 package sbtassembly
 
-import java.io.{ File, FileOutputStream }
+import java.io.{FileOutputStream, File}
 
 import scala.collection.JavaConverters.asJavaEnumerationConverter
 
@@ -17,11 +17,12 @@ object Log4j2MergeStrategy {
       val filesEnum = files.toIterator.map(_.toURI.toURL).asJavaEnumeration
 
       try {
-        aggregator.loadCacheFiles(filesEnum)
-        aggregator.writeCache(out)
-        Right(Seq(file -> path))
-      } finally {
-        out.close()
+          aggregator.loadCacheFiles(filesEnum)
+          aggregator.writeCache(out)
+          Right(Seq(file -> path))
+      }
+      finally {
+          out.close()
       }
     }
   }

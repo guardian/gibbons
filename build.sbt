@@ -1,20 +1,19 @@
 import Dependencies._
 import sbtassembly.Log4j2MergeStrategy
 
-lazy val root = (project in file("."))
-  .settings(
+lazy val root = (project in file(".")).
+  settings(
     name := "gibbons",
-    inThisBuild(
-      List(
-        organization := "com.gu",
-        scalaVersion := "2.12.5",
-        scalacOptions ++= Seq(
-          "-Ypartial-unification",
-          "-language:higherKinds",
-          "-feature"
-        )
+    inThisBuild(List(
+      organization  := "com.gu",
+      scalaVersion  := "2.12.5",
+      scalacOptions ++= Seq(
+        "-Ypartial-unification",
+        "-language:higherKinds",
+        "-feature"
       )
-    ),
+    )),
+
     assemblyMergeStrategy in assembly := {
       case PathList(ps @ _*) if ps.last == "Log4j2Plugins.dat" => Log4j2MergeStrategy.plugincache
       case x =>
@@ -22,7 +21,8 @@ lazy val root = (project in file("."))
         oldStrategy(x)
     },
     assemblyJarName in assembly := "gibbons.jar",
-    logBuffered in Test         := false,
+
+    logBuffered in Test := false,
     libraryDependencies ++= Seq(
       cats,
       scanamo,
@@ -33,5 +33,5 @@ lazy val root = (project in file("."))
       log4jApi,
       scalaTest % Test
     ) ++ monix ++ circe ++ aws
-  )
-  .enablePlugins(SbtTwirl)
+  ).
+  enablePlugins(SbtTwirl)
