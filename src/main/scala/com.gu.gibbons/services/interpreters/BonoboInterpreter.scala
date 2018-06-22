@@ -39,7 +39,7 @@ class BonoboInterpreter(config: Settings,
     } yield users
 
   def getDevelopers(users: Vector[User]) = {
-    val uss = users.grouped(100).toVector
+    val uss = users.grouped(99).toVector
     for {
       keys <- uss.foldMapM(
         us =>
