@@ -14,7 +14,7 @@ class BonoboServiceInterpreter extends BonoboService[TestProgram] {
       case (_, user) => jadis.toEpochMilli >= user.extendedAt.getOrElse(user.createdAt)
     }.values.toVector)
 
-  def isDeveloper(user: User): TestProgram[Boolean] = State.pure(true)
+  def getDevelopers(users: Vector[User]): TestProgram[Vector[User]] = State.pure(users)
 
   def getInactiveUsers(jadis: Instant): TestProgram[Vector[User]] = 
     State.get.map(_._1.filter { 

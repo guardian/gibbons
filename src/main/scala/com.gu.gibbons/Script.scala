@@ -12,7 +12,7 @@ abstract class Script[F[_]: Monad, G[_]](implicit P: Parallel[F, G]) {
   import cats.syntax.parallel._
 
   def logger: LoggingService[F]
-  
+
   def run(now: OffsetDateTime, dryRun: Boolean): F[Map[UserId, Option[EmailResult]]] =
     for {
       users <- getUsers(now)
