@@ -6,7 +6,7 @@ object Dependencies {
   lazy val lambdaLog4J = "com.amazonaws"          % "aws-lambda-java-log4j2" % "1.0.0"
   lazy val log4jCore = "org.apache.logging.log4j" % "log4j-core"             % "2.8.2"
   lazy val log4jApi = "org.apache.logging.log4j"  % "log4j-api"              % "2.8.2"
-  lazy val scanamo = "com.gu"                     %% "scanamo"               % "1.0.0-M6"
+  lazy val scanamo = "com.gu"                     %% "scanamo"               % "1.0.0-M7"
   lazy val okhttp = "com.squareup.okhttp3"        % "okhttp"                 % "3.10.0"
   lazy val bouncyCastle = "org.bouncycastle"      % "bcpkix-jdk15on"         % "1.59"
 
