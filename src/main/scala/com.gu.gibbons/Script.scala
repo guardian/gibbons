@@ -1,7 +1,6 @@
 package com.gu.gibbons
 
 import cats.{Parallel, Monad}
-import monix.eval.Task
 import java.time.OffsetDateTime
 import model._
 import services._
@@ -10,7 +9,6 @@ abstract class Script[F[_]: Monad, G[_]](implicit P: Parallel[F, G]) {
   import cats.instances.vector._
   import cats.syntax.flatMap._
   import cats.syntax.functor._
-  import cats.syntax.traverse._
   import cats.syntax.parallel._
 
   def logger: LoggingService[F]
