@@ -31,7 +31,7 @@ class UserReminder[F[_] : Monad, G[_]](
       for {
         _ <- logger.info(s"Getting all the users older than ${Settings.inactivityPeriod}")
         users <- bonobo.getUsers(now.minus(Settings.inactivityPeriod).toInstant)
-        filteredUsers <- bonobo.isDeveloper(users)
+        filteredUsers <- users.foldMapM(u => bonobo.isDeveloper(u).map(b => if (b) Vector(u) else Vector.empty))
       } yield filteredUsers
 
     def processUser(now: OffsetDateTime)(user: User): F[(UserId, Option[EmailResult])] = {

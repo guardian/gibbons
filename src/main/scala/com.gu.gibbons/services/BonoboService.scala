@@ -16,7 +16,7 @@ trait BonoboService[F[_]] {
       */
     def getUsers(jadis: Instant): F[Vector[User]]
 
-    def isDeveloper(users: Vector[User]): F[Vector[User]]
+    def isDeveloper(user: User): F[Boolean]
 
     /** Get all the users that are potentially expired but have not
       * either confirmed or infirmed during the grace period
