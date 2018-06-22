@@ -43,7 +43,7 @@ object Settings {
      getEnv(env, "BONOBO_KEYS_TABLE"),
      getEnv(env, "SALT"),
      getEnv(env, "BONOBO_URL"),
-     getEnv(env, "EMAIL_ORIGIN").map(Email(_))).mapN(Settings(_, _, _, _, _, _, HttpSettings(1, 1, 5, 10)))
+     getEnv(env, "EMAIL_ORIGIN").map(Email(_))).mapN(Settings(_, _, _, _, _, _, HttpSettings(2, 5, 5, 10)))
 
   private def makeRegion(r: String): ValidatedNel[String, Regions] =
     Validated.fromTry {
