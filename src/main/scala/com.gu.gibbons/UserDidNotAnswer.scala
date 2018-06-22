@@ -31,7 +31,7 @@ class UserDidNotAnswer[F[_]: Monad](
     for {
       _ <- logger.info(s"Getting all the users which have not extended their account since ${Settings.gracePeriod}")
       users <- bonobo.getInactiveUsers(now.minus(Settings.gracePeriod).toInstant)
-      filteredUsers <- bonobo.isDeveloper(users)
+      filteredUsers <- bonobo.getDevelopers(users)
     } yield filteredUsers
 
   def processUser(now: OffsetDateTime)(user: User): F[(UserId, Option[EmailResult])] =

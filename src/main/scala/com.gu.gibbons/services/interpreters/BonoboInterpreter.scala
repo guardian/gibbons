@@ -38,7 +38,7 @@ class BonoboInterpreter(config: Settings,
                         ) and 'createdAt <= millis)))
     } yield users
 
-  def isDeveloper(users: Vector[User]) = {
+  def getDevelopers(users: Vector[User]) = {
     val uss = users.grouped(100).toVector
     for {
       keys <- uss.foldMapM(
