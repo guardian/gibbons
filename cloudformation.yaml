@@ -105,6 +105,9 @@ Resources:
                 ScheduleLambda:
                     Type: Schedule
                     Properties:
+                        # Temporary postponing of this lambda invocation (year 2021 instead of *)
+                        # to prevent the lambda from removing keys in the "Developer" tier that are used in PROD systems.
+                        # This change will be reverted (year * instead of 2021) once we have resolved any such keys.
                         Schedule: cron(12 14 * * ? *) # run daily at 14:12
                         Input: "false"
         DependsOn: LambdaRole
