@@ -3,3 +3,4 @@ project/project
 .ensime*
 ensime*
 pc.stdout.log
+.idea/
