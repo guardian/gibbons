@@ -21,6 +21,7 @@ package object fixtures {
     val keys: Set[Key] = Set(
         Key(UserId("user0"), "Developer"),
         Key(UserId("user1"), "Developer"),
+        Key(UserId("user1"), "External"),
         Key(UserId("user2"), "Developer"),
         Key(UserId("user3"), "Developer"),
         Key(UserId("user4"), "Developer"),
