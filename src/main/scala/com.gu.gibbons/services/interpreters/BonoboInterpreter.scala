@@ -48,7 +48,7 @@ class BonoboInterpreter(config: Settings,
 
       nonDevKeys <- uss.foldMapM(
         us =>
-          getItems(keysTable, 'bonoboId <= us.map(u => UserId.unwrap(u.id)).toSet and ('tier <= "Internal" or 'tier <= "External" or 'tier <= "RightsManaged"))
+          getItems(keysTable, 'bonoboId <= us.map(u => UserId.unwrap(u.id)).toSet and not('tier <= "Developer"))
       )
       devUserIds = devKeys.map(_.userId).toSet
       nonDevUserIds = nonDevKeys.map(_.userId).toSet
