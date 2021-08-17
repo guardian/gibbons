@@ -31,6 +31,7 @@ Globals:
     Function:
         Environment:
             Variables:
+                DRY_RUN: !Ref DryRun
                 EMAIL_ORIGIN: !Ref Origin
                 SALT: !Ref Salt
                 BONOBO_URL: !Ref BonoboUrl
@@ -91,7 +92,6 @@ Resources:
                     Type: Schedule
                     Properties:
                         Schedule: cron(12 14 * * ? *) # run daily at 14:12
-                        Input: "false"
         DependsOn: LambdaRole
 
     DidNotAnswerLambda:
@@ -106,5 +106,4 @@ Resources:
                     Type: Schedule
                     Properties:
                         Schedule: cron(12 14 * * ? 2031) # run daily at 14:12
-                        Input: "false"
         DependsOn: LambdaRole
