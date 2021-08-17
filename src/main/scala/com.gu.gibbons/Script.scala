@@ -16,10 +16,9 @@ abstract class Script[F[_]: Monad] {
   def run(now: OffsetDateTime, dryRun: Boolean): F[Map[UserId, Option[EmailResult]]] =
     for {
       users <- getUsers(now)
-      _ <- logger.info(s"Found ${users.length} developers.")
+      _ <- logger.info(s"Found ${users.length} developers. Dry run mode: ${dryRun}")
+      _ <- logger.info(s"Users found: ${users}")
       ress <- if (dryRun) {
-        logger.info("Running in dry mode")
-        logger.info(s"Users found: ${users}")
         Monad[F].pure(users.map(_.id -> (None: Option[EmailResult])).toMap)
 
       } else users.traverse(processUser(now)).map(_.toMap)
