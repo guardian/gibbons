@@ -20,7 +20,8 @@ class IntegrationTests extends FlatSpec with Matchers with Inspectors {
         "",
         "",
         Email(""),
-        HttpSettings(0, 0, 0, 0)
+        HttpSettings(0, 0, 0, 0),
+        "false"
     )
 
     val userReminder = new UserReminder(settings, emailService, bonoboService, loggingService)

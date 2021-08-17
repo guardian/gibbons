@@ -9,7 +9,8 @@ class SettingsSpec extends FlatSpec with Matchers with Inspectors {
     "BONOBO_KEYS_TABLE"  -> "Well",
     "SALT"               -> "Are",
     "BONOBO_URL"         -> "You",
-    "EMAIL_ORIGIN"       -> "Doing"
+    "EMAIL_ORIGIN"       -> "Doing",
+    "DRY_RUN"            -> "false"
   )
 
   private val invalidRegion = Map(
@@ -18,7 +19,8 @@ class SettingsSpec extends FlatSpec with Matchers with Inspectors {
     "BONOBO_KEYS_TABLE"  -> "Well",
     "SALT"               -> "Are",
     "BONOBO_URL"         -> "You",
-    "EMAIL_ORIGIN"       -> "Doing"
+    "EMAIL_ORIGIN"       -> "Doing",
+    "DRY_RUN"            -> "false"
   )
 
   private val emptyEnv: Map[String, String] = Map.empty
