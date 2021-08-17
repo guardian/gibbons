@@ -26,6 +26,9 @@ Parameters:
     Salt:
         Description: Secret see to hash IDs
         Type: String
+    DryRun:
+        Description: Flag for running Gibbons in dry mode
+        Type: String
 
 Globals:
     Function:
