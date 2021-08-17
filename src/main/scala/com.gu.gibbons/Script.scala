@@ -17,9 +17,12 @@ abstract class Script[F[_]: Monad] {
     for {
       users <- getUsers(now)
       _ <- logger.info(s"Found ${users.length} developers.")
-      ress <- if (dryRun)
+      ress <- if (dryRun) {
+        logger.info("Running in dry mode")
+        logger.info(s"Users found: ${users}")
         Monad[F].pure(users.map(_.id -> (None: Option[EmailResult])).toMap)
-      else users.traverse(processUser(now)).map(_.toMap)
+
+      } else users.traverse(processUser(now)).map(_.toMap)
       _ <- logger.info("aaaand that's a wrap! See you next time.")
     } yield ress
 
