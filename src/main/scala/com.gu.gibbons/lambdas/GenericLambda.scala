@@ -5,7 +5,7 @@ import cats.data.{ Validated, ValidatedNel }
 import com.amazonaws.services.lambda.runtime.Context
 import io.circe.Json
 import io.circe.parser.decode
-import java.io.{ InputStream, OutputStream }
+import java.io.{ OutputStream }
 import java.time.OffsetDateTime
 import monix.eval.Task
 import monix.execution.Scheduler
@@ -24,13 +24,13 @@ abstract class GenericLambda(
   import io.circe.syntax._
   import model.JsonFormats._
 
-  def handleRequest(is: InputStream, os: OutputStream, context: Context) = {
-    (Settings.fromEnvironment, readArgs(is)).mapN {
-      case (settings: Settings, dryRun: Boolean) =>
+  def handleRequest(os: OutputStream, context: Context) = {
+    (Settings.fromEnvironment).map {
+      case (settings: Settings) =>
         for {
           logger <- LoggingInterpreter(this.getClass.toString)
           now <- Task.eval { OffsetDateTime.now }
-          json <- resources(settings, logger).bracket(go(_, logger, settings, now, dryRun))(cleanup _)
+          json <- resources(settings, logger).bracket(go(_, logger, settings, now))(cleanup _)
         } yield json
     }.map { program =>
       Await.result(program.runAsync, Duration(context.getRemainingTimeInMillis, MILLISECONDS))
@@ -39,24 +39,16 @@ abstract class GenericLambda(
       result => os.write(result.toString.getBytes)
     )
 
-    is.close()
     os.close()
   }
 
   def go(resources: Resources,
          logger: LoggingInterpreter,
          settings: Settings,
-         now: OffsetDateTime,
-         dryRun: Boolean): Task[Json] = {
+         now: OffsetDateTime): Task[Json] = {
     val bonobo = new BonoboInterpreter(settings, logger, resources.dynamo, resources.http, resources.url)
     val email = new EmailInterpreter(settings, logger, resources.email, resources.url)
     val script = load(settings, email, bonobo, logger)
-    script.run(now, dryRun).map(_.asJson)
+    script.run(now, settings.dryRun.toBoolean).map(_.asJson)
   }
-
-  private def readArgs(is: InputStream): ValidatedNel[String, Boolean] =
-    Validated.fromEither {
-      val input = Source.fromInputStream(is).mkString
-      decode[Boolean](input).leftMap(_.toString)
-    }.toValidatedNel
 }
