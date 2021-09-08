@@ -13,7 +13,7 @@ import okhttp3.{ OkHttpClient, Request }
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsync
 import com.gu.scanamo._
 import com.gu.scanamo.ops.ScanamoOps
-import com.gu.scanamo.query.{ ConditionExpression }
+import com.gu.scanamo.query.{ AndCondition, ConditionExpression }
 import com.gu.scanamo.syntax._
 
 import com.gu.gibbons.config._
@@ -43,11 +43,11 @@ class BonoboInterpreter(config: Settings,
     for {
       devKeys <- uss.foldMapM(
         us =>
-          getItems(keysTable, 'bonoboId <= us.map(u => UserId.unwrap(u.id)).toSet and 'tier <= "Developer")
+          getItems(keysTable, AndCondition('bonoboId -> us.map(u => UserId.unwrap(u.id)).toSet,'tier -> "Developer"))
       )
       nonDevKeys <- uss.foldMapM(
         us =>
-          getItems(keysTable, 'bonoboId <= us.map(u => UserId.unwrap(u.id)).toSet and not('tier <= "Developer"))
+          getItems(keysTable, AndCondition('bonoboId -> us.map(u => UserId.unwrap(u.id)).toSet, not('tier -> "Developer")))
       )
       onlyDevelopers = devKeys.map(_.userId).toSet.diff(nonDevKeys.map(_.userId).toSet)
     } yield users.filter(u => onlyDevelopers(u.id))
