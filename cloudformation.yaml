@@ -108,5 +108,5 @@ Resources:
                 ScheduleLambda:
                     Type: Schedule
                     Properties:
-                        Schedule: cron(12 14 * * ? 2031) # run daily at 14:12
+                        Schedule: cron(12 14 * * ? *) # run daily at 14:12
         DependsOn: LambdaRole
