@@ -17,7 +17,7 @@ abstract class Script[F[_]: Monad] {
     for {
       users <- getUsers(now)
       _ <- logger.info(s"Dry run mode: ${dryRun}")
-      _ <- logger.info(s"Developer key owners: ${users.map(_.id).mkString(",")}")
+      _ <- logger.info(s"Developer key owners: ${users.map(_.id).mkString(", ")}")
       ress <- if (dryRun) {
         Monad[F].pure(users.map(_.id -> (None: Option[EmailResult])).toMap)
 
