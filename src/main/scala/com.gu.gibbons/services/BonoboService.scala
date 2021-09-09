@@ -10,12 +10,12 @@ import model._
 trait BonoboService[F[_]] {
 
   /** Get all the users which have been created, or which
-   * have been extended, before `jadis`
+   * have been extended, before `date`
    *
-   * @param jadis  The time before which a user is
+   * @param date  The date before which a user is
    *               potentially expired
    */
-  def getUsers(jadis: Instant): F[Vector[User]]
+  def getUsers(date: Instant): F[Vector[User]]
 
   /** Filters a list of users to those who are developers only */
   def getDevelopers(users: Vector[User]): F[Vector[User]]
@@ -23,9 +23,9 @@ trait BonoboService[F[_]] {
   /** Get all the users that are potentially expired but have not
    * either confirmed or infirmed during the grace period
    *
-   * @param jadis The time before which a user can  be deleted
+   * @param date The date before which a user can  be deleted
    */
-  def getInactiveUsers(jadis: Instant): F[Vector[User]]
+  def getInactiveUsers(date: Instant): F[Vector[User]]
 
   /** Start the clock for a 14 days grace period. Users
    * have 14 days to take appropriate action for their

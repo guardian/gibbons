@@ -28,10 +28,10 @@ class BonoboInterpreter(config: Settings,
                         urlGenerator: UrlGenerator)
     extends BonoboService[Task] {
 
-  def getUsers(jadis: Instant) =
+  def getUsers(creationDate: Instant) =
     for {
-      _ <- logger.info(s"Getting all the users created before $jadis")
-      millis = jadis.toEpochMilli
+      _ <- logger.info(s"Getting all the users created before $creationDate")
+      millis = creationDate.toEpochMilli
       users <- getItems(usersTable,
                         not(attributeExists('remindedAt)) and ('extendedAt <= millis or (not(
                           attributeExists('extendedAt)
@@ -53,10 +53,10 @@ class BonoboInterpreter(config: Settings,
     } yield users.filter(u => onlyDevelopers(u.id))
   }
 
-  def getInactiveUsers(jadis: Instant) =
+  def getInactiveUsers(reminderDate: Instant) =
     for {
-      _ <- logger.info(s"Getting all the users reminded since $jadis")
-      millis = jadis.toEpochMilli
+      _ <- logger.info(s"Getting all the users reminded since $reminderDate")
+      millis = reminderDate.toEpochMilli
       users <- getItems(usersTable, attributeExists('remindedAt) and 'remindedAt <= millis)
     } yield users
 
