@@ -41,12 +41,16 @@ class BonoboInterpreter(config: Settings,
   def getDevelopers(users: Vector[User]) = {
     val uss = users.grouped(99).toVector
     for {
-      keys <- uss.foldMapM(
+      devKeys <- uss.foldMapM(
         us =>
-          getItems(keysTable, AndCondition('bonoboId -> us.map(u => UserId.unwrap(u.id)).toSet, 'tier -> "Developer"))
+          getItems(keysTable, AndCondition('bonoboId -> us.map(u => UserId.unwrap(u.id)).toSet,'tier -> "Developer"))
       )
-      userIds = keys.map(_.userId).toSet
-    } yield users.filter(u => userIds(u.id))
+      nonDevKeys <- uss.foldMapM(
+        us =>
+          getItems(keysTable, AndCondition('bonoboId -> us.map(u => UserId.unwrap(u.id)).toSet, not('tier -> "Developer")))
+      )
+      onlyDevelopers = devKeys.map(_.userId).toSet.diff(nonDevKeys.map(_.userId).toSet)
+    } yield users.filter(u => onlyDevelopers(u.id))
   }
 
   def getInactiveUsers(jadis: Instant) =
