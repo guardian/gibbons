@@ -30,7 +30,7 @@ class BonoboInterpreter(config: Settings,
 
   def getUsers(jadis: Instant) =
     for {
-      _ <- logger.info(s"Getting all the users created $jadis ago")
+      _ <- logger.info(s"Getting all the users created before $jadis")
       millis = jadis.toEpochMilli
       users <- getItems(usersTable,
                         not(attributeExists('remindedAt)) and ('extendedAt <= millis or (not(
@@ -55,7 +55,7 @@ class BonoboInterpreter(config: Settings,
 
   def getInactiveUsers(jadis: Instant) =
     for {
-      _ <- logger.info(s"Getting all the users reminded $jadis ago")
+      _ <- logger.info(s"Getting all the users reminded since $jadis")
       millis = jadis.toEpochMilli
       users <- getItems(usersTable, attributeExists('remindedAt) and 'remindedAt <= millis)
     } yield users
