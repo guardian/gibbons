@@ -10,12 +10,12 @@ import model._
 trait BonoboService[F[_]] {
 
   /** Get all the users which have been created, or which
-   * have been extended, before `creationDate`
+   * have been extended, before certain date
    *
-   * @param creationDate  The date before which a user is
+   * @param createdBefore  The date before which a user is
    *               potentially expired
    */
-  def getUsers(creationDate: Instant): F[Vector[User]]
+  def getUsers(createdBefore: Instant): F[Vector[User]]
 
   /** Filters a list of users to those who are developers only */
   def getDevelopers(users: Vector[User]): F[Vector[User]]
@@ -23,9 +23,9 @@ trait BonoboService[F[_]] {
   /** Get all the users that are potentially expired but have not
    * either confirmed or infirmed during the grace period
    *
-   * @param reminderDate The date before which a user can  be deleted
+   * @param remindedSince The date after which a user can be deleted
    */
-  def getInactiveUsers(reminderDate: Instant): F[Vector[User]]
+  def getInactiveUsers(remindedSince: Instant): F[Vector[User]]
 
   /** Start the clock for a 14 days grace period. Users
    * have 14 days to take appropriate action for their
