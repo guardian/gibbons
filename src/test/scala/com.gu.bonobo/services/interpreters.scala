@@ -9,16 +9,16 @@ import model._
 class BonoboServiceInterpreter extends BonoboService[TestProgram] {
   import cats.implicits._
 
-  def getUsers(jadis: Instant): TestProgram[Vector[User]] = 
+  def getUsers(creationDate: Instant): TestProgram[Vector[User]] =
     State.get.map(_._1.filter { 
-      case (_, user) => jadis.toEpochMilli >= user.extendedAt.getOrElse(user.createdAt)
+      case (_, user) => creationDate.toEpochMilli >= user.extendedAt.getOrElse(user.createdAt)
     }.values.toVector)
 
   def getDevelopers(users: Vector[User]): TestProgram[Vector[User]] = State.pure(users)
 
-  def getInactiveUsers(jadis: Instant): TestProgram[Vector[User]] = 
+  def getInactiveUsers(reminderDate: Instant): TestProgram[Vector[User]] =
     State.get.map(_._1.filter { 
-      case (_, user) => user.remindedAt.exists(r => jadis.toEpochMilli >= r)
+      case (_, user) => user.remindedAt.exists(r => reminderDate.toEpochMilli >= r)
     }.values.toVector)
 
   def setRemindedOn(user: User, when: Long): TestProgram[User] = 

@@ -29,12 +29,10 @@ class UserReminder[F[_]: Monad](
 
   def getUsers(now: OffsetDateTime): F[Vector[User]] =
     for {
-      _ <- logger.info(s"Getting all the users older than ${Settings.inactivityPeriod}")
       users <- bonobo.getUsers(now.minus(Settings.inactivityPeriod).toInstant)
-      _ <- logger.info(s"Found ${users.length} users ")
-      filteredUsers <- bonobo.getDevelopers(users)
-      _ <- logger.info(s"Found ${filteredUsers.length} developers ")
-    } yield filteredUsers
+      developerUsers <- bonobo.getDevelopers(users)
+      _ <- logger.info(s"Found ${users.length} users, ${developerUsers.length} are developers. ")
+    } yield developerUsers
 
   def processUser(now: OffsetDateTime)(user: User): F[(UserId, Option[EmailResult])] = {
     val nowL = now.toInstant.toEpochMilli
