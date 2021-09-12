@@ -9,37 +9,33 @@ import model._
 /** The algebra for interacting with the Bonobo database */
 trait BonoboService[F[_]] {
 
-  /** Get all the users which have been created, or which
-   * have been extended, before `creationDate`
+  /** Get all the developer tier keys which have been created, or which
+   * have been last extended, before certain date
    *
-   * @param creationDate  The date before which a user is
-   *               potentially expired
+   * @param createdBefore  The date before which a key is
+   *               considered potentially inactive
    */
-  def getUsers(creationDate: Instant): F[Vector[User]]
+  def getPotentiallyInactiveDeveloperKeys(createdBefore: Instant): F[Vector[Key]]
 
-  /** Filters a list of users to those who are developers only */
-  def getDevelopers(users: Vector[User]): F[Vector[User]]
-
-  /** Get all the users that are potentially expired but have not
-   * either confirmed or infirmed during the grace period
+  /** Get all the keys where the owner has ignored the reminder email to extend their key
    *
-   * @param reminderDate The date before which a user can  be deleted
+   * @param remindedBefore The date before which a user can  be deleted
    */
-  def getInactiveUsers(reminderDate: Instant): F[Vector[User]]
+  def getIgnoredReminderKeys(remindedBefore: Instant): F[Vector[Key]]
 
-  /** Start the clock for a 14 days grace period. Users
+  /** Start the clock for reminder grace period (default set to 14 days). Users
    * have 14 days to take appropriate action for their
    * keys after receiving the email. If they don't their
-   * account and keys will be automatically deleted.
+   * key will be deleted.
    *
-   * @param user The user
+   * @param key The Key to be either extended or deleted
    */
-  def setRemindedOn(user: User, when: Long): F[User]
+  def setRemindedAt(key: Key, when: Long): F[Key]
 
-  /** Deletes a user and all their keys
+  /** Deletes a key
    *
-   * @param user The user
+   * @param key The key to be deleted
    */
-  def deleteUser(user: User): F[Unit]
+  def deleteKey(key: Key): F[Unit]
 
 }
