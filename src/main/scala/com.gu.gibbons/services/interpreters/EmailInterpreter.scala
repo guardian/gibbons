@@ -1,13 +1,10 @@
 package com.gu.gibbons.services.interpreters
 
-import cats.syntax.flatMap._
 import com.amazonaws.handlers.AsyncHandler
 import com.amazonaws.services.simpleemail.model.{ Destination => SESDestination, Message => SESMessage, _ }
-import com.amazonaws.services.simpleemail.{ AmazonSimpleEmailServiceAsync, AmazonSimpleEmailServiceAsyncClientBuilder }
+import com.amazonaws.services.simpleemail.{ AmazonSimpleEmailServiceAsync }
 import monix.eval.{ Callback, Task }
 import monix.execution.Cancelable
-import monix.java8.eval._
-import scala.collection.JavaConverters._
 import scala.util.{ Failure, Success }
 
 import com.gu.gibbons.config._
