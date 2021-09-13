@@ -1,15 +1,19 @@
 package com.gu.gibbons.services.interpreters
 
+import cats.syntax.apply._
+import cats.syntax.flatMap._
+import cats.syntax.foldable._
 import cats.syntax.traverse._
 import cats.syntax.show._
 import cats.instances.list._
+import cats.instances.vector._
 import java.time.Instant
 import monix.eval.Task
 import okhttp3.{ OkHttpClient, Request }
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsync
 import com.gu.scanamo._
 import com.gu.scanamo.ops.ScanamoOps
-import com.gu.scanamo.query.{ConditionExpression }
+import com.gu.scanamo.query.{ AndCondition, ConditionExpression }
 import com.gu.scanamo.syntax._
 
 import com.gu.gibbons.config._
@@ -17,12 +21,15 @@ import com.gu.gibbons.model._
 import com.gu.gibbons.services._
 import com.gu.gibbons.utils._
 
+
+
 class BonoboInterpreter(config: Settings,
                         logger: LoggingService[Task],
                         dynamoClient: AmazonDynamoDBAsync,
                         httpClient: OkHttpClient,
                         urlGenerator: UrlGenerator)
     extends BonoboService[Task] {
+
 
   def getPotentiallyInactiveDeveloperKeys(createdBefore: Instant) =
     for {
@@ -48,6 +55,16 @@ class BonoboInterpreter(config: Settings,
       key.copy(remindedAt = Some(when))
     }
 
+  def getKeyOwners(keys: Vector[Key]) = {
+    val uss = keys.grouped(99).toVector
+    for {
+      users <- uss.foldMapM(
+        us =>
+          getItems(usersTable, 'id -> us.map(u => UserId.unwrap(u.userId)).toSet)
+      )
+    } yield users
+  }
+
   def deleteKey(key: Key) =
     Task.delay {
       val request = new Request.Builder()
@@ -66,6 +83,8 @@ class BonoboInterpreter(config: Settings,
     }
 
   private val keysTable = Table[Key](config.keysTableName)
+
+  private val usersTable = Table[Key](config.usersTableName)
 
   private def run[A](program: ScanamoOps[A]): Task[A] = Task.deferFutureAction { implicit scheduler =>
     ScanamoAsync.exec(dynamoClient)(program)

@@ -23,6 +23,12 @@ trait BonoboService[F[_]] {
    */
   def getIgnoredReminderKeys(remindedBefore: Instant): F[Vector[Key]]
 
+  /** Get users who own certain keys
+   *
+   * @param keys The keys whose owners we want to notify
+   */
+  def getKeyOwners(keys: Vector[Key]): F[Vector[User]]
+
   /** Start the clock for reminder grace period (default set to 14 days). Users
    * have 14 days to take appropriate action for their
    * keys after receiving the email. If they don't their
