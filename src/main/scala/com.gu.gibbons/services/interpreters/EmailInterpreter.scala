@@ -1,5 +1,6 @@
 package com.gu.gibbons.services.interpreters
 
+import cats.syntax.flatMap._
 import com.amazonaws.handlers.AsyncHandler
 import com.amazonaws.services.simpleemail.model.{ Destination => SESDestination, Message => SESMessage, _ }
 import com.amazonaws.services.simpleemail.{ AmazonSimpleEmailServiceAsync }
@@ -17,7 +18,7 @@ final class EmailInterpreter(settings: Settings,
                              emailClient: AmazonSimpleEmailServiceAsync,
                              urlGenerator: UrlGenerator)
     extends EmailService[Task] {
-  def sendReminder(user: User) =
+  def sendReminder(user: User, key: Key) =
     sendEmail(user, Settings.reminderSubject, reminderEmail(user))
   def sendDeleted(user: User) =
     sendEmail(user, Settings.deletedSubject, deletedEmail(user))

@@ -55,14 +55,10 @@ class BonoboInterpreter(config: Settings,
       key.copy(remindedAt = Some(when))
     }
 
-  def getKeyOwners(keys: Vector[Key]) = {
-    val uss = keys.grouped(99).toVector
+  def getKeyOwner(key: Key) = {
     for {
-      users <- uss.foldMapM(
-        us =>
-          getItems(usersTable, 'id -> us.map(u => UserId.unwrap(u.userId)).toSet)
-      )
-    } yield users
+      user <- getItems(usersTable, 'id ->  UserId.unwrap(key.userId))
+    } yield user.toList.head
   }
 
   def deleteKey(key: Key) =
@@ -84,7 +80,7 @@ class BonoboInterpreter(config: Settings,
 
   private val keysTable = Table[Key](config.keysTableName)
 
-  private val usersTable = Table[Key](config.usersTableName)
+  private val usersTable = Table[User](config.usersTableName)
 
   private def run[A](program: ScanamoOps[A]): Task[A] = Task.deferFutureAction { implicit scheduler =>
     ScanamoAsync.exec(dynamoClient)(program)

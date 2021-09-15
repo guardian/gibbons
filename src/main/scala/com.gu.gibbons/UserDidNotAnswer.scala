@@ -21,23 +21,21 @@ class UserDidNotAnswer[F[_]: Monad](
   bonobo: BonoboService[F],
   override val logger: LoggingService[F]
 ) extends Script[F] {
-  import cats.instances.vector._
   import cats.syntax.functor._
   import cats.syntax.flatMap._
-  import cats.syntax.traverse._
-  import cats.syntax.foldable._
 
-  def getUsers(now: OffsetDateTime): F[Vector[User]] =
-    for {
-      users <- bonobo.getInactiveUsers(now.minus(Settings.gracePeriod).toInstant)
-      developerUsers <- bonobo.getDevelopers(users)
-      _ <- logger.info(s"Found ${users.length} users, ${developerUsers.length} are developers. ")
-    } yield developerUsers
 
-  def processUser(now: OffsetDateTime)(user: User): F[(UserId, Option[EmailResult])] =
+  def getKeys(now: OffsetDateTime): F[Vector[Key]] =
     for {
-      _ <- bonobo.deleteUser(user)
-      res <- email.sendDeleted(user)
-    } yield user.id -> Some(res)
+      inactiveKeys <- bonobo.getIgnoredReminderKeys(now.minus(Settings.gracePeriod).toInstant)
+      _ <- logger.info(s"Found ${inactiveKeys.length} inactive developer keys. ")
+    } yield inactiveKeys
+
+  def processKey(now: OffsetDateTime)(key: Key): F[(UserId, Option[EmailResult])] =
+    for {
+      _ <- bonobo.deleteKey(key)
+      keyOwner <- bonobo.getKeyOwner(key)
+      res <- email.sendDeleted(keyOwner)
+    } yield key.userId -> Some(res)
 
 }
