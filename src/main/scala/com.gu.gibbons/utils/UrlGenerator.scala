@@ -7,7 +7,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider
 
 abstract class HashGenerator(md: MessageDigest) {
   def params(key: Key, salt: String): String =
-    s"h=${hash(UserId.unwrap(key.userId), key.remindedAt.get, salt)}"
+    s"h=${hash(key.consumerId, key.remindedAt.get, salt)}"
 
   def hash(id: String, when: Long, salt: String): String = {
     val hash = id + when.toString + salt
@@ -17,7 +17,7 @@ abstract class HashGenerator(md: MessageDigest) {
 
 class UrlGenerator(settings: Settings, md: MessageDigest) extends HashGenerator(md) {
   private def url(action: String, key: Key) =
-    s"${settings.bonoboUrl}/user/${UserId.unwrap(key.userId)}/${action}?${params(key, settings.salt)}"
+    s"${settings.bonoboUrl}/user/${key.consumerId}/${action}?${params(key, settings.salt)}"
 
   def extendKey(key: Key): String = url("extend-key", key)
 
