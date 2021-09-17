@@ -9,7 +9,7 @@ import model._
 class BonoboServiceInterpreter extends BonoboService[TestProgram] {
   import cats.implicits._
 
-  def getPotentiallyInactiveKeys(createdBefore: Instant): TestProgram[Vector[Key]] =
+  def getPotentiallyInactiveDeveloperKeys(createdBefore: Instant): TestProgram[Vector[Key]] =
     State.get.map(_._3.filter {
       case (_, key) => createdBefore.toEpochMilli >= key.extendedAt.getOrElse(key.createdAt)
     }.values.toVector)
@@ -22,13 +22,13 @@ class BonoboServiceInterpreter extends BonoboService[TestProgram] {
   def getKeyOwner(key: Key): TestProgram[User] =
     State.get.map(_._1.filter {
       case (_, user) => user.id == key.userId
-    }.values.toVector)
+    }.values.toVector.head)
 
   def setRemindedAt(key: Key, when: Long): TestProgram[Key] =
     State.get.flatMap { case (users, emails, keys) =>
       val newKey = keys(key.consumerId).copy(remindedAt = Some(when))
       for {
-        _ <- State.set((users, emails, keys.updated(key.consumerId, newKey),))
+        _ <- State.set((users, emails, keys.updated(key.consumerId, newKey)))
       } yield newKey
     }
 

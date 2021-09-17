@@ -19,7 +19,7 @@ final class EmailInterpreter(settings: Settings,
                              urlGenerator: UrlGenerator)
     extends EmailService[Task] {
   def sendReminder(user: User, key: Key) =
-    sendEmail(user, Settings.reminderSubject, reminderEmail(user))
+    sendEmail(user, Settings.reminderSubject, reminderEmail(user, key))
   def sendDeleted(user: User) =
     sendEmail(user, Settings.deletedSubject, deletedEmail(user))
 
@@ -52,6 +52,6 @@ final class EmailInterpreter(settings: Settings,
       Cancelable.empty
   }
 
-  private def reminderEmail(user: User) = html.reminder(user, urlGenerator).toString
+  private def reminderEmail(user: User, key: Key) = html.reminder(key: Key, user:User, urlGenerator).toString
   private def deletedEmail(user: User) = html.deleted(user).toString
 }
