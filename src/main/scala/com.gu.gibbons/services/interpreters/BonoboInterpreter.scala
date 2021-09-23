@@ -13,7 +13,7 @@ import okhttp3.{ OkHttpClient, Request }
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsync
 import com.gu.scanamo._
 import com.gu.scanamo.ops.ScanamoOps
-import com.gu.scanamo.query.{ AndCondition, ConditionExpression , OrCondition}
+import com.gu.scanamo.query.{ AndCondition, ConditionExpression }
 import com.gu.scanamo.syntax._
 
 import com.gu.gibbons.config._
@@ -35,11 +35,18 @@ class BonoboInterpreter(config: Settings,
     for {
       _ <- logger.info(s"Getting all developer keys created before $createdBefore")
       millis = createdBefore.toEpochMilli
+      _ <- logger.info(s"Millis: $millis")
+      devs <- getItems(keysTable, 'tier beginsWith "Dev")
+      _ <- logger.info(s"Devs: $devs")
+      developers <- getItems(keysTable, 'tier -> "Developer")
+      _ <- logger.info(s"Developers: $developers")
+      oldDevs <- getItems(keysTable, ('tier beginsWith "Dev") and 'createdAt <= millis)
+      _ <- logger.info(s"Old Devs: $oldDevs")
+
       keys <- getItems(keysTable,
-        AndCondition('tier -> "Developer",
-        AndCondition('createdAt <= millis,
-        AndCondition(not(attributeExists('remindedAt)), OrCondition(
-         not(attributeExists('extendedAt)), 'extendedAt <= millis)))))
+        not(attributeExists('remindedAt)) and ('extendedAt <= millis or (not(
+          attributeExists('extendedAt)
+        ) and 'createdAt <= millis)) and ('tier beginsWith "Dev"))
     } yield keys
 
   def getIgnoredReminderKeys(reminderDate: Instant) =
