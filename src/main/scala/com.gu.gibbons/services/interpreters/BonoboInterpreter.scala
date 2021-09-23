@@ -44,7 +44,7 @@ class BonoboInterpreter(config: Settings,
       _ <- logger.info(s"Old Keys: $oldKeys")
 
       andConditionKeys <- getItems(keysTable, AndCondition('createdAt <= millis, 'tier -> "Developer"))
-      _ <- logger.info(s"And Condition Keys: $oldKeys")
+      _ <- logger.info(s"And Condition Keys: $andConditionKeys")
 
       keys <- getItems(keysTable,
         not(attributeExists('remindedAt)) and ('extendedAt <= millis or (not(
