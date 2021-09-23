@@ -13,7 +13,7 @@ import okhttp3.{ OkHttpClient, Request }
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsync
 import com.gu.scanamo._
 import com.gu.scanamo.ops.ScanamoOps
-import com.gu.scanamo.query.{ AndCondition, ConditionExpression }
+import com.gu.scanamo.query.{ AndCondition, ConditionExpression , OrCondition}
 import com.gu.scanamo.syntax._
 
 import com.gu.gibbons.config._
@@ -35,9 +35,11 @@ class BonoboInterpreter(config: Settings,
     for {
       _ <- logger.info(s"Getting all developer keys created before $createdBefore")
       millis = createdBefore.toEpochMilli
-      _ <- logger.info(s"Millis: $millis")
       keys <- getItems(keysTable,
-        not(attributeExists('remindedAt)) and ('createdAt <= millis) and ('tier beginsWith "Dev"))
+        AndCondition('tier -> "Developer",
+        AndCondition('createdAt <= millis,
+        AndCondition(not(attributeExists('remindedAt)), OrCondition(
+         not(attributeExists('extendedAt)), 'extendedAt <= millis)))))
     } yield keys
 
   def getIgnoredReminderKeys(reminderDate: Instant) =
