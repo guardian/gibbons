@@ -63,13 +63,13 @@ object Key {
       (for {
         attrs <- Option(av.getM).map(_.asScala)
         userId <- attrs.get("bonoboId").flatMap(a => Option(a.getS))
-        consumerId <- attrs.get("consumerId").flatMap(a => Option(a.getS))
+        consumerId <- attrs.get("kongConsumerId").flatMap(a => Option(a.getS))
         tier <- attrs.get("tier").flatMap(a => Option(a.getS))
         createdAt <- attrs.get("createdAt").flatMap(a => Option(a.getN).map(_.toLong))
       } yield Key(
         UserId(userId),
-        tier,
         consumerId,
+        tier,
         createdAt,
         attrs.get("remindedAt").flatMap(a => Option(a.getN)).map(_.toLong),
         attrs.get("extendedAt").flatMap(a => Option(a.getN)).map(_.toLong)

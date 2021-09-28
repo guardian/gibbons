@@ -28,28 +28,14 @@ class BonoboInterpreter(config: Settings,
                         dynamoClient: AmazonDynamoDBAsync,
                         httpClient: OkHttpClient,
                         urlGenerator: UrlGenerator)
-    extends BonoboService[Task] {
+    extends BonoboService[Task]{
 
 
   def getPotentiallyInactiveDeveloperKeys(createdBefore: Instant) =
     for {
-      _ <- logger.info(s"Getting all developer keys created before $createdBefore")
+      _ <- logger.info(s"Getting all developer keys created after $createdBefore")
       millis = createdBefore.toEpochMilli
-      _ <- logger.info(s"Millis: $millis")
-      devs <- getItems(keysTable, 'tier beginsWith "Dev")
-      _ <- logger.info(s"Devs: $devs")
-      developers <- getItems(keysTable, 'tier -> "Developer")
-      _ <- logger.info(s"Developers: $developers")
-      oldKeys <- getItems(keysTable, 'createdAt <= millis)
-      _ <- logger.info(s"Old Keys: $oldKeys")
-
-      andConditionKeys <- getItems(keysTable, AndCondition('createdAt <= millis, 'tier -> "Developer"))
-      _ <- logger.info(s"And Condition Keys: $andConditionKeys")
-
-      keys <- getItems(keysTable,
-        not(attributeExists('remindedAt)) and ('extendedAt <= millis or (not(
-          attributeExists('extendedAt)
-        ) and 'createdAt <= millis)) and ('tier beginsWith "Dev"))
+      keys <- getItems(keysTable, 'createdAt >= millis)
     } yield keys
 
   def getIgnoredReminderKeys(reminderDate: Instant) =

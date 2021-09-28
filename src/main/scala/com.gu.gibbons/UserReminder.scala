@@ -28,6 +28,8 @@ class UserReminder[F[_]: Monad](
     for {
       keys <- bonobo.getPotentiallyInactiveDeveloperKeys(now.minus(Settings.inactivityPeriod).toInstant)
       _ <- logger.info(s"Found ${keys.length} potentially inactive developer keys. ")
+      _ <- logger.info(s"Found these keys ${keys} ")
+
     } yield keys
 
   def processKey(now: OffsetDateTime)(key: Key): F[(UserId, Option[EmailResult])] = {
