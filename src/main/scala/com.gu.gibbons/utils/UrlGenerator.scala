@@ -1,14 +1,13 @@
 package com.gu.gibbons.utils
 
 import com.gu.gibbons.config.Settings
-import com.gu.gibbons.model.{ User, UserId }
-import java.time.Instant
+import com.gu.gibbons.model.{ UserId , Key}
 import java.security.{ MessageDigest, Security }
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 
 abstract class HashGenerator(md: MessageDigest) {
-  def params(user: User, salt: String): String =
-    s"h=${hash(UserId.unwrap(user.id), user.remindedAt.get, salt)}"
+  def params(key: Key, salt: String): String =
+    s"h=${hash(key.consumerId, key.remindedAt.get, salt)}"
 
   def hash(id: String, when: Long, salt: String): String = {
     val hash = id + when.toString + salt
@@ -17,12 +16,13 @@ abstract class HashGenerator(md: MessageDigest) {
 }
 
 class UrlGenerator(settings: Settings, md: MessageDigest) extends HashGenerator(md) {
-  private def url(action: String, user: User) =
-    s"${settings.bonoboUrl}/user/${UserId.unwrap(user.id)}/${action}?${params(user, settings.salt)}"
+  private def url(action: String, key: Key) =
+    s"${settings.bonoboUrl}/user/${key.consumerId}/${action}?${params(key, settings.salt)}"
 
-  def extend(user: User): String = url("extend", user)
+  def extendKey(key: Key): String = url("extend-key", key)
 
-  def delete(user: User): String = url("delete", user)
+  def deleteKey(key: Key): String = url("delete-key", key)
+
 }
 
 object UrlGenerator {

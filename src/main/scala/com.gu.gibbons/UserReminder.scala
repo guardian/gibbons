@@ -20,25 +20,22 @@ class UserReminder[F[_]: Monad](
   bonobo: BonoboService[F],
   override val logger: LoggingService[F]
 ) extends Script[F] {
-  import cats.instances.vector._
-  import cats.instances.map._
   import cats.syntax.flatMap._
   import cats.syntax.functor._
-  import cats.syntax.traverse._
-  import cats.syntax.foldable._
 
-  def getUsers(now: OffsetDateTime): F[Vector[User]] =
+
+  def getKeys(now: OffsetDateTime): F[Vector[Key]] =
     for {
-      users <- bonobo.getUsers(now.minus(Settings.inactivityPeriod).toInstant)
-      developerUsers <- bonobo.getDevelopers(users)
-      _ <- logger.info(s"Found ${users.length} users, ${developerUsers.length} are developers. ")
-    } yield developerUsers
+      keys <- bonobo.getPotentiallyInactiveDeveloperKeys(now.minus(Settings.inactivityPeriod).toInstant)
+      _ <- logger.info(s"Found ${keys.length} potentially inactive developer keys. ")
+    } yield keys
 
-  def processUser(now: OffsetDateTime)(user: User): F[(UserId, Option[EmailResult])] = {
+  def processKey(now: OffsetDateTime)(key: Key): F[(UserId, Option[EmailResult])] = {
     val nowL = now.toInstant.toEpochMilli
     for {
-      newUser <- bonobo.setRemindedOn(user, nowL)
-      res <- email.sendReminder(newUser)
-    } yield (newUser.id -> Some(res))
+      potentiallyInactiveKey <- bonobo.setRemindedAt(key, nowL)
+      potentiallyInactiveKeyOwner <- bonobo.getKeyOwner(potentiallyInactiveKey)
+      res <- email.sendReminder(potentiallyInactiveKeyOwner, potentiallyInactiveKey)
+    } yield (potentiallyInactiveKey.userId -> Some(res))
   }
 }

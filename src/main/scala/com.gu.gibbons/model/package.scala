@@ -15,4 +15,5 @@ package object model {
   }
 
   type UserId = UserId.T
+
 }

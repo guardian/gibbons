@@ -15,19 +15,18 @@ abstract class Script[F[_]: Monad] {
 
   def run(now: OffsetDateTime, dryRun: Boolean): F[Map[UserId, Option[EmailResult]]] =
     for {
-      users <- getUsers(now)
+      keys <- getKeys(now)
       _ <- logger.info(s"Dry run mode: ${dryRun}")
-      _ <- logger.info(s"Developer key owners: ${users.map(_.id).mkString(", ")}")
+      _ <- logger.info(s"Developer key owners: ${keys.map(_.userId).mkString(", ")}")
       ress <- if (dryRun) {
-        Monad[F].pure(users.map(_.id -> (None: Option[EmailResult])).toMap)
+        Monad[F].pure(keys.map(_.userId -> (None: Option[EmailResult])).toMap)
 
-
-      } else users.traverse(processUser(now)).map(_.toMap)
+      } else keys.traverse(processKey(now)).map(_.toMap)
       _ <- logger.info("aaaand that's a wrap! See you next time.")
     } yield ress
 
-  def getUsers(now: OffsetDateTime): F[Vector[User]]
+  def getKeys(now: OffsetDateTime): F[Vector[Key]]
 
-  def processUser(now: OffsetDateTime)(user: User): F[(UserId, Option[EmailResult])]
+  def processKey(now: OffsetDateTime)(key: Key): F[(UserId, Option[EmailResult])]
 
 }

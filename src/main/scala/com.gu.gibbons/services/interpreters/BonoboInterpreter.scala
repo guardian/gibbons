@@ -21,56 +21,51 @@ import com.gu.gibbons.model._
 import com.gu.gibbons.services._
 import com.gu.gibbons.utils._
 
+
+
 class BonoboInterpreter(config: Settings,
                         logger: LoggingService[Task],
                         dynamoClient: AmazonDynamoDBAsync,
                         httpClient: OkHttpClient,
                         urlGenerator: UrlGenerator)
-    extends BonoboService[Task] {
+    extends BonoboService[Task]{
 
-  def getUsers(creationDate: Instant) =
-    for {
-      _ <- logger.info(s"Getting all the users created before $creationDate")
-      millis = creationDate.toEpochMilli
-      users <- getItems(usersTable,
-                        not(attributeExists('remindedAt)) and ('extendedAt <= millis or (not(
-                          attributeExists('extendedAt)
-                        ) and 'createdAt <= millis)))
-    } yield users
 
-  def getDevelopers(users: Vector[User]) = {
-    val uss = users.grouped(99).toVector
+  def getPotentiallyInactiveDeveloperKeys(createdBefore: Instant) =
     for {
-      devKeys <- uss.foldMapM(
-        us =>
-          getItems(keysTable, AndCondition('bonoboId -> us.map(u => UserId.unwrap(u.id)).toSet,'tier -> "Developer"))
+      _ <- logger.info(s"Getting all developer keys created before $createdBefore")
+      millis = createdBefore.toEpochMilli
+      keys <- getItems(keysTable, ('createdAt <= millis) and
+        ('tier, "Developer") and
+        not(attributeExists('remindedAt)) and
+        (not(attributeExists('extendedAt)) or ('extendedAt <= millis))
       )
-      nonDevKeys <- uss.foldMapM(
-        us =>
-          getItems(keysTable, AndCondition('bonoboId -> us.map(u => UserId.unwrap(u.id)).toSet, not('tier -> "Developer")))
-      )
-      onlyDevelopers = devKeys.map(_.userId).toSet.diff(nonDevKeys.map(_.userId).toSet)
-    } yield users.filter(u => onlyDevelopers(u.id))
-  }
+    } yield keys
 
-  def getInactiveUsers(reminderDate: Instant) =
+  def getIgnoredReminderKeys(reminderDate: Instant) =
     for {
-      _ <- logger.info(s"Getting all the users reminded since $reminderDate")
+      _ <- logger.info(s"Getting all the keys whose owners were reminded since $reminderDate")
       millis = reminderDate.toEpochMilli
-      users <- getItems(usersTable, attributeExists('remindedAt) and 'remindedAt <= millis)
-    } yield users
+      keys <- getItems(keysTable, attributeExists('remindedAt) and 'remindedAt <= millis)
+    } yield keys
 
-  def setRemindedOn(user: User, when: Long) =
+  def setRemindedAt(key: Key, when: Long) =
     run {
-      usersTable.update('id -> UserId.unwrap(user.id), set('remindedAt -> when)).map(_ => ())
+      keysTable.update('id -> key.consumerId, set('remindedAt -> when)).map(_ => ())
     }.map { _ =>
-      user.copy(remindedAt = Some(when))
+      key.copy(remindedAt = Some(when))
     }
 
-  def deleteUser(user: User) =
+  def getKeyOwner(key: Key) = {
+    for {
+      user <- getItems(usersTable, 'id ->  UserId.unwrap(key.userId))
+    } yield user.toList.head
+  }
+
+  def deleteKey(key: Key) =
     Task.delay {
       val request = new Request.Builder()
-        .url(urlGenerator.delete(user))
+        .url(urlGenerator.deleteKey(key))
         .build
       httpClient.newCall(request).execute()
     }.bracket { response =>
@@ -84,9 +79,9 @@ class BonoboInterpreter(config: Settings,
       }
     }
 
-  private val usersTable = Table[User](config.usersTableName)
-
   private val keysTable = Table[Key](config.keysTableName)
+
+  private val usersTable = Table[User](config.usersTableName)
 
   private def run[A](program: ScanamoOps[A]): Task[A] = Task.deferFutureAction { implicit scheduler =>
     ScanamoAsync.exec(dynamoClient)(program)

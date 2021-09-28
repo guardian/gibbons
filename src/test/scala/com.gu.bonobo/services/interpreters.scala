@@ -9,29 +9,32 @@ import model._
 class BonoboServiceInterpreter extends BonoboService[TestProgram] {
   import cats.implicits._
 
-  def getUsers(creationDate: Instant): TestProgram[Vector[User]] =
-    State.get.map(_._1.filter { 
-      case (_, user) => creationDate.toEpochMilli >= user.extendedAt.getOrElse(user.createdAt)
+  def getPotentiallyInactiveDeveloperKeys(createdBefore: Instant): TestProgram[Vector[Key]] =
+    State.get.map(_._3.filter {
+      case (_, key) => createdBefore.toEpochMilli >= key.extendedAt.getOrElse(key.createdAt)
     }.values.toVector)
 
-  def getDevelopers(users: Vector[User]): TestProgram[Vector[User]] = State.pure(users)
-
-  def getInactiveUsers(reminderDate: Instant): TestProgram[Vector[User]] =
-    State.get.map(_._1.filter { 
-      case (_, user) => user.remindedAt.exists(r => reminderDate.toEpochMilli >= r)
+  def getIgnoredReminderKeys(remindedBefore: Instant): TestProgram[Vector[Key]] =
+    State.get.map(_._3.filter {
+      case (_, key) => remindedBefore.toEpochMilli >= key.remindedAt.getOrElse(key.createdAt)
     }.values.toVector)
 
-  def setRemindedOn(user: User, when: Long): TestProgram[User] = 
+  def getKeyOwner(key: Key): TestProgram[User] =
+    State.get.map(_._1.filter {
+      case (_, user) => user.id == key.userId
+    }.values.toVector.head)
+
+  def setRemindedAt(key: Key, when: Long): TestProgram[Key] =
     State.get.flatMap { case (users, emails, keys) =>
-      val newUser = users(user.id).copy(remindedAt = Some(when))
+      val newKey = keys(key.consumerId).copy(remindedAt = Some(when))
       for {
-        _ <- State.set((users.updated(user.id, newUser), emails, keys))
-      } yield newUser
+        _ <- State.set((users, emails, keys.updated(key.consumerId, newKey)))
+      } yield newKey
     }
 
-  def deleteUser(user: User): TestProgram[Unit] = for {
+  def deleteKey(key: Key): TestProgram[Unit] = for {
     s <- State.get
-    _ <- State.set((s._1 - user.id, s._2, s._3))
+    _ <- State.set((s._1, s._2, s._3 - key.consumerId))
   } yield ()
 }
 
@@ -58,7 +61,7 @@ class EmailServiceInterpreter extends EmailService[TestProgram] {
       |${user.email.email}""".stripMargin
   )
 
-  def sendReminder(user: User): TestProgram[EmailResult] = for { 
+  def sendReminder(user: User, key: Key): TestProgram[EmailResult] = for {
     s <- State.get
     _ <- State.set((s._1, s._2 + user.email, s._3))
   } yield result("Reminder email", user)

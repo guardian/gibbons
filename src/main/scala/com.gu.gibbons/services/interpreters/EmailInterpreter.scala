@@ -3,11 +3,9 @@ package com.gu.gibbons.services.interpreters
 import cats.syntax.flatMap._
 import com.amazonaws.handlers.AsyncHandler
 import com.amazonaws.services.simpleemail.model.{ Destination => SESDestination, Message => SESMessage, _ }
-import com.amazonaws.services.simpleemail.{ AmazonSimpleEmailServiceAsync, AmazonSimpleEmailServiceAsyncClientBuilder }
+import com.amazonaws.services.simpleemail.{ AmazonSimpleEmailServiceAsync }
 import monix.eval.{ Callback, Task }
 import monix.execution.Cancelable
-import monix.java8.eval._
-import scala.collection.JavaConverters._
 import scala.util.{ Failure, Success }
 
 import com.gu.gibbons.config._
@@ -20,8 +18,8 @@ final class EmailInterpreter(settings: Settings,
                              emailClient: AmazonSimpleEmailServiceAsync,
                              urlGenerator: UrlGenerator)
     extends EmailService[Task] {
-  def sendReminder(user: User) =
-    sendEmail(user, Settings.reminderSubject, reminderEmail(user))
+  def sendReminder(user: User, key: Key) =
+    sendEmail(user, Settings.reminderSubject, reminderEmail(user, key))
   def sendDeleted(user: User) =
     sendEmail(user, Settings.deletedSubject, deletedEmail(user))
 
@@ -54,6 +52,6 @@ final class EmailInterpreter(settings: Settings,
       Cancelable.empty
   }
 
-  private def reminderEmail(user: User) = html.reminder(user, urlGenerator).toString
+  private def reminderEmail(user: User, key: Key) = html.reminder(key: Key, user:User, urlGenerator).toString
   private def deletedEmail(user: User) = html.deleted(user).toString
 }
