@@ -33,9 +33,9 @@ class BonoboInterpreter(config: Settings,
 
   def getPotentiallyInactiveDeveloperKeys(createdBefore: Instant) =
     for {
-      _ <- logger.info(s"Getting all developer keys created after $createdBefore")
+      _ <- logger.info(s"Getting all developer keys created before $createdBefore")
       millis = createdBefore.toEpochMilli
-      keys <- getItems(keysTable, 'createdAt >= millis)
+      keys <- getItems(keysTable, 'createdAt <= millis)
     } yield keys
 
   def getIgnoredReminderKeys(reminderDate: Instant) =
