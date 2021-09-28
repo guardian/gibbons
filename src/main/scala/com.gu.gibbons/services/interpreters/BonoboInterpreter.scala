@@ -35,7 +35,11 @@ class BonoboInterpreter(config: Settings,
     for {
       _ <- logger.info(s"Getting all developer keys created before $createdBefore")
       millis = createdBefore.toEpochMilli
-      keys <- getItems(keysTable, ('createdAt <= millis) and ('tier, "Developer"))
+      keys <- getItems(keysTable, ('createdAt <= millis) and
+        ('tier, "Developer") and
+        not(attributeExists('remindedAt)) and
+        (not(attributeExists('extendedAt)) or ('extendedAt <= millis))
+      )
     } yield keys
 
   def getIgnoredReminderKeys(reminderDate: Instant) =
