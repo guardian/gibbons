@@ -7,15 +7,16 @@ import cats.syntax.traverse._
 import cats.syntax.show._
 import cats.instances.list._
 import cats.instances.vector._
+
 import java.time.Instant
 import monix.eval.Task
-import okhttp3.{ OkHttpClient, Request }
+import okhttp3.{OkHttpClient, Request}
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsync
+import com.amazonaws.services.dynamodbv2.document.PrimaryKey
 import com.gu.scanamo._
 import com.gu.scanamo.ops.ScanamoOps
-import com.gu.scanamo.query.{ AndCondition, ConditionExpression }
+import com.gu.scanamo.query.{AndCondition, ConditionExpression, UniqueKey}
 import com.gu.scanamo.syntax._
-
 import com.gu.gibbons.config._
 import com.gu.gibbons.model._
 import com.gu.gibbons.services._
@@ -48,7 +49,7 @@ class BonoboInterpreter(config: Settings,
 
   def setRemindedAt(key: Key, when: Long) =
     run {
-      keysTable.update('kongConsumerId -> key.consumerId, set('remindedAt -> when)).map(_ => ())
+      keysTable.update('rangeKey -> "1634115126000_2c2fd007-c704-43e0-9392-70deb1e9f2d3", set('remindedAt -> when)).map(_ => ())
     }.map { _ =>
       key.copy(remindedAt = Some(when))
     }
