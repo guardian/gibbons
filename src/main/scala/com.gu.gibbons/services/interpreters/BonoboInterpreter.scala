@@ -48,7 +48,7 @@ class BonoboInterpreter(config: Settings,
 
   def setRemindedAt(key: Key, when: Long) =
     run {
-      keysTable.update('id -> key.consumerId, set('remindedAt -> when)).map(_ => ())
+      keysTable.update('consumerId -> key.consumerId, set('remindedAt -> when)).map(_ => ())
     }.map { _ =>
       key.copy(remindedAt = Some(when))
     }

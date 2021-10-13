@@ -33,9 +33,13 @@ class UserReminder[F[_]: Monad](
   def processKey(now: OffsetDateTime)(key: Key): F[(UserId, Option[EmailResult])] = {
     val nowL = now.toInstant.toEpochMilli
     for {
+      _ <- logger.info(s"Key: ${key} ")
       potentiallyInactiveKey <- bonobo.setRemindedAt(key, nowL)
+      _ <- logger.info(s"Potentially Inactive Key: ${potentiallyInactiveKey} ")
       potentiallyInactiveKeyOwner <- bonobo.getKeyOwner(potentiallyInactiveKey)
+      _ <- logger.info(s"Potentially Inactive Key Owner: ${potentiallyInactiveKeyOwner} ")
       res <- email.sendReminder(potentiallyInactiveKeyOwner, potentiallyInactiveKey)
+      _ <- logger.info(s"Result: ${res} ")
     } yield (potentiallyInactiveKey.userId -> Some(res))
   }
 }
