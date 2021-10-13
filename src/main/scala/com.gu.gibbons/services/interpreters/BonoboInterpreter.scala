@@ -34,7 +34,7 @@ class BonoboInterpreter(config: Settings,
   def getPotentiallyInactiveDeveloperKeys(createdBefore: Instant) =
     for {
       _ <- logger.info(s"Getting all developer keys created before $createdBefore")
-      millis = createdBefore.toEpochMilli
+      millis = 1634115126000L
       keys <- getItems(keysTable, ('createdAt <= millis) and
         ('tier, "Developer") and
         not(attributeExists('remindedAt)) and
