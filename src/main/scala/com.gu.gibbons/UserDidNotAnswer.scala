@@ -33,8 +33,10 @@ class UserDidNotAnswer[F[_]: Monad](
 
   def processKey(now: OffsetDateTime)(key: Key): F[(UserId, Option[EmailResult])] =
     for {
+      _ <- logger.info(s"Key: ${key} ")
       _ <- bonobo.deleteKey(key)
       keyOwner <- bonobo.getKeyOwner(key)
+      _ <- logger.info(s"Key Owner: ${keyOwner}")
       res <- email.sendDeleted(keyOwner)
     } yield key.userId -> Some(res)
 
