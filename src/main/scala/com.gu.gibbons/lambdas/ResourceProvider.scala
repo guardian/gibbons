@@ -1,19 +1,22 @@
 package com.gu.gibbons.lambdas
 
-import com.amazonaws.services.dynamodbv2.{ AmazonDynamoDBAsync, AmazonDynamoDBAsyncClientBuilder }
-import com.amazonaws.services.simpleemail.{ AmazonSimpleEmailServiceAsync, AmazonSimpleEmailServiceAsyncClientBuilder }
+import com.amazonaws.services.dynamodbv2.{AmazonDynamoDBAsync, AmazonDynamoDBAsyncClientBuilder}
+import com.amazonaws.services.simpleemail.{AmazonSimpleEmailServiceAsync, AmazonSimpleEmailServiceAsyncClientBuilder}
 import com.gu.gibbons.config.Settings
 import com.gu.gibbons.services.interpreters.LoggingInterpreter
 import com.gu.gibbons.utils.UrlGenerator
+
 import java.util.concurrent.TimeUnit
 import monix.eval.Task
-import okhttp3.{ ConnectionPool, OkHttpClient }
+import okhttp3.{ConnectionPool, OkHttpClient}
+import utils.AWSConstants._
 
 trait ResourceProvider {
   def resources(settings: Settings, logger: LoggingInterpreter): Task[Resources] =
     Task.evalOnce {
       val emailClient = AmazonSimpleEmailServiceAsyncClientBuilder
         .standard()
+        .withCredentials(CredentialsProvider)
         .withRegion(settings.region)
         .build()
 
