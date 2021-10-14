@@ -9,14 +9,12 @@ import com.gu.gibbons.utils.UrlGenerator
 import java.util.concurrent.TimeUnit
 import monix.eval.Task
 import okhttp3.{ConnectionPool, OkHttpClient}
-import utils.AWSConstants._
 
 trait ResourceProvider {
   def resources(settings: Settings, logger: LoggingInterpreter): Task[Resources] =
     Task.evalOnce {
       val emailClient = AmazonSimpleEmailServiceAsyncClientBuilder
         .standard()
-        .withCredentials(CredentialsProvider)
         .withRegion(settings.region)
         .build()
 
