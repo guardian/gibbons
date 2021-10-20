@@ -19,9 +19,9 @@ class UrlGenerator(settings: Settings, md: MessageDigest) extends HashGenerator(
   private def url(action: String, key: Key) =
     s"${settings.bonoboUrl}/user/${key.consumerId}/${action}?${params(key, settings.salt)}"
 
-  def extendKey(key: Key): String = url("extend-key", key)
+  def extendKey(key: Key): String = url("extend", key)
 
-  def deleteKey(key: Key): String = url("delete-key", key)
+  def deleteKey(key: Key): String = url("delete", key)
 
 }
 

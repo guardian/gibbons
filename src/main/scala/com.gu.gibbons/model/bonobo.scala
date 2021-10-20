@@ -50,6 +50,7 @@ object User {
 /** Spurious wrapper to read from Dynamo */
 case class Key(
   userId: UserId,
+  rangeKey: String,
   consumerId: String,
   tier: String,
   createdAt: Long,
@@ -63,11 +64,13 @@ object Key {
       (for {
         attrs <- Option(av.getM).map(_.asScala)
         userId <- attrs.get("bonoboId").flatMap(a => Option(a.getS))
+        rangeKey <- attrs.get("rangekey").flatMap(a => Option(a.getS))
         consumerId <- attrs.get("kongConsumerId").flatMap(a => Option(a.getS))
         tier <- attrs.get("tier").flatMap(a => Option(a.getS))
         createdAt <- attrs.get("createdAt").flatMap(a => Option(a.getN).map(_.toLong))
       } yield Key(
         UserId(userId),
+        rangeKey,
         consumerId,
         tier,
         createdAt,
@@ -79,6 +82,7 @@ object Key {
     def write(k: Key) = new AttributeValue()
   }
   def create(id: String,
+             rangeKey: String,
              consumerId: String,
              tier: String,
              createdAt: String,
@@ -86,6 +90,7 @@ object Key {
              extendedAt: Option[String] = None) =
     Key(
       UserId(id),
+      rangeKey,
       consumerId,
       tier,
       Instant.parse(createdAt).toEpochMilli,
