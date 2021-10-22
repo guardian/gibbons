@@ -13,3 +13,4 @@ Both lambda's schedules are specified in `cloudformation.yaml`
 
 You can run Gibbons in dry mode by setting the environment variable DRY_RUN to true in the lambda configurations in AWS.
 
+
