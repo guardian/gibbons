@@ -2,14 +2,14 @@
 @import com.gu.gibbons.utils.UrlGenerator
 @(key: Key, user: User, gen: UrlGenerator)
 
-@shell("Your API key is about to expire") {
+@shell("Your Guardian API key is about to expire") {
   <table width="100%" cellpadding="0" cellspacing="0">
     <tr>
       <td class="content-block">
         <p>Dear @user.name,
           <br>
           <br>
-          GDPR requires The Guardian to delete API keys that are over 30 months old, unless the user confirms that they wish to keep using their key. If you wish to retain access to the Guardian's Content API, please confirm <a href="@gen.extendKey(key)">here</a>, or by copy-pasting the following URL in your browser:</p>
+          GDPR requires the Guardian to delete API keys that are over 30 months old, unless the user confirms that they wish to keep using their key. If you wish to retain access to the Guardian's Content API, please confirm <a href="@gen.extendKey(key)">here</a>, or by copy-pasting the following URL in your browser:</p>
           
         <p>@gen.extendKey(key)</p>
 
