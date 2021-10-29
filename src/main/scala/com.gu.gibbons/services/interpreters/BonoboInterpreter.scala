@@ -37,7 +37,6 @@ class BonoboInterpreter(config: Settings,
       millis = createdBefore.toEpochMilli
       keys <- getItems(keysTable, ('createdAt <= millis) and
         ('tier, "Developer") and
-        not(attributeExists('remindedAt)) and
         (not(attributeExists('extendedAt)) or ('extendedAt <= millis))
       )
     } yield keys
