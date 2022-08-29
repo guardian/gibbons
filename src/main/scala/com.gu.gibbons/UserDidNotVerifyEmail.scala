@@ -28,7 +28,7 @@ class UserDidNotVerifyEmail[F[_]: Monad](
 
   def getKeys(now: OffsetDateTime): F[Vector[Key]] = {
     for {
-      unverifiedUsers <- bonobo.getUnverifiedUsers(now.minus(Settings.userVerificationGracePeriod).toInstant)
+      unverifiedUsers <- bonobo.getUnverifiedUsers(now.minus(Settings.verificationGracePeriod).toInstant)
       _ <- logger.info(s"Found ${unverifiedUsers.length} unverified users.")
     } yield unverifiedUsers.map(user => bonobo.getKeysByOwner(user))
   }

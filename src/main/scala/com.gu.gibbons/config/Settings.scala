@@ -31,7 +31,8 @@ case class HttpSettings(
 
 object Settings {
   val inactivityPeriod = Period.ofMonths(30)
-  val gracePeriod = Period.ofWeeks(2)
+  val extensionGracePeriod = Period.ofWeeks(2)
+  val verificationGracePeriod = Period.ofDays(1)
   val reminderSubject = "Your Content API keys are about to expire"
   val deletedSubject = "Your Content API keys have been deleted"
 
