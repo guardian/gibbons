@@ -49,6 +49,13 @@ class BonoboInterpreter(config: Settings,
       keys <- getItems(keysTable, attributeExists('remindedAt) and 'remindedAt <= millis)
     } yield keys
 
+  def getUnverifiedUsers(verificationSent: Instant): Task[Vector[User]] =
+    for {
+    _ <- logger.info(s"Getting all the users who were sent verification emails before $verificationSent")
+    millis = verificationSent.toEpochMilli
+    users <- getItems(usersTable, attributeExists('verificationSentAt) and 'verificationSentAt <= millis)
+  } yield users
+
   def setRemindedAt(key: Key, when: Long) =
     run {
       keysTable.update('hashkey -> "hashkey" and 'rangekey -> key.rangeKey, set('remindedAt -> when)).map(_ => ())
@@ -60,6 +67,12 @@ class BonoboInterpreter(config: Settings,
     for {
       user <- getItems(usersTable, 'id ->  UserId.unwrap(key.userId))
     } yield user.toList.head
+  }
+
+  def getKeysByOwner(user: User): Task[Vector[Key]] = {
+    for {
+      keys <- getItems(keysTable, 'bonoboId -> UserId.unwrap(user.id))
+    } yield keys
   }
 
   def deleteKey(key: Key) =
@@ -95,4 +108,5 @@ class BonoboInterpreter(config: Settings,
         _ <- results.collect { case Left(error) => error }.traverse(error => logger.warn(error.show))
       } yield results.collect { case Right(a) => a }.toVector
     }
+
 }
