@@ -4,4 +4,4 @@ package lambdas
 import monix.eval.Task
 import monix.execution.Scheduler.Implicits.global
 
-class UserDidNotVerifyEmailLambda extends GenericLambda(new UserDidNotVerifyEmail(_, _, _, _))
+class UnverifiedUserLambda extends GenericLambda(new UnverifiedUser(_, _, _, _))

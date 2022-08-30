@@ -15,7 +15,7 @@ import services._
  * @param bonobo The bonobo service interpreter
  * @param logger The logging service interpreter
  */
-class UserDidNotVerifyEmail[F[_]: Monad](
+class UnverifiedUser[F[_]: Monad](
     settings: Settings,
     email: EmailService[F],
     bonobo: BonoboService[F],

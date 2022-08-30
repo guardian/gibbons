@@ -53,7 +53,7 @@ class BonoboInterpreter(config: Settings,
     for {
     _ <- logger.info(s"Getting all the users who were sent verification emails before $verificationSent")
     millis = verificationSent.toEpochMilli
-    users <- getItems(usersTable, attributeExists('verificationSentAt) and 'verificationSentAt <= millis)
+    users <- getItems(usersTable, attributeExists('verificationSentAt) and 'verificationSentAt <= millis and ('verified, false))
   } yield users
 
   def setRemindedAt(key: Key, when: Long) =
