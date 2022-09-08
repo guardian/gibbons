@@ -32,15 +32,15 @@ package object fixtures {
     ).map(key => key.consumerId -> key): _*)
 
     val users: Map[UserId, User] = Map(Seq(
-        User.create("user0", "Florence Bowen", "florence.bowen@domain.com"),
-        User.create("user1", "Margaret Woolley", "margaret.woolley@domain.com"),
-        User.create("user2", "Ruth Clay", "ruth.clay@domain.com"),
-        User.create("user3", "Anna Derrick", "anna.derrick@domain.com"),
-        User.create("user4", "Frances Li", "frances.li@domain.com"),
-        User.create("user5", "Mildred Blundell", "mildred.blundell@domain.com"),
-        User.create("user6", "Elizabeth Blaese", "elizabeth.blaese@domain.com"),
-        User.create("user7", "Marie Wolfe", "marie.wolfe@domain.com"),
-        User.create("user8", "Dorothy Robbins", "dorothy.robbins@domain.com"),
-        User.create("user9", "Mary Allen", "mary.allen@domain.com")
+        User.create("user0", "Florence Bowen", "florence.bowen@domain.com","2012-04-25T10:15:30.00Z"),
+        User.create("user1", "Margaret Woolley", "margaret.woolley@domain.com","2015-08-25T10:15:30.00Z", Some("2015-08-25T10:15:30.00Z"), Some("false")),
+        User.create("user2", "Ruth Clay", "ruth.clay@domain.com","2012-04-25T10:15:30.00Z"),
+        User.create("user3", "Anna Derrick", "anna.derrick@domain.com", "2003-02-25T10:15:30.00Z", Some("2017-08-25T10:15:30.00Z"), Some("false")),
+        User.create("user4", "Frances Li", "frances.li@domain.com","2012-04-25T10:15:30.00Z"),
+        User.create("user5", "Mildred Blundell", "mildred.blundell@domain.com","2012-04-25T10:15:30.00Z", Some("2015-08-25T10:15:30.00Z"), Some("false")),
+        User.create("user6", "Elizabeth Blaese", "elizabeth.blaese@domain.com","2012-04-25T10:15:30.00Z", Some("2017-08-25T10:15:30.00Z"), Some("false")),
+        User.create("user7", "Marie Wolfe", "marie.wolfe@domain.com","2012-04-25T10:15:30.00Z", Some("2015-08-25T10:15:30.00Z"), Some("false")),
+        User.create("user8", "Dorothy Robbins", "dorothy.robbins@domain.com","2012-04-25T10:15:30.00Z"),
+        User.create("user9", "Mary Allen", "mary.allen@domain.com","2012-04-25T10:15:30.00Z", Some("2015-08-25T10:15:30.00Z"), Some("false"))
     ).map(user => user.id -> user): _*)
 }
