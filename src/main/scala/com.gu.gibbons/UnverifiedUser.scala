@@ -24,13 +24,15 @@ class UnverifiedUser[F[_]: Monad](
 
   import cats.syntax.functor._
   import cats.syntax.flatMap._
-
+  import cats.instances.vector._
+  import cats.syntax.traverse._
 
   def getKeys(now: OffsetDateTime): F[Vector[Key]] = {
     for {
       unverifiedUsers <- bonobo.getUnverifiedUsers(now.minus(Settings.verificationGracePeriod).toInstant)
       _ <- logger.info(s"Found ${unverifiedUsers.length} unverified users.")
-    } yield unverifiedUsers.map(user => bonobo.getKeysByOwner(user))
+      unverifiedUserKeys <- unverifiedUsers.traverse(bonobo.getKeysByOwner(_))
+    } yield unverifiedUserKeys.flatten
   }
 
   def processKey(now: OffsetDateTime)(key: Key): F[(UserId, Option[EmailResult])] =
