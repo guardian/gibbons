@@ -55,7 +55,8 @@ case class Key(
   tier: String,
   createdAt: Long,
   remindedAt: Option[Long],
-  extendedAt: Option[Long])
+  extendedAt: Option[Long],
+  lastUsedAt: Option[Long])
 
 
 object Key {
@@ -75,7 +76,8 @@ object Key {
         tier,
         createdAt,
         attrs.get("remindedAt").flatMap(a => Option(a.getN)).map(_.toLong),
-        attrs.get("extendedAt").flatMap(a => Option(a.getN)).map(_.toLong)
+        attrs.get("extendedAt").flatMap(a => Option(a.getN)).map(_.toLong),
+        attrs.get("lastUsedAt").flatMap(a => Option(a.getN)).map(_.toLong),
       )).fold(Left(MissingProperty): Either[DynamoReadError, Key])(Right(_))
 
     // will never happen
@@ -87,7 +89,8 @@ object Key {
              tier: String,
              createdAt: String,
              remindedAt: Option[String] = None,
-             extendedAt: Option[String] = None) =
+             extendedAt: Option[String] = None,
+             lastUsedAt: Option[String] = None) =
     Key(
       UserId(id),
       rangeKey,
@@ -95,6 +98,7 @@ object Key {
       tier,
       Instant.parse(createdAt).toEpochMilli,
       remindedAt.map(Instant.parse(_)).map(_.toEpochMilli),
-      extendedAt.map(Instant.parse(_)).map(_.toEpochMilli)
+      extendedAt.map(Instant.parse(_)).map(_.toEpochMilli),
+      lastUsedAt.map(Instant.parse(_)).map(_.toEpochMilli),
     )
 }
