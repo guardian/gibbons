@@ -7,7 +7,7 @@ deployments:
     type: aws-lambda
     parameters:
       fileName: gibbons.jar
-      bucket: content-api-dist
+      bucketSsmLookup: true
       functions:
         CODE:
           name: gibbons-reminder-CODE
@@ -19,7 +19,7 @@ deployments:
     type: aws-lambda
     parameters:
       fileName: gibbons.jar
-      bucket: content-api-dist
+      bucketSsmLookup: true
       functions:
         CODE:
           name: gibbons-cleanup-CODE
