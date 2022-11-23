@@ -8,8 +8,8 @@ import model._
 import services._
 // ------------------------------------------------------------------------
 
-/** Deletes keys for users who have been sent a verification email but failed to
- * verify within 24 hours
+/** Deletes users who have been sent a verification email but failed to
+ * verify within 24 hours and their keys
  *
  * @param email The email service interpreter
  * @param bonobo The bonobo service interpreter
@@ -37,7 +37,8 @@ class UnverifiedUser[F[_]: Monad](
 
   def processKey(now: OffsetDateTime)(key: Key): F[(UserId, Option[EmailResult])] =
     for {
-      _ <- bonobo.deleteKey(key)
+      owner <- bonobo.getKeyOwner(key)
+      _ <- bonobo.deleteUserAndKey(owner)
     } yield key.userId -> None
 
 }

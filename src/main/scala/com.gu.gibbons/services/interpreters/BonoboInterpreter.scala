@@ -92,6 +92,23 @@ class BonoboInterpreter(config: Settings,
       }
     }
 
+  def deleteUserAndKey(user: User): Task[Unit] =
+    Task.delay {
+      val request = new Request.Builder()
+        .url(urlGenerator.deleteUserAndKey(user))
+        .build
+      httpClient.newCall(request).execute()
+    }.bracket { response =>
+      response.code match {
+        case 200 => Task(())
+        case _ => Task.raiseError(new Throwable(s"Call to Bonobo failed with ${response.message}: ${response.body}"))
+      }
+    } { response =>
+      Task {
+        response.close()
+      }
+    }
+
   private val keysTable = Table[Key](config.keysTableName)
 
   private val usersTable = Table[User](config.usersTableName)
@@ -108,5 +125,6 @@ class BonoboInterpreter(config: Settings,
         _ <- results.collect { case Left(error) => error }.traverse(error => logger.warn(error.show))
       } yield results.collect { case Right(a) => a }.toVector
     }
+
 
 }

@@ -58,4 +58,10 @@ trait BonoboService[F[_]] {
    */
   def deleteKey(key: Key): F[Unit]
 
+  /** Deletes a user and all their keys
+   *
+   * @param user The User to be deleted
+   */
+  def deleteUserAndKey(user: User): F[Unit]
+
 }
