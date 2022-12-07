@@ -36,3 +36,6 @@ deployments:
         CODE:
           name: gibbons-unverified-cleanup-CODE
           filename: gibbons.jar
+        PROD:
+          name: gibbons-unverified-cleanup-PROD
+          filename: gibbons.jar
