@@ -47,7 +47,7 @@ class BonoboServiceInterpreter extends BonoboService[TestProgram] {
     _ <- State.set((s._1, s._2, s._3 - key.consumerId))
   } yield ()
 
-  def deleteUserAndKey(user: User): TestProgram[Unit] = ???
+  def deleteUnverifiedUserAndKeys(user: User): TestProgram[Unit] = ???
 }
 
 class LoggingServiceInterpreter extends LoggingService[TestProgram] {

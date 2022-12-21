@@ -38,7 +38,7 @@ class UnverifiedUser[F[_]: Monad](
   def processKey(now: OffsetDateTime)(key: Key): F[(UserId, Option[EmailResult])] =
     for {
       owner <- bonobo.getKeyOwner(key)
-      _ <- bonobo.deleteUserAndKey(owner)
+      _ <- bonobo.deleteUnverifiedUserAndKeys(owner)
     } yield key.userId -> None
 
 }

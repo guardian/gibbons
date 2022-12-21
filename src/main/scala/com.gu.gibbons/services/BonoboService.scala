@@ -62,6 +62,6 @@ trait BonoboService[F[_]] {
    *
    * @param user The User to be deleted
    */
-  def deleteUserAndKey(user: User): F[Unit]
+  def deleteUnverifiedUserAndKeys(user: User): F[Unit]
 
 }

@@ -27,7 +27,7 @@ class UrlGenerator(settings: Settings, md: MessageDigest) extends HashGenerator(
 
   def deleteKey(key: Key): String = keyUrl("delete", key)
 
-  def deleteUserAndKey(user: User): String = userUrl("unverified", user)
+  def deleteUnverifiedUserAndKeys(user: User): String = userUrl("unverified", user)
 
 }
 

@@ -92,10 +92,10 @@ class BonoboInterpreter(config: Settings,
       }
     }
 
-  def deleteUserAndKey(user: User): Task[Unit] =
+  def deleteUnverifiedUserAndKeys(user: User): Task[Unit] =
     Task.delay {
       val request = new Request.Builder()
-        .url(urlGenerator.deleteUserAndKey(user))
+        .url(urlGenerator.deleteUnverifiedUserAndKeys(user))
         .build
       httpClient.newCall(request).execute()
     }.bracket { response =>
