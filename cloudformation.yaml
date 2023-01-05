@@ -110,3 +110,17 @@ Resources:
                     Properties:
                         Schedule: cron(12 14 * * ? *) # run daily at 14:12
         DependsOn: LambdaRole
+
+    UnverifiedUserLambda:
+        Type: AWS::Serverless::Function
+        Properties:
+            FunctionName: !Sub gibbons-unverified-cleanup-${Stage}
+            Description: Lambda for cleaning up unverified users and their keys
+            Handler: com.gu.gibbons.lambdas.UnverifiedUserLambda::handleRequest
+            Role: !Sub ${LambdaRole.Arn}
+            Events:
+                ScheduleLambda:
+                    Type: Schedule
+                    Properties:
+                        Schedule: cron(12 14 * * ? *) # run daily at 14:12
+        DependsOn: LambdaRole

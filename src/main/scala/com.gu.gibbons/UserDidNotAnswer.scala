@@ -27,7 +27,7 @@ class UserDidNotAnswer[F[_]: Monad](
 
   def getKeys(now: OffsetDateTime): F[Vector[Key]] =
     for {
-      inactiveKeys <- bonobo.getIgnoredReminderKeys(now.minus(Settings.gracePeriod).toInstant)
+      inactiveKeys <- bonobo.getIgnoredReminderKeys(now.minus(Settings.extensionGracePeriod).toInstant)
       _ <- logger.info(s"Found ${inactiveKeys.length} inactive developer keys. ")
     } yield inactiveKeys
 

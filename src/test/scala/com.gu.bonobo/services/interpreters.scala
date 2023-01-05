@@ -19,6 +19,16 @@ class BonoboServiceInterpreter extends BonoboService[TestProgram] {
       case (_, key) => remindedBefore.toEpochMilli >= key.remindedAt.getOrElse(key.createdAt)
     }.values.toVector)
 
+  def getUnverifiedUsers(verificationSentBefore: Instant): TestProgram[Vector[User]] =
+    State.get.map(_._1.filter {
+      case (_, user) => verificationSentBefore.toEpochMilli >= user.verificationSentAt.getOrElse(user.createdAt)
+    }.values.toVector)
+
+  def getKeysByOwner(user: User): TestProgram[Vector[Key]] =
+    State.get.map(_._3.filter {
+      case (_, key) => key.userId == user.id
+    }.values.toVector)
+
   def getKeyOwner(key: Key): TestProgram[User] =
     State.get.map(_._1.filter {
       case (_, user) => user.id == key.userId
@@ -36,6 +46,8 @@ class BonoboServiceInterpreter extends BonoboService[TestProgram] {
     s <- State.get
     _ <- State.set((s._1, s._2, s._3 - key.consumerId))
   } yield ()
+
+  def deleteUnverifiedUserAndKeys(user: User): TestProgram[Unit] = ???
 }
 
 class LoggingServiceInterpreter extends LoggingService[TestProgram] {

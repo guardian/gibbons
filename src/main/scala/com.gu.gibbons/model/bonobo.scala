@@ -15,7 +15,10 @@ import scala.collection.JavaConverters._
 case class User(
   id: UserId,
   name: String,
-  email: Email
+  email: Email,
+  createdAt: Long,
+  verificationSentAt: Option[Long],
+  verified: Option[Boolean]
 )
 
 object User {
@@ -26,11 +29,15 @@ object User {
         id <- attrs.get("id").flatMap(a => Option(a.getS))
         email <- attrs.get("email").flatMap(a => Option(a.getS))
         name <- attrs.get("name").flatMap(a => Option(a.getS))
+        createdAt <- attrs.get("createdAt").flatMap(a => Option(a.getN).map(_.toLong))
       } yield
         User(
           UserId(id),
           name,
           Email(email, Some(name)),
+          createdAt,
+          attrs.get("verificationSentAt").flatMap(a => Option(a.getN)).map(_.toLong),
+          attrs.get("verified").flatMap(a => Option(a.getN)).map(_.toBoolean),
         )).fold(Left(MissingProperty): Either[DynamoReadError, User])(Right(_))
 
     // we will never add a new record
@@ -39,11 +46,18 @@ object User {
 
   def create(id: String,
              name: String,
-             email: String) =
+             email: String,
+             createdAt: String,
+             verificationSentAt: Option[String] = None,
+             verified: Option[String] = None
+            ) =
     User(
       UserId(id),
       name,
       Email(email),
+      Instant.parse(createdAt).toEpochMilli,
+      verificationSentAt.map(Instant.parse(_)).map(_.toEpochMilli),
+      verified.map(_.toBoolean)
     )
 }
 

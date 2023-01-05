@@ -49,6 +49,13 @@ class BonoboInterpreter(config: Settings,
       keys <- getItems(keysTable, attributeExists('remindedAt) and 'remindedAt <= millis)
     } yield keys
 
+  def getUnverifiedUsers(verificationSent: Instant): Task[Vector[User]] =
+    for {
+    _ <- logger.info(s"Getting all the users who were sent verification emails before $verificationSent")
+    millis = verificationSent.toEpochMilli
+    users <- getItems(usersTable, attributeExists('verificationSentAt) and 'verificationSentAt <= millis and ('verified, false))
+  } yield users
+
   def setRemindedAt(key: Key, when: Long) =
     run {
       keysTable.update('hashkey -> "hashkey" and 'rangekey -> key.rangeKey, set('remindedAt -> when)).map(_ => ())
@@ -62,6 +69,12 @@ class BonoboInterpreter(config: Settings,
     } yield user.toList.head
   }
 
+  def getKeysByOwner(user: User): Task[Vector[Key]] = {
+    for {
+      keys <- getItems(keysTable, 'bonoboId -> UserId.unwrap(user.id))
+    } yield keys
+  }
+
   def deleteKey(key: Key) =
     Task.delay {
       val request = new Request.Builder()
@@ -72,6 +85,23 @@ class BonoboInterpreter(config: Settings,
       response.code match {
         case 200 => Task(())
         case _   => Task.raiseError(new Throwable(s"Call to Bonobo failed with ${response.message}: ${response.body}"))
+      }
+    } { response =>
+      Task {
+        response.close()
+      }
+    }
+
+  def deleteUnverifiedUserAndKeys(user: User): Task[Unit] =
+    Task.delay {
+      val request = new Request.Builder()
+        .url(urlGenerator.deleteUnverifiedUserAndKeys(user))
+        .build
+      httpClient.newCall(request).execute()
+    }.bracket { response =>
+      response.code match {
+        case 200 => Task(())
+        case _ => Task.raiseError(new Throwable(s"Call to Bonobo failed with ${response.message}: ${response.body}"))
       }
     } { response =>
       Task {
@@ -95,4 +125,6 @@ class BonoboInterpreter(config: Settings,
         _ <- results.collect { case Left(error) => error }.traverse(error => logger.warn(error.show))
       } yield results.collect { case Right(a) => a }.toVector
     }
+
+
 }

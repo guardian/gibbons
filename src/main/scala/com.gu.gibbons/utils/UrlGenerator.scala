@@ -1,12 +1,13 @@
 package com.gu.gibbons.utils
 
 import com.gu.gibbons.config.Settings
-import com.gu.gibbons.model.{ UserId , Key}
-import java.security.{ MessageDigest, Security }
+import com.gu.gibbons.model.{Key, User, UserId}
+
+import java.security.{MessageDigest, Security}
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 
 abstract class HashGenerator(md: MessageDigest) {
-  def params(key: Key, salt: String): String =
+  def keyParams(key: Key, salt: String): String =
     s"h=${hash(key.consumerId, key.remindedAt.get, salt)}"
 
   def hash(id: String, when: Long, salt: String): String = {
@@ -16,12 +17,17 @@ abstract class HashGenerator(md: MessageDigest) {
 }
 
 class UrlGenerator(settings: Settings, md: MessageDigest) extends HashGenerator(md) {
-  private def url(action: String, key: Key) =
-    s"${settings.bonoboUrl}/user/${key.consumerId}/${action}?${params(key, settings.salt)}"
+  private def keyUrl(action: String, key: Key) =
+    s"${settings.bonoboUrl}/user/${key.consumerId}/${action}?${keyParams(key, settings.salt)}"
 
-  def extendKey(key: Key): String = url("extend", key)
+  private def userUrl(action: String, user: User) =
+    s"${settings.bonoboUrl}/user/${UserId.unwrap(user.id)}/${action}"
 
-  def deleteKey(key: Key): String = url("delete", key)
+  def extendKey(key: Key): String = keyUrl("extend", key)
+
+  def deleteKey(key: Key): String = keyUrl("delete", key)
+
+  def deleteUnverifiedUserAndKeys(user: User): String = userUrl("unverified", user)
 
 }
 

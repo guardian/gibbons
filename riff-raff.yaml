@@ -27,3 +27,15 @@ deployments:
         PROD:
           name: gibbons-cleanup-PROD
           filename: gibbons.jar
+  gibbons-unverified-cleanup:
+    type: aws-lambda
+    parameters:
+      fileName: gibbons.jar
+      bucket: content-api-dist
+      functions:
+        CODE:
+          name: gibbons-unverified-cleanup-CODE
+          filename: gibbons.jar
+        PROD:
+          name: gibbons-unverified-cleanup-PROD
+          filename: gibbons.jar
