@@ -16,6 +16,7 @@ lazy val root = (project in file("."))
       )
     ),
     assembly / assemblyMergeStrategy  := {
+      case PathList("META-INF", "versions", "9", "module-info.class") => MergeStrategy.first
       case PathList(ps @ _*) if ps.last == "Log4j2Plugins.dat" => Log4j2MergeStrategy.plugincache
       case x =>
         val oldStrategy = (assembly / assemblyMergeStrategy).value
@@ -31,7 +32,11 @@ lazy val root = (project in file("."))
       lambdaLog4J,
       log4jCore,
       log4jApi,
+      jacksonDatabind,
       scalaTest % Test
-    ) ++ monix ++ circe ++ aws
+    ) ++ monix ++ circe ++ aws,
+    dependencyOverrides ++= Seq(
+      "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % "2.14.2",
+    )
   )
   .enablePlugins(SbtTwirl)

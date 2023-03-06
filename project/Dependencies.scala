@@ -4,11 +4,12 @@ object Dependencies {
   lazy val scalaTest = "org.scalatest"            %% "scalatest"             % "3.0.5"
   lazy val cats = "org.typelevel"                 %% "cats-core"             % "1.1.0"
   lazy val lambdaLog4J = "com.amazonaws"          % "aws-lambda-java-log4j2" % "1.4.0"
-  lazy val log4jCore = "org.apache.logging.log4j" % "log4j-core"             % "2.16.0"
-  lazy val log4jApi = "org.apache.logging.log4j"  % "log4j-api"              % "2.16.0"
+  lazy val log4jCore = "org.apache.logging.log4j" % "log4j-core"             % "2.20.0"
+  lazy val log4jApi = "org.apache.logging.log4j"  % "log4j-api"              % "2.20.0"
   lazy val scanamo = "com.gu"                     %% "scanamo"               % "1.0.0-M7"
-  lazy val okhttp = "com.squareup.okhttp3"        % "okhttp"                 % "3.10.0"
-  lazy val bouncyCastle = "org.bouncycastle"      % "bcpkix-jdk15on"         % "1.59"
+  lazy val okhttp = "com.squareup.okhttp3"        % "okhttp"                 % "4.10.0"
+  lazy val bouncyCastle = "org.bouncycastle"      % "bcpkix-jdk15on"         % "1.70"
+  lazy val jacksonDatabind = "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.2"
 
   val awsVersion = "1.11.319"
   lazy val aws = Seq(
