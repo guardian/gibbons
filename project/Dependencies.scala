@@ -9,7 +9,6 @@ object Dependencies {
   lazy val scanamo = "com.gu"                     %% "scanamo"               % "1.0.0-M7"
   lazy val okhttp = "com.squareup.okhttp3"        % "okhttp"                 % "4.10.0"
   lazy val bouncyCastle = "org.bouncycastle"      % "bcpkix-jdk15on"         % "1.70"
-  lazy val jacksonDatabind = "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.2"
 
   val awsVersion = "1.11.319"
   lazy val aws = Seq(

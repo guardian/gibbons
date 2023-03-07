@@ -32,11 +32,11 @@ lazy val root = (project in file("."))
       lambdaLog4J,
       log4jCore,
       log4jApi,
-      jacksonDatabind,
       scalaTest % Test
     ) ++ monix ++ circe ++ aws,
     dependencyOverrides ++= Seq(
-      "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % "2.14.2",
+       "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.2",
+       "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % "2.14.2",
     )
   )
   .enablePlugins(SbtTwirl)
