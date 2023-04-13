@@ -31,7 +31,7 @@ deployments:
     type: aws-lambda
     parameters:
       fileName: gibbons.jar
-      bucket: content-api-dist
+      bucketSsmLookup: true
       functions:
         CODE:
           name: gibbons-unverified-cleanup-CODE
