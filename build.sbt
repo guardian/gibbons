@@ -40,3 +40,5 @@ lazy val root = (project in file("."))
     )
   )
   .enablePlugins(SbtTwirl)
+
+Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-u", sys.env.getOrElse("SBT_JUNIT_OUTPUT", "junit"))
