@@ -43,8 +43,8 @@ Globals:
         CodeUri:
             Bucket: content-api-dist
             Key: !Sub ${Stack}/${Stage}/${App}-reminder/${App}.jar
-        MemorySize: 384
-        Runtime: java8
+        MemorySize: 512
+        Runtime: java11
         Timeout: 100
 Resources:
     LambdaRole:

@@ -7,7 +7,7 @@ lazy val root = (project in file("."))
     inThisBuild(
       List(
         organization := "com.gu",
-        scalaVersion := "2.12.5",
+        scalaVersion := "2.12.18",
         scalacOptions ++= Seq(
           "-Ypartial-unification",
           "-language:higherKinds",
