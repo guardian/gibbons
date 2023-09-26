@@ -1,15 +1,16 @@
 package com.gu.gibbons
 package config
 
-import cats.data.{ Validated, ValidatedNel }
+import cats.data.{Validated, ValidatedNel}
 import cats.implicits._
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.regions.Regions
-import java.time.Period
+import java.time.{Period, Instant}
 import scala.collection.JavaConverters._
 import scala.util.Try
-
 import model.Email
+
+
 
 case class Settings(
   region: Regions,
@@ -30,7 +31,19 @@ case class HttpSettings(
 )
 
 object Settings {
-  val inactivityPeriod = Period.ofMonths(30)
+  // We want to gradually decrease the inactivity period from 30 months to 3 months to avoid suddenly having 15k exipiring keys.
+  // This code is meant to run from September 26, 2023 to October 22, 2023 after which lines 27 to 44 should be removed
+  def inactivityPeriod = {
+    val now =  java.time.LocalDate.now
+    val dayOfMonth = now.getDayOfMonth
+    val month = now.getMonth.getValue
+
+    if (dayOfMonth >= 26 && month == 9) {
+      Period.ofMonths(30 - dayOfMonth + 25)
+    } else if (now.getDayOfMonth <= 22 && month == 10) {
+      Period.ofMonths(30 - dayOfMonth - 5)
+    } else Period.ofMonths(3)
+  }
   val extensionGracePeriod = Period.ofWeeks(2)
   val verificationGracePeriod = Period.ofDays(1)
   val reminderSubject = "Your Content API keys are about to expire"
