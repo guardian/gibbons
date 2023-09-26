@@ -5,7 +5,7 @@ import cats.data.{Validated, ValidatedNel}
 import cats.implicits._
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.regions.Regions
-import java.time.{Period, Instant}
+import java.time.Period
 import scala.collection.JavaConverters._
 import scala.util.Try
 import model.Email
@@ -32,7 +32,7 @@ case class HttpSettings(
 
 object Settings {
   // We want to gradually decrease the inactivity period from 30 months to 3 months to avoid suddenly having 15k exipiring keys.
-  // This code is meant to run from September 26, 2023 to October 22, 2023 after which lines 27 to 44 should be removed
+  // This code is meant to run from September 26, 2023 to October 22, 2023 after which lines 37 to 44 should be removed
   def inactivityPeriod = {
     val now =  java.time.LocalDate.now
     val dayOfMonth = now.getDayOfMonth
