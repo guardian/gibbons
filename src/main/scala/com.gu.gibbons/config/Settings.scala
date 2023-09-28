@@ -1,15 +1,16 @@
 package com.gu.gibbons
 package config
 
-import cats.data.{ Validated, ValidatedNel }
+import cats.data.{Validated, ValidatedNel}
 import cats.implicits._
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.regions.Regions
 import java.time.Period
 import scala.collection.JavaConverters._
 import scala.util.Try
-
 import model.Email
+
+
 
 case class Settings(
   region: Regions,
