@@ -31,19 +31,7 @@ case class HttpSettings(
 )
 
 object Settings {
-  // We want to gradually decrease the inactivity period from 30 months to 3 months to avoid suddenly having 15k exipiring keys.
-  // This code is meant to run from September 26, 2023 to October 22, 2023 after which lines 37 to 44 should be removed
-  def inactivityPeriod = {
-    val now =  java.time.LocalDate.now
-    val dayOfMonth = now.getDayOfMonth
-    val month = now.getMonth.getValue
-
-    if (dayOfMonth >= 26 && month == 9) {
-      Period.ofMonths(30 - dayOfMonth + 25)
-    } else if (now.getDayOfMonth <= 22 && month == 10) {
-      Period.ofMonths(30 - dayOfMonth - 5)
-    } else Period.ofMonths(3)
-  }
+  val inactivityPeriod = Period.ofMonths(30)
   val extensionGracePeriod = Period.ofWeeks(2)
   val verificationGracePeriod = Period.ofDays(1)
   val reminderSubject = "Your Content API keys are about to expire"
