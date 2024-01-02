@@ -31,11 +31,11 @@ class BonoboInterpreter(config: Settings,
     extends BonoboService[Task]{
 
 
-  def getPotentiallyInactiveDeveloperKeys(createdBefore: Instant) =
+  def getPotentiallyInactiveDeveloperKeys(lastUsedBefore: Instant) =
     for {
-      _ <- logger.info(s"Getting all developer keys created before $createdBefore")
-      millis = createdBefore.toEpochMilli
-      keys <- getItems(keysTable, ('createdAt <= millis) and
+      _ <- logger.info(s"Getting all developer keys last used before $lastUsedBefore")
+      millis = lastUsedBefore.toEpochMilli
+      keys <- getItems(keysTable, ('lastUsedTimestamp <= millis) and
         ('tier, "Developer") and
         not(attributeExists('remindedAt)) and
         (not(attributeExists('extendedAt)) or ('extendedAt <= millis))
