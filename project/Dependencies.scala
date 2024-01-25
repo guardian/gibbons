@@ -10,7 +10,7 @@ object Dependencies {
   lazy val okhttp = "com.squareup.okhttp3"        % "okhttp"                 % "4.10.0"
   lazy val bouncyCastle = "org.bouncycastle"      % "bcpkix-jdk18on"         % "1.77"
 
-  val awsVersion = "1.11.319"
+  val awsVersion = "1.12.641"
   lazy val aws = Seq(
     "aws-java-sdk-ses",
     "aws-java-sdk-dynamodb"
