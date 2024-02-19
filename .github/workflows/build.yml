@@ -13,6 +13,7 @@ jobs:
       contents: read
       checks: write
       issues: read
+      pull-requests: write
 
     steps:
       - uses: actions/checkout@v3
@@ -33,16 +34,14 @@ jobs:
         if: always() #runs even if there is a test failure
         with:
           files: junit-tests/*.xml
-      - uses: aws-actions/configure-aws-credentials@v1-node16
-        with:
-          aws-region: eu-west-1
-          role-to-assume: ${{secrets.GU_RIFF_RAFF_ROLE_ARN}}
 
-      - uses: guardian/actions-riff-raff@v2
+      - uses: guardian/actions-riff-raff@v4
         with:
           configPath: riff-raff.yaml
           projectName: Content Platforms::gibbons
           buildNumberOffset: 272
+          roleArn: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
           contentDirectories: |
             gibbons-reminder:
               - target/scala-2.12/gibbons.jar
