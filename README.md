@@ -1,5 +1,7 @@
 # Gibbons
 
+THIS HAS BEEN ARCHIVED AS IT HAS BEEN REPLACED BY [HOUSEKEYPER](https://github.com/guardian/capi-housekeyper)
+
 #### Because monkeys are somehow related to keys: Bonobo, Gibbons ¯\_(ツ)_/¯
 
 ## Overview
